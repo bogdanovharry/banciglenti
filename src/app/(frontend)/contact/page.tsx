@@ -1,0 +1,81 @@
+"use client";
+
+import { SectionNumber, Btn } from "@/components/ui/primitives";
+import { IconPhone, IconMail, IconFactory, IconArrowRight } from "@/components/ui/icons";
+
+function Input({ label, placeholder = "" }: { label: string; placeholder?: string }) {
+  return (
+    <label className="block">
+      <span className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">{label}</span>
+      <input placeholder={placeholder} className="w-full h-11 mt-1.5 px-3.5 border border-ink-15 font-sans text-sm outline-none bg-white focus:border-blue transition-colors" />
+    </label>
+  );
+}
+
+export default function ContactPage() {
+  return (
+    <div className="bg-paper">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 pb-[120px]">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-12 lg:gap-20">
+          {/* Left */}
+          <div>
+            <SectionNumber n="№ 09" label="Техническа поддръжка" />
+            <h1 className="font-display text-4xl md:text-6xl lg:text-[80px] leading-[0.95] tracking-[-0.04em] font-bold mt-6 mb-6 text-ink">
+              Свържи се с<br /><span className="italic text-orange font-medium">инженера.</span>
+            </h1>
+            <p className="font-sans text-[17px] leading-relaxed text-ink-70 max-w-[520px] mb-12">
+              Нашите инженери консултират безплатно: избор на лента, диагностика на проблеми, индивидуален проект. Работно време: Пн–Пт 8:00–17:30.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border border-ink-15 bg-white">
+              {[
+                { Icon: IconPhone, title: "066 800 822", desc: "Главен офис · Габрово" },
+                { Icon: IconPhone, title: "0878 800 162", desc: "Мобилен · 24/7" },
+                { Icon: IconMail, title: "tehnoles@tehnoles.com", desc: "Технически въпроси" },
+                { Icon: IconFactory, title: "ул. Негенска 2", desc: "5300 Габрово, България" },
+              ].map((item, i) => (
+                <div key={i} className={`p-6 ${i % 2 === 0 ? "sm:border-r border-ink-15" : ""} ${i < 2 ? "border-b border-ink-15" : ""}`}>
+                  <item.Icon size={22} className="text-orange" />
+                  <div className="font-display text-[17px] font-semibold mt-4 text-ink">{item.title}</div>
+                  <div className="font-mono text-[10px] text-ink-50 mt-1 tracking-[0.05em]">{item.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right — form */}
+          <div className="bg-white border border-ink-15 p-8 md:p-10">
+            <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50 mb-4">Запитване</div>
+            <h3 className="font-display text-[28px] font-bold m-0 mb-7 text-ink tracking-tight">Опишете задачата</h3>
+            <div className="flex flex-col gap-4">
+              <Input label="Име" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input label="Имейл" />
+                <Input label="Телефон" />
+              </div>
+              <Input label="Компания" />
+
+              <div>
+                <label className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">Индустрия</label>
+                <div className="grid grid-cols-3 gap-1.5 mt-2">
+                  {["Дърво", "Метал", "Храни", "Хоби", "Абразиви", "Друго"].map((t, i) => (
+                    <button key={t} className={`py-2.5 font-mono text-[11px] cursor-pointer border transition-colors ${i === 1 ? "bg-ink text-white border-ink" : "bg-white text-ink border-ink-15 hover:border-ink-30"}`}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <label className="block">
+                <span className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">Съобщение</span>
+                <textarea rows={5} className="w-full mt-1.5 p-3.5 border border-ink-15 font-sans text-sm outline-none resize-y focus:border-blue transition-colors" />
+              </label>
+
+              <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />}>Изпрати запитване</Btn>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
