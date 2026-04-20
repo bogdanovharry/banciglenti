@@ -1,101 +1,121 @@
 import Link from "next/link";
+import { Btn } from "@/components/ui/primitives";
+import { IconArrowRight } from "@/components/ui/icons";
+
+const columns = [
+  { title: "Продукти", links: [
+    { label: "Хоризонтални банцизи", href: "/category/horizontalni-bantsizi" },
+    { label: "Вертикални банцизи", href: "/category/vertikalni-bantsizi" },
+    { label: "Биметални ленти", href: "/category/bimetalni-lenti" },
+    { label: "Циркулярни триони", href: "/category/tsirkulyarni-trioni" },
+    { label: "Ножове за абрихт", href: "/category/nozhove-za-abriht" },
+    { label: "Машини", href: "/category/mashini" },
+  ]},
+  { title: "Индустрии", links: [
+    { label: "Дървообработка", href: "/category/dyrvo" },
+    { label: "Металообработка", href: "/category/metal" },
+    { label: "Хранителна индустрия", href: "/category/hrani" },
+    { label: "Хоби работилници", href: "/category/hobi-bantsig" },
+  ]},
+  { title: "Компания", links: [
+    { label: "За нас", href: "/about" },
+    { label: "Блог", href: "/blog" },
+    { label: "Сертификати", href: "/about" },
+    { label: "Контакти", href: "/contact" },
+  ]},
+  { title: "Клиенти", links: [
+    { label: "Доставка и плащане", href: "/delivery" },
+    { label: "Гаранция", href: "/terms" },
+    { label: "Условия", href: "/terms" },
+    { label: "Поверителност", href: "/privacy" },
+  ]},
+];
+
+const certs = ["TÜV NORD ISO 9001", "ISO 14001", "CE", "Сертифициран дистрибутор · Sandvik", "Member · EUWA"];
 
 export function Footer() {
   return (
-    <footer className="bg-primary-dark text-white">
-      {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          {/* Company Info */}
+    <footer className="bg-blue-deep text-white pt-20">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10">
+        {/* Top: wordmark + tagline */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-12 lg:gap-20 pb-16 border-b border-white/10">
           <div>
-            <h3 className="text-xl font-bold mb-4">ТЕХНОЛЕС ООД</h3>
-            <p className="text-white/80 text-sm mb-4">
-              гр. Габрово, ул. Негенска 2<br />
-              България
+            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-orange-light mb-6">
+              № 00 — Tehnoles Ltd. · est. 1993
+            </div>
+            <div className="font-display text-5xl md:text-7xl lg:text-[88px] leading-[0.95] font-extrabold tracking-[-0.04em]">
+              Режещи<br />инструменти,<br />
+              <span className="text-orange italic font-medium">направени точно.</span>
+            </div>
+          </div>
+          <div className="self-end pb-4">
+            <p className="font-sans text-[15px] leading-relaxed text-white/70 max-w-[380px]">
+              Над 30 години доставяме банцигови ленти, циркулярни триони и консумативи за дървообработка,
+              металообработка и хранителна индустрия в България и Балканите.
             </p>
-            <div className="space-y-2 text-sm">
-              <a href="tel:066800822" className="block text-white/80 hover:text-white">
-                📞 066 800 822
-              </a>
-              <a href="tel:066800823" className="block text-white/80 hover:text-white">
-                📞 066 800 823
-              </a>
-              <a href="tel:0878800162" className="block text-white/80 hover:text-white">
-                📱 0878 800 162
-              </a>
-              <a href="mailto:tehnoles@tehnoles.com" className="block text-white/80 hover:text-white">
-                ✉️ tehnoles@tehnoles.com
-              </a>
-            </div>
-            {/* Social */}
-            <div className="flex gap-3 mt-4">
-              <a
-                href="https://www.facebook.com/tehnoles"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/60 hover:text-white"
-                aria-label="Facebook"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              </a>
-              <a
-                href="https://www.youtube.com/@Tehnolesltd"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/60 hover:text-white"
-                aria-label="YouTube"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-              </a>
-            </div>
-          </div>
-
-          {/* Products */}
-          <div>
-            <h4 className="font-semibold mb-4">Продукти</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/category/horizontalni-bantsizi" className="text-white/70 hover:text-white">Хоризонтални банцизи</Link></li>
-              <li><Link href="/category/vertikalni-bantsizi" className="text-white/70 hover:text-white">Вертикални банцизи</Link></li>
-              <li><Link href="/category/tsirkulyarni-trioni" className="text-white/70 hover:text-white">Циркулярни триони</Link></li>
-              <li><Link href="/category/bimetalni-lenti" className="text-white/70 hover:text-white">Биметални ленти</Link></li>
-              <li><Link href="/category/hobi-bantsig" className="text-white/70 hover:text-white">Хоби банцизи</Link></li>
-              <li><Link href="/category/mashini" className="text-white/70 hover:text-white">Машини</Link></li>
-            </ul>
-          </div>
-
-          {/* Info */}
-          <div>
-            <h4 className="font-semibold mb-4">Информация</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/blog" className="text-white/70 hover:text-white">Блог</Link></li>
-              <li><Link href="/contact" className="text-white/70 hover:text-white">Контакти</Link></li>
-              <li><Link href="/about" className="text-white/70 hover:text-white">За нас</Link></li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h4 className="font-semibold mb-4">Правна информация</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/terms" className="text-white/70 hover:text-white">Условия за ползване</Link></li>
-              <li><Link href="/delivery" className="text-white/70 hover:text-white">Доставка и плащане</Link></li>
-              <li><Link href="/privacy" className="text-white/70 hover:text-white">Политика за поверителност</Link></li>
-            </ul>
-
-            <h4 className="font-semibold mt-6 mb-3">Начини на плащане</h4>
-            <div className="flex gap-2 text-sm text-white/60">
-              <span className="border border-white/20 rounded px-2 py-1">Visa</span>
-              <span className="border border-white/20 rounded px-2 py-1">MC</span>
-              <span className="border border-white/20 rounded px-2 py-1">COD</span>
+            <div className="mt-7 flex gap-3 flex-wrap">
+              <Link href="/contact">
+                <Btn variant="primary" size="md" iconRight={<IconArrowRight size={14} />}>Заяви по размер</Btn>
+              </Link>
+              <Link href="/contact">
+                <Btn variant="ghostLight" size="md">Технически съвет</Btn>
+              </Link>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-white/15">
-        <div className="max-w-7xl mx-auto px-4 py-4 text-center text-sm text-white/50">
-          © 2024–{new Date().getFullYear()} ТЕХНОЛЕС ООД. Всички права запазени. | www.banciglenti.com
+        {/* Columns */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-10 py-14">
+          {/* Office column */}
+          <div className="col-span-2 md:col-span-1 lg:col-span-1">
+            <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-4">Централен офис</div>
+            <div className="font-display text-lg font-semibold mb-1">ТЕХНОЛЕС ООД</div>
+            <div className="font-sans text-sm text-white/70 leading-relaxed">
+              гр. Габрово 5300<br />
+              ул. „Негенска" 2<br />
+              България
+            </div>
+            <div className="mt-5 flex flex-col gap-1.5 font-mono text-xs">
+              <a href="tel:066800822" className="text-white no-underline hover:text-orange-light transition-colors">+359 66 800 822</a>
+              <a href="tel:0878800162" className="text-white no-underline hover:text-orange-light transition-colors">+359 878 800 162</a>
+              <a href="mailto:tehnoles@tehnoles.com" className="text-orange-light no-underline hover:text-white transition-colors">tehnoles@tehnoles.com</a>
+            </div>
+          </div>
+
+          {/* Nav columns */}
+          {columns.map((col) => (
+            <div key={col.title}>
+              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-4">{col.title}</div>
+              <ul className="list-none m-0 p-0 flex flex-col gap-2.5">
+                {col.links.map((l) => (
+                  <li key={l.label}>
+                    <Link href={l.href} className="font-sans text-sm text-white/75 no-underline hover:text-white transition-colors">
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Certifications */}
+        <div className="flex flex-wrap items-center gap-6 py-6 border-t border-white/10">
+          <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50">Сертификати</div>
+          <div className="flex-1 flex gap-7 flex-wrap">
+            {certs.map((c) => (
+              <span key={c} className="font-mono text-[11px] tracking-[0.05em] text-white/60">{c}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t border-white/10 font-mono text-[11px] text-white/50 tracking-[0.04em]">
+          <div>© 1993–{new Date().getFullYear()} ТЕХНОЛЕС ООД · www.banciglenti.com · ДДС BG817088234</div>
+          <div className="flex gap-5">
+            <a href="https://www.facebook.com/tehnoles" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white no-underline transition-colors">Facebook</a>
+            <a href="https://www.youtube.com/@Tehnolesltd" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white no-underline transition-colors">YouTube</a>
+          </div>
         </div>
       </div>
     </footer>
