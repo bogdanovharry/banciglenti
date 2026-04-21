@@ -66,8 +66,34 @@ function FilterRange({ title, min, max }: { title: string; min: number; max: num
   );
 }
 
+const CATEGORY_FILTERS = [
+  { slug: "", label: "Всички", count: ALL_PRODUCTS.length },
+  { slug: "horizontalni-bantsizi", label: "Хоризонтални банцизи", count: ALL_PRODUCTS.filter(p => p.category === "horizontalni-bantsizi").length },
+  { slug: "hobi-bantsig", label: "Хоби банциг", count: ALL_PRODUCTS.filter(p => p.category === "hobi-bantsig").length },
+  { slug: "bimetalni-lenti", label: "Биметални ленти", count: ALL_PRODUCTS.filter(p => p.category === "bimetalni-lenti").length },
+  { slug: "tsirkulyarni-trioni", label: "Циркулярни триони", count: ALL_PRODUCTS.filter(p => p.category === "tsirkulyarni-trioni").length },
+  { slug: "nozhove-za-abriht", label: "Ножове за абрихт", count: ALL_PRODUCTS.filter(p => p.category === "nozhove-za-abriht").length },
+  { slug: "abrazivi", label: "Абразиви", count: ALL_PRODUCTS.filter(p => p.category === "abrazivi").length },
+  { slug: "mashini", label: "Машини", count: ALL_PRODUCTS.filter(p => p.category === "mashini").length },
+  { slug: "konsumativi", label: "Консумативи", count: ALL_PRODUCTS.filter(p => p.category === "konsumativi").length },
+];
+
 export default function ShopPage() {
   const [sort, setSort] = useState("Популярност");
+  const [activeCategory, setActiveCategory] = useState("");
+
+  const filteredProducts = activeCategory
+    ? PLP_PRODUCTS.filter(p => {
+        const original = ALL_PRODUCTS.find(op => op.slug === p.slug);
+        return original?.category === activeCategory;
+      })
+    : PLP_PRODUCTS;
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (sort === "Цена ↑") return a.price - b.price;
+    if (sort === "Цена ↓") return b.price - a.price;
+    return 0;
+  });
 
   return (
     <>
@@ -77,26 +103,14 @@ export default function ShopPage() {
           <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 flex gap-2 mb-6">
             <Link href="/" className="cursor-pointer text-ink-50 no-underline hover:text-ink">Начало</Link>
             <span>/</span>
-            <span className="text-ink">Биметални ленти M42</span>
+            <span className="text-ink">Каталог</span>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-10 lg:gap-16 items-end">
-            <div>
-              <h1 className="font-display text-4xl md:text-5xl lg:text-7xl leading-none tracking-[-0.04em] font-bold m-0 text-ink">
-                Биметални ленти <span className="italic text-orange font-medium">M42 HSS</span>
-              </h1>
-              <p className="font-sans text-base leading-relaxed text-ink-70 max-w-[580px] mt-6">
-                HSS зъб, пружинен гръб. За рязане на въглеродна, легирана, закалена стомана и инструментални профили до 68 HRC.
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-0 border-l border-ink-15">
-              {[["124", "артикула"], ["≤ 68", "HRC"], ["3 800+", "продажби"]].map(([v, l]) => (
-                <div key={l} className="px-4 py-3 border-r border-ink-15">
-                  <div className="font-display text-[28px] font-bold text-ink tracking-tight">{v}</div>
-                  <div className="font-mono text-[9px] text-ink-50 tracking-[0.12em] uppercase mt-1">{l}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl leading-none tracking-[-0.04em] font-bold m-0 text-ink">
+            Всички <span className="italic text-orange font-medium">продукти</span>
+          </h1>
+          <p className="font-sans text-base leading-relaxed text-ink-70 max-w-[580px] mt-4">
+            {sortedProducts.length} артикула от {ALL_PRODUCTS.length} в нашия каталог. Филтрирайте по категория или използвайте конфигуратора за поръчка по размер.
+          </p>
         </div>
       </div>
 
@@ -104,24 +118,21 @@ export default function ShopPage() {
       <div className="border-b border-ink-15 bg-white sticky top-[168px] z-30">
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-3.5 py-2 border border-ink-15 bg-white font-mono text-[11px] tracking-[0.08em] uppercase text-ink cursor-pointer">
-              <IconFilter size={14} /> Филтри · 4
-            </button>
-            <div className="hidden md:flex gap-2">
-              {["3810 мм", "27 мм", "M42", "На склад"].map((f) => (
-                <span key={f} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-paper font-mono text-[11px] text-ink">
-                  {f} <IconClose size={12} className="text-ink-50 cursor-pointer" />
-                </span>
-              ))}
-            </div>
+            {activeCategory && (
+              <button
+                onClick={() => setActiveCategory("")}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-paper font-mono text-[11px] text-ink cursor-pointer border-none"
+              >
+                {CATEGORY_FILTERS.find(c => c.slug === activeCategory)?.label} <IconClose size={12} className="text-ink-50" />
+              </button>
+            )}
+            <span className="font-mono text-[11px] text-ink-50">{sortedProducts.length} продукта</span>
           </div>
-          <div className="flex items-center gap-4 font-mono text-[11px] tracking-[0.05em] text-ink-50">
-            <span className="hidden md:inline">{PLP_PRODUCTS.length} от 124</span>
+          <div className="flex items-center gap-4">
             <select value={sort} onChange={(e) => setSort(e.target.value)} className="font-mono text-[11px] p-2 border border-ink-15 bg-white">
               <option>Популярност</option>
               <option>Цена ↑</option>
               <option>Цена ↓</option>
-              <option>Нови</option>
             </select>
           </div>
         </div>
@@ -131,13 +142,23 @@ export default function ShopPage() {
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-10 md:py-[40px] pb-20 md:pb-[120px] grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-10">
         {/* Sidebar */}
         <aside className="hidden lg:block">
-          <FilterGroup title="Индустрия" items={[["Метал", 48], ["Дърво", 32], ["Храни", 18], ["Абразиви", 26]]} />
-          <FilterGroup title="Материал" items={[["M42 HSS", 72], ["M51 Cobalt", 14], ["CS Hardback", 24], ["CS Flexback", 14]]} />
-          <FilterGroup title="Наличност" items={[["На склад", 98], ["По поръчка", 26]]} />
-          <FilterRange title="Дължина, мм" min={1650} max={12000} />
-          <FilterRange title="Широчина, мм" min={6} max={80} />
-          <FilterRange title="Цена, лв" min={10} max={280} />
-          <FilterGroup title="Марка" items={[["Tehnoles", 56], ["Sandvik", 32], ["Bahco", 18], ["Starrett", 12]]} />
+          {/* Category filter */}
+          <div className="mb-7 pb-7 border-b border-ink-15">
+            <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-4 font-semibold">Категория</h4>
+            <ul className="list-none m-0 p-0 flex flex-col gap-1">
+              {CATEGORY_FILTERS.map((cat) => (
+                <li key={cat.slug}>
+                  <button
+                    onClick={() => setActiveCategory(cat.slug)}
+                    className={`w-full text-left px-3 py-2 font-sans text-[13px] border-none cursor-pointer transition-colors flex justify-between items-center ${activeCategory === cat.slug ? "bg-ink text-white" : "bg-transparent text-ink-70 hover:bg-paper"}`}
+                  >
+                    <span>{cat.label}</span>
+                    <span className={`font-mono text-[11px] ${activeCategory === cat.slug ? "text-white/60" : "text-ink-50"}`}>{cat.count}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           {/* Configurator CTA in sidebar */}
           <Link href="/configurator" className="block no-underline">
@@ -173,7 +194,7 @@ export default function ShopPage() {
           </Link>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {PLP_PRODUCTS.map((p) => (
+            {sortedProducts.map((p) => (
               <ProductCard key={p.sku} p={p} compact />
             ))}
           </div>
