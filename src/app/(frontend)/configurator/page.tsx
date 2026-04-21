@@ -7,6 +7,12 @@ import { IconArrowRight, IconCheck, IconRuler } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import {
   VERTICAL_WOOD_BLADES,
+  HORIZONTAL_WOOD_BLADES,
+  METAL_BIMETAL_BLADES,
+  METAL_CARBON_BLADES,
+  MEAT_BLADES,
+  BREAD_BLADES,
+  TEXTILE_BLADES,
   calculateBladePrice,
   getUniqueValues,
   getOptionsForWidth,
@@ -140,8 +146,7 @@ function QuantityStepper({ value, onChange }: { value: number; onChange: (v: num
 
 // ===== Per-type configurator forms =====
 function WoodConfigurator({ type }: { type: "h" | "v" }) {
-  // Use real pricing data for vertical, placeholder for horizontal (data coming later)
-  const blades = type === "v" ? VERTICAL_WOOD_BLADES : VERTICAL_WOOD_BLADES; // TODO: add HORIZONTAL_WOOD_BLADES
+  const blades = type === "v" ? VERTICAL_WOOD_BLADES : HORIZONTAL_WOOD_BLADES;
 
   const { widths, brands: allBrands } = getUniqueValues(blades);
 
@@ -236,6 +241,86 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           </div>
           <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAdd}>
             {added ? "✓ Добавено в количката!" : "Добави в количката"}
+          </Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RealDataConfigurator({ blades, label, hasProcessing = false }: { blades: BladeConfig[]; label: string; hasProcessing?: boolean }) {
+  const { widths } = getUniqueValues(blades);
+  const [width, setWidth] = useState("");
+  const [thickness, setThickness] = useState("");
+  const [pitch, setPitch] = useState("");
+  const [brand, setBrand] = useState("");
+  const [length, setLength] = useState(0);
+  const [qty, setQty] = useState(1);
+  const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
+
+  const widthNum = parseFloat(width) || 0;
+  const thicknessNum = parseFloat(thickness) || 0;
+  const widthOptions = getOptionsForWidth(blades, widthNum);
+
+  // Auto-select brand if only one
+  const effectiveBrand = widthOptions.brands.length === 1 ? widthOptions.brands[0] : brand;
+  const availablePitches = effectiveBrand && widthNum && thicknessNum
+    ? getAvailablePitches(blades, widthNum, thicknessNum, effectiveBrand)
+    : [];
+
+  const selectedBlade = width && thickness && pitch && effectiveBrand
+    ? findBlade(blades, widthNum, thicknessNum, pitch, effectiveBrand)
+    : null;
+
+  const prices = selectedBlade && length > 0
+    ? calculateBladePrice(selectedBlade, length, { welding: selectedBlade.welding > 0, sharpening: false, heatTreatment: false, setting: false })
+    : null;
+
+  const unitPrice = prices?.totalWithoutVat ?? 0;
+  const unitPriceVat = prices?.totalWithVat ?? 0;
+
+  const handleWidthChange = (v: string) => { setWidth(v); setThickness(""); setPitch(""); setBrand(""); };
+  const handleThicknessChange = (v: string) => { setThickness(v); setPitch(""); };
+  const handleBrandChange = (v: string) => { setBrand(v); setPitch(""); };
+
+  const handleAdd = () => {
+    if (!selectedBlade || length <= 0) return;
+    addItem({
+      sku: `CUSTOM-${widthNum}x${thicknessNum}-${length}-${pitch}`,
+      name: label,
+      dim: `${length} × ${width} × ${thickness} мм · ${pitch} · ${effectiveBrand}`,
+      price: unitPrice,
+      quantity: qty,
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 lg:gap-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <Select label="Широчина" options={widths.map(String)} required value={width} onChange={handleWidthChange} />
+        <Select label="Дебелина" options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
+        {widthOptions.brands.length > 1 && (
+          <Select label="Марка" options={widthOptions.brands} required value={brand} onChange={handleBrandChange} />
+        )}
+        <Select label={availablePitches.some(p => p.includes("вълна") || p.includes("TPI") || p.includes("чистач")) ? "Профил и стъпка" : "Стъпка"} options={availablePitches} required value={pitch} onChange={setPitch} />
+      </div>
+      <div className="flex flex-col gap-5">
+        <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
+        <QuantityStepper value={qty} onChange={setQty} />
+        {selectedBlade && (
+          <div className="p-3 bg-paper font-mono text-[10px] text-ink-50 tracking-[0.05em]">
+            Цена/м: {selectedBlade.pricePerMeter.toFixed(2)} €
+            {selectedBlade.welding > 0 && <> · Заварка: {selectedBlade.welding.toFixed(2)} €/бр</>}
+          </div>
+        )}
+        <div className="mt-auto">
+          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: <span className="text-ink font-semibold">{unitPrice.toFixed(2)} € ({(unitPrice * BGN_RATE).toFixed(2)} лв.)</span></div>
+          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{unitPriceVat.toFixed(2)} € ({(unitPriceVat * BGN_RATE).toFixed(2)} лв.)</span></div>
+          <Btn variant="primary" size="lg" fullWidth onClick={handleAdd}>
+            {added ? "✓ Добавено!" : "Добави в количката"}
           </Btn>
         </div>
       </div>
@@ -412,12 +497,12 @@ export default function ConfiguratorPage() {
         {/* Form */}
         {(activeTab === "wood-h") && <WoodConfigurator type="h" />}
         {(activeTab === "wood-v") && <WoodConfigurator type="v" />}
-        {(activeTab === "metal-bi") && <MetalBiConfigurator />}
-        {(activeTab === "metal-cs") && <SimpleConfigurator widths={WIDTHS_METAL} />}
+        {(activeTab === "metal-bi") && <RealDataConfigurator blades={METAL_BIMETAL_BLADES} label="Биметална отрезна лента" hasProcessing={false} />}
+        {(activeTab === "metal-cs") && <RealDataConfigurator blades={METAL_CARBON_BLADES} label="Лента въглеродна стомана" hasProcessing={false} />}
         {(activeTab === "hobby") && <HobbyConfigurator />}
-        {(activeTab === "meat") && <SimpleConfigurator widths={WIDTHS_FOOD} pitchLabel="Профил и стъпка" pitchOptions={PROFILES_FOOD} />}
-        {(activeTab === "bread") && <SimpleConfigurator widths={WIDTHS_FOOD} pitchLabel="Профил и стъпка" pitchOptions={["Вълна", "Изпъкнала вълна", "Фини зъби"]} />}
-        {(activeTab === "slicer") && <SimpleConfigurator widths={WIDTHS_FOOD} pitchLabel="Профил и стъпка" pitchOptions={["Вълна", "Изпъкнала вълна", "Фини зъби 10 TPI", "4 TPI"]} />}
+        {(activeTab === "meat") && <RealDataConfigurator blades={MEAT_BLADES} label="Лентов нож за месо/риба" hasProcessing={false} />}
+        {(activeTab === "bread") && <RealDataConfigurator blades={BREAD_BLADES} label="Лентов нож за хляб" hasProcessing={false} />}
+        {(activeTab === "slicer") && <RealDataConfigurator blades={TEXTILE_BLADES} label="Лента за текстил/хартия" hasProcessing={false} />}
 
         {/* Trust section */}
         <div className="mt-14 pt-10 border-t border-ink-15 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
