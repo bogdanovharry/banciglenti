@@ -5,21 +5,29 @@ import { useState } from "react";
 import { SectionNumber, Placeholder, Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconFilter, IconClose, IconMinus, IconRuler, IconArrowRight } from "@/components/ui/icons";
+import { ALL_PRODUCTS } from "@/lib/products-data";
 
-const PLP_PRODUCTS: ProductCardData[] = [
-  { sku: "M42-3810-27-09", slug: "bimetalna-lenta-m42-hss", name: "Биметална лента M42 HSS", dim: "3810 × 27 × 0.9 мм · 3 TPI", price: 48.90, industry: "Метал", stock: "На склад", badge: "TOP" },
-  { sku: "M42-2750-20-09", slug: "bimetalna-lenta-m42-2750", name: "Биметална лента M42 HSS", dim: "2750 × 20 × 0.9 мм · 4 TPI", price: 36.20, industry: "Метал", stock: "На склад", badge: null },
-  { sku: "M51-5280-41-13", slug: "bimetalna-lenta-m51-cobalt", name: "Биметална лента M51 Cobalt", dim: "5280 × 41 × 1.3 мм · 2/3 TPI", price: 112.50, industry: "Метал", stock: "Изчерпан", badge: null },
-  { sku: "CS-2240-13-06", slug: "vyglerodna-cs-hardback", name: "Въглеродна CS Hardback", dim: "2240 × 13 × 0.65 мм · 6 TPI", price: 18.40, industry: "Дърво", stock: "На склад", badge: null },
-  { sku: "CS-3350-20-08", slug: "vyglerodna-cs-flexback", name: "Въглеродна CS Flexback", dim: "3350 × 20 × 0.8 мм · 3 TPI", price: 24.80, industry: "Дърво", stock: "На склад", badge: null },
-  { sku: "SL-2455-16-05", slug: "lenta-za-slaysyr-bizerba", name: "Лента за слайсър Bizerba", dim: "2455 × 16 × 0.5 мм · 4 TPI", price: 32.00, industry: "Храни", stock: "Ниска наличност", badge: "NEW" },
-  { sku: "CIR-350-72-30", slug: "tsirkulyaren-trion-hm-350", name: "Циркулярен трион HM", dim: "Ø350 × 3.2 · 72 зъба", price: 96.40, industry: "Дърво", stock: "На склад", badge: null },
-  { sku: "CIR-250-48-30", slug: "tsirkulyaren-trion-hm-250", name: "Циркулярен трион HM", dim: "Ø250 × 2.8 · 48 зъба", price: 64.20, industry: "Дърво", stock: "На склад", badge: null },
-  { sku: "CBN-200-3-10", slug: "cbn-zatochen-disk", name: "CBN заточен диск", dim: "Ø200 × 3 × 10 мм", price: 188.00, industry: "Абразиви", stock: "На склад", badge: null },
-  { sku: "DIA-150-2-12", slug: "diamanten-zatochen-disk", name: "Диамантен заточен диск", dim: "Ø150 × 2 × 12 мм", price: 142.00, industry: "Абразиви", stock: "На склад", badge: null },
-  { sku: "ABR-180-22-06", slug: "abraziven-nozh-za-abriht", name: "Абразивен нож за абрихт", dim: "180 × 22 × 6 мм", price: 38.00, industry: "Дърво", stock: "На склад", badge: null },
-  { sku: "M42-4570-34-11", slug: "bimetalna-lenta-m42-4570", name: "Биметална лента M42 HSS", dim: "4570 × 34 × 1.1 мм · 3 TPI", price: 74.50, industry: "Метал", stock: "На склад", badge: null },
-];
+const CATEGORY_MAP: Record<string, string> = {
+  "horizontalni-bantsizi": "Дърво",
+  "hobi-bantsig": "Хоби",
+  "bimetalni-lenti": "Метал",
+  "tsirkulyarni-trioni": "Дърво",
+  "nozhove-za-abriht": "Дърво",
+  "abrazivi": "Абразиви",
+  "mashini": "Машини",
+  "konsumativi": "Машини",
+};
+
+const PLP_PRODUCTS: ProductCardData[] = ALL_PRODUCTS.map((p) => ({
+  sku: p.slug,
+  slug: p.slug,
+  name: p.name,
+  dim: "",
+  price: p.price,
+  industry: CATEGORY_MAP[p.category] || "Друго",
+  stock: p.stock > 0 ? "На склад" as const : "Изчерпан" as const,
+  badge: p.topProduct ? "TOP" as const : null,
+}));
 
 function FilterGroup({ title, items }: { title: string; items: [string, number][] }) {
   return (
