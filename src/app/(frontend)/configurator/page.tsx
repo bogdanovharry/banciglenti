@@ -5,6 +5,16 @@ import Link from "next/link";
 import { SectionNumber, Btn, Tag } from "@/components/ui/primitives";
 import { IconArrowRight, IconCheck, IconRuler } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
+import {
+  VERTICAL_WOOD_BLADES,
+  calculateBladePrice,
+  getUniqueValues,
+  getOptionsForWidth,
+  getAvailablePitches,
+  findBlade,
+  BGN_RATE,
+  type BladeConfig,
+} from "@/lib/pricing";
 
 // ===== Configurator types =====
 type ConfigType = "wood-h" | "wood-v" | "metal-bi" | "metal-cs" | "hobby" | "meat" | "bread" | "slicer";
@@ -130,6 +140,11 @@ function QuantityStepper({ value, onChange }: { value: number; onChange: (v: num
 
 // ===== Per-type configurator forms =====
 function WoodConfigurator({ type }: { type: "h" | "v" }) {
+  // Use real pricing data for vertical, placeholder for horizontal (data coming later)
+  const blades = type === "v" ? VERTICAL_WOOD_BLADES : VERTICAL_WOOD_BLADES; // TODO: add HORIZONTAL_WOOD_BLADES
+
+  const { widths, brands: allBrands } = getUniqueValues(blades);
+
   const [width, setWidth] = useState("");
   const [thickness, setThickness] = useState("");
   const [pitch, setPitch] = useState("");
@@ -143,17 +158,38 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
 
-  const pricePerMeter = width && thickness ? 2.5 + parseFloat(width) * 0.08 : 0;
-  const extras = (welding ? 1.5 : 0) + (setting ? 0.8 : 0) + (sharpening ? 1.2 : 0) + (heatTreat ? 3.0 : 0);
-  const unitPrice = length > 0 ? (pricePerMeter * length / 1000) + extras : 0;
-  const totalPrice = unitPrice * qty;
+  // Cascading dropdowns
+  const widthNum = parseFloat(width) || 0;
+  const thicknessNum = parseFloat(thickness) || 0;
+  const widthOptions = getOptionsForWidth(blades, widthNum);
+  const availablePitches = brand && widthNum && thicknessNum
+    ? getAvailablePitches(blades, widthNum, thicknessNum, brand)
+    : [];
+
+  // Find selected blade config
+  const selectedBlade = width && thickness && pitch && brand
+    ? findBlade(blades, widthNum, thicknessNum, pitch, brand)
+    : null;
+
+  // Calculate price using real data
+  const prices = selectedBlade && length > 0
+    ? calculateBladePrice(selectedBlade, length, { welding, sharpening, heatTreatment: heatTreat, setting })
+    : null;
+
+  const unitPrice = prices?.totalWithoutVat ?? 0;
+  const unitPriceVat = prices?.totalWithVat ?? 0;
+
+  // Reset downstream when upstream changes
+  const handleWidthChange = (v: string) => { setWidth(v); setThickness(""); setPitch(""); setBrand(""); };
+  const handleThicknessChange = (v: string) => { setThickness(v); setPitch(""); };
+  const handleBrandChange = (v: string) => { setBrand(v); setPitch(""); };
 
   const handleAdd = () => {
-    if (unitPrice <= 0 || !width || !thickness || length <= 0) return;
+    if (!selectedBlade || length <= 0) return;
     addItem({
       sku: `CUSTOM-${type.toUpperCase()}-${width}x${thickness}-${length}`,
-      name: `Банцигова лента ${type === "h" ? "хоризонтален" : "вертикален"} банциг`,
-      dim: `${length} × ${width} × ${thickness} мм · ${pitch || "—"} · ${brand || "—"}`,
+      name: `Лента за дърво ${width}×${thickness} ${brand}`,
+      dim: `${length} × ${width} × ${thickness} мм · ${pitch} · ${brand}`,
       price: unitPrice,
       quantity: qty,
       customSpecs: { type: type === "h" ? "wood-horizontal" : "wood-vertical", length, width, thickness, pitch, brand, welding, setting, sharpening, heatTreatment: heatTreat },
@@ -166,10 +202,10 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-12">
       {/* Form */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Select label="Широчина" options={WIDTHS_WOOD} required value={width} onChange={setWidth} />
-        <Select label="Дебелина" options={THICKNESS_WOOD} required value={thickness} onChange={setThickness} />
-        <Select label="Стъпка" options={TOOTH_PITCH_WOOD} required value={pitch} onChange={setPitch} />
-        <Select label="Марка" options={BRANDS_WOOD} required value={brand} onChange={setBrand} />
+        <Select label="Широчина" options={widths.map(String)} required value={width} onChange={handleWidthChange} />
+        <Select label="Дебелина" options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
+        <Select label="Марка" options={widthNum ? widthOptions.brands : []} required value={brand} onChange={handleBrandChange} />
+        <Select label="Стъпка" options={availablePitches} required value={pitch} onChange={setPitch} />
         <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
         <QuantityStepper value={qty} onChange={setQty} />
       </div>
@@ -183,10 +219,20 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           <Checkbox label="Термообработка" checked={heatTreat} onChange={setHeatTreat} />
         </div>
 
+        {selectedBlade && (
+          <div className="p-3 bg-paper font-mono text-[10px] text-ink-50 tracking-[0.05em]">
+            Цена/м: {selectedBlade.pricePerMeter.toFixed(2)} €
+            {welding && <> · Заварка: {selectedBlade.welding.toFixed(2)} €/бр</>}
+            {sharpening && selectedBlade.sharpening > 0 && <> · Заточване: {selectedBlade.sharpening.toFixed(2)} €/м</>}
+            {heatTreat && selectedBlade.heatTreatment > 0 && <> · Термо: {selectedBlade.heatTreatment.toFixed(2)} €/м</>}
+            {setting && selectedBlade.setting > 0 && <> · Чапраз: {selectedBlade.setting.toFixed(2)} €/м</>}
+          </div>
+        )}
+
         <div className="mt-auto">
-          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: <span className="text-ink font-semibold">{unitPrice.toFixed(2)} € ({(unitPrice * 1.95583).toFixed(2)} лв.)</span></div>
+          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: <span className="text-ink font-semibold">{unitPrice.toFixed(2)} € ({(unitPrice * BGN_RATE).toFixed(2)} лв.)</span></div>
           <div className="font-sans text-lg mb-4">
-            цена с ДДС: <span className="text-danger text-2xl font-bold">{(unitPrice * 1.2).toFixed(2)} €</span> <span className="text-danger text-2xl font-bold">({(unitPrice * 1.2 * 1.95583).toFixed(2)} лв.)</span>
+            цена с ДДС: <span className="text-danger text-2xl font-bold">{unitPriceVat.toFixed(2)} €</span> <span className="text-danger text-2xl font-bold">({(unitPriceVat * BGN_RATE).toFixed(2)} лв.)</span>
           </div>
           <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAdd}>
             {added ? "✓ Добавено в количката!" : "Добави в количката"}
