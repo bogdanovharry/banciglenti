@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Placeholder, Tag, Btn } from "@/components/ui/primitives";
 import { IconArrowRight, IconHeart, IconMinus, IconPlus, IconTruck, IconShield, IconWrench, IconDoc } from "@/components/ui/icons";
+import { useCart } from "@/lib/cart";
 
 function SpecTable({ title, rows }: { title: string; rows: [string, string][] }) {
   return (
@@ -27,6 +28,20 @@ export default function ProductPage() {
   const [tab, setTab] = useState("specs");
   const [qty, setQty] = useState(1);
   const [variant, setVariant] = useState("3810×27");
+  const { addItem } = useCart();
+  const [added, setAdded] = useState(false);
+
+  const handleAddToCart = () => {
+    addItem({
+      sku: "M42-3810-27-09",
+      name: "Биметална лента M42 HSS",
+      dim: `${variant} мм · 3 TPI`,
+      price: 48.90,
+      quantity: qty,
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
 
   return (
     <div className="bg-white">
@@ -119,11 +134,11 @@ export default function ProductPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Link href="/cart" className="flex-1 no-underline">
-                  <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />}>
-                    Добави в количка · {(48.9 * qty).toFixed(2)} лв
+                <div className="flex-1">
+                  <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAddToCart}>
+                    {added ? "✓ Добавено!" : `Добави в количка · ${(48.9 * qty).toFixed(2)} лв`}
                   </Btn>
-                </Link>
+                </div>
                 <button className="w-14 h-14 border border-ink-15 bg-white cursor-pointer text-ink-70 flex items-center justify-center hover:text-ink transition-colors">
                   <IconHeart size={18} />
                 </button>

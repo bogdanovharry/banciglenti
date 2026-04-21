@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Placeholder, Tag } from "@/components/ui/primitives";
 import { IconHeart, IconPlus } from "@/components/ui/icons";
+import { useCart } from "@/lib/cart";
 
 export interface ProductCardData {
   name: string;
@@ -14,6 +17,7 @@ export interface ProductCardData {
 }
 
 export function ProductCard({ p, compact }: { p: ProductCardData; compact?: boolean }) {
+  const { addItem } = useCart();
   const stockColor =
     p.stock === "На склад" ? "text-ok" : p.stock === "Ниска наличност" ? "text-orange" : "text-ink-50";
 
@@ -59,7 +63,11 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
             </div>
             <button
               className="flex items-center gap-1.5 px-3 py-2 bg-ink text-white border-none cursor-pointer font-mono text-[10px] tracking-[0.1em] uppercase hover:bg-ink-80 transition-colors"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                addItem({ sku: p.sku, name: p.name, dim: p.dim, price: p.price, quantity: 1 });
+              }}
             >
               <IconPlus size={12} /> Добави
             </button>

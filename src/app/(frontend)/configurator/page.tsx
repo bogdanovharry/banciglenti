@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { SectionNumber, Btn, Tag } from "@/components/ui/primitives";
 import { IconArrowRight, IconCheck, IconRuler } from "@/components/ui/icons";
+import { useCart } from "@/lib/cart";
 
 // ===== Configurator types =====
 type ConfigType = "wood-h" | "wood-v" | "metal-bi" | "metal-cs" | "hobby" | "meat" | "bread" | "slicer";
@@ -139,12 +140,27 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const [setting, setSetting] = useState(true);
   const [sharpening, setSharpening] = useState(true);
   const [heatTreat, setHeatTreat] = useState(false);
+  const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
 
-  // Price calculation placeholder (real prices from DB)
   const pricePerMeter = width && thickness ? 2.5 + parseFloat(width) * 0.08 : 0;
   const extras = (welding ? 1.5 : 0) + (setting ? 0.8 : 0) + (sharpening ? 1.2 : 0) + (heatTreat ? 3.0 : 0);
   const unitPrice = length > 0 ? (pricePerMeter * length / 1000) + extras : 0;
   const totalPrice = unitPrice * qty;
+
+  const handleAdd = () => {
+    if (unitPrice <= 0 || !width || !thickness || length <= 0) return;
+    addItem({
+      sku: `CUSTOM-${type.toUpperCase()}-${width}x${thickness}-${length}`,
+      name: `Банцигова лента ${type === "h" ? "хоризонтален" : "вертикален"} банциг`,
+      dim: `${length} × ${width} × ${thickness} мм · ${pitch || "—"} · ${brand || "—"}`,
+      price: unitPrice,
+      quantity: qty,
+      customSpecs: { type: type === "h" ? "wood-horizontal" : "wood-vertical", length, width, thickness, pitch, brand, welding, setting, sharpening, heatTreatment: heatTreat },
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-12">
@@ -172,8 +188,8 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           <div className="font-sans text-lg mb-4">
             цена с ДДС: <span className="text-danger text-2xl font-bold">{(unitPrice * 1.2).toFixed(2)} €</span> <span className="text-danger text-2xl font-bold">({(unitPrice * 1.2 * 1.95583).toFixed(2)} лв.)</span>
           </div>
-          <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />}>
-            Добави в количката
+          <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAdd}>
+            {added ? "✓ Добавено в количката!" : "Добави в количката"}
           </Btn>
         </div>
       </div>

@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "../globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { CartProvider } from "@/lib/cart";
 
 const inter = localFont({
   src: [{ path: "../../fonts/inter-latin-cyrillic.woff2", weight: "300 800" }],
@@ -40,15 +41,17 @@ export default function FrontendLayout({
   return (
     <html lang="bg" className={`${inter.variable} ${jetbrains.variable}`}>
       <body className="font-sans antialiased text-ink bg-white">
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[10000] focus:bg-blue focus:text-white focus:px-6 focus:py-3"
-        >
-          Към съдържанието
-        </a>
-        <Header />
-        <main id="main-content">{children}</main>
-        <Footer />
+        <CartProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[10000] focus:bg-blue focus:text-white focus:px-6 focus:py-3"
+          >
+            Към съдържанието
+          </a>
+          <Header />
+          <main id="main-content">{children}</main>
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   );

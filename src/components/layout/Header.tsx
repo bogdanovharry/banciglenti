@@ -6,6 +6,7 @@ import {
   IconSearch, IconCart, IconPhone, IconMail, IconMenu, IconUser, IconHeart,
   IconChevron, IconWood, IconMetal, IconHobby, IconFood, IconMachine, IconRuler, IconClose,
 } from "@/components/ui/icons";
+import { useCart } from "@/lib/cart";
 
 const NAV_CATS = [
   {
@@ -60,6 +61,7 @@ export function Header() {
   const [open, setOpen] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { itemCount } = useCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -123,7 +125,7 @@ export function Header() {
             <HeaderIconBtn icon={<IconUser size={18} />} label="Профил" href="/account" />
             <HeaderIconBtn icon={<IconHeart size={18} />} label="Списък" badge={3} />
           </div>
-          <HeaderIconBtn icon={<IconCart size={18} />} label="Количка" badge={2} href="/cart" />
+          <HeaderIconBtn icon={<IconCart size={18} />} label="Количка" badge={itemCount || undefined} href="/cart" />
           {/* Mobile menu toggle */}
           <button
             className="md:hidden p-2 ml-2"
