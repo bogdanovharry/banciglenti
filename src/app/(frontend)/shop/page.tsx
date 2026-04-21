@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { SectionNumber, Placeholder } from "@/components/ui/primitives";
+import { SectionNumber, Placeholder, Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
-import { IconFilter, IconClose, IconMinus } from "@/components/ui/icons";
+import { IconFilter, IconClose, IconMinus, IconRuler, IconArrowRight } from "@/components/ui/icons";
 
 const PLP_PRODUCTS: ProductCardData[] = [
   { sku: "M42-3810-27-09", slug: "bimetalna-lenta-m42-hss", name: "Биметална лента M42 HSS", dim: "3810 × 27 × 0.9 мм · 3 TPI", price: 48.90, industry: "Метал", stock: "На склад", badge: "TOP" },
@@ -130,13 +130,45 @@ export default function ShopPage() {
           <FilterRange title="Широчина, мм" min={6} max={80} />
           <FilterRange title="Цена, лв" min={10} max={280} />
           <FilterGroup title="Марка" items={[["Tehnoles", 56], ["Sandvik", 32], ["Bahco", 18], ["Starrett", 12]]} />
+
+          {/* Configurator CTA in sidebar */}
+          <Link href="/configurator" className="block no-underline">
+            <div className="bg-ink text-white p-5 hover:bg-ink-80 transition-colors">
+              <div className="flex items-center gap-3 mb-3">
+                <IconRuler size={24} className="text-orange" />
+                <div className="font-display text-lg font-bold">Конфигуратор</div>
+              </div>
+              <p className="font-sans text-[13px] text-white/70 m-0 mb-4">
+                Не намирате вашия размер? Поръчайте лента по индивидуални размери.
+              </p>
+              <div className="flex items-center gap-2 font-mono text-[11px] tracking-[0.08em] uppercase text-orange">
+                Отвори конфигуратор <IconArrowRight size={12} />
+              </div>
+            </div>
+          </Link>
         </aside>
 
         {/* Products */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {PLP_PRODUCTS.map((p) => (
-            <ProductCard key={p.sku} p={p} compact />
-          ))}
+        <div>
+          {/* Configurator banner above products */}
+          <Link href="/configurator" className="no-underline block mb-6">
+            <div className="bg-paper border border-ink-15 p-5 flex items-center justify-between gap-4 hover:border-ink transition-colors">
+              <div className="flex items-center gap-4">
+                <IconRuler size={28} className="text-blue shrink-0" />
+                <div>
+                  <div className="font-display text-base font-bold text-ink">Поръчай лента по твоя размер</div>
+                  <div className="font-mono text-[11px] text-ink-50 mt-0.5 tracking-[0.04em]">8 типа ленти · Дължина от 1650 до 12000 мм · Изработка за 24ч</div>
+                </div>
+              </div>
+              <Btn variant="primary" size="sm" iconRight={<IconArrowRight size={12} />}>Конфигуратор</Btn>
+            </div>
+          </Link>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {PLP_PRODUCTS.map((p) => (
+              <ProductCard key={p.sku} p={p} compact />
+            ))}
+          </div>
         </div>
       </div>
     </>

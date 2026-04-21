@@ -81,7 +81,7 @@ export default function ProductPage() {
             <div className="mb-8">
               <div className="flex justify-between mb-3">
                 <label className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink-50">Размер · мм</label>
-                <Link href="/contact" className="font-mono text-[11px] text-orange underline">Друг размер →</Link>
+                <Link href="/configurator" className="font-mono text-[11px] text-orange underline">Друг размер → Конфигуратор</Link>
               </div>
               <div className="grid grid-cols-4 gap-1.5">
                 {["2750×20", "3350×27", "3810×27", "4570×34"].map((v) => (
