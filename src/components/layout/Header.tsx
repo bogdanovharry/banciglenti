@@ -8,36 +8,70 @@ import {
 } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 
-const NAV_CATS = [
+type NavItem = { label: string; href: string };
+type NavGroup = { group: string; items: NavItem[] };
+type NavCat = { name: string; href: string; Icon: typeof IconWood; children: NavGroup[] | null };
+
+const NAV_CATS: NavCat[] = [
   {
     name: "Дърво", href: "/category/dyrvo", Icon: IconWood,
     children: [
-      { group: "Банцигови ленти", items: ["Хоризонтални банцизи", "Вертикални банцизи", "Ленти по поръчка", "Ленти за трупорезачки"] },
-      { group: "Циркулярни", items: ["Циркулярни триони", "Ножове за абрихт", "Фрезови дискове"] },
-      { group: "Абразиви", items: ["Диаманти", "CBN дискове", "Заточни камъни"] },
+      { group: "Банцигови ленти", items: [
+        { label: "Хоризонтални банцизи", href: "/category/horizontalni-bantsizi" },
+        { label: "Вертикални банцизи", href: "/category/vertikalni-bantsizi" },
+        { label: "Ленти по поръчка", href: "/configurator" },
+      ]},
+      { group: "Циркулярни", items: [
+        { label: "Циркулярни триони", href: "/category/tsirkulyarni-trioni" },
+        { label: "Ножове за абрихт", href: "/category/nozhove-za-abriht" },
+      ]},
+      { group: "Абразиви", items: [
+        { label: "Диаманти и CBN", href: "/category/abrazivi" },
+        { label: "Заточни камъни", href: "/category/abrazivi" },
+      ]},
     ],
   },
   {
     name: "Метал", href: "/category/metal", Icon: IconMetal,
     children: [
-      { group: "Биметални ленти", items: ["M42 HSS", "M51 Cobalt", "Shark", "По поръчка"] },
-      { group: "Въглеродна стомана", items: ["CS Standard", "CS Hardback", "CS Flexback"] },
+      { group: "Биметални ленти", items: [
+        { label: "M42 HSS", href: "/category/bimetalni-lenti" },
+        { label: "M51 / M90", href: "/category/bimetalni-lenti" },
+        { label: "По поръчка", href: "/configurator" },
+      ]},
+      { group: "Въглеродна стомана", items: [
+        { label: "CS Flexback", href: "/category/vyglerodna-lenti-cs" },
+        { label: "CS Hardback", href: "/category/vyglerodna-lenti-cs" },
+      ]},
     ],
   },
   { name: "Хоби банциг", href: "/category/hobi-bantsig", Icon: IconHobby, children: null },
   {
     name: "Храни", href: "/category/hrani", Icon: IconFood,
     children: [
-      { group: "За месо и риба", items: ["Ленти за месо", "Ленти за риба", "Резервни части"] },
-      { group: "Хлебни изделия", items: ["Ленти за хляб", "Назъбени ножове"] },
-      { group: "Слайсъри", items: ["Bizerba", "Berkel", "Ножове за слайсъри"] },
+      { group: "Месо и риба", items: [
+        { label: "Ленти за месо", href: "/category/meso-i-riba" },
+        { label: "Ленти за риба", href: "/category/meso-i-riba" },
+      ]},
+      { group: "Хлебни изделия", items: [
+        { label: "Ленти за хляб", href: "/category/hlebni-izdeliya" },
+      ]},
+      { group: "Слайсъри", items: [
+        { label: "Bizerba", href: "/category/slicers" },
+        { label: "Berkel", href: "/category/slicers" },
+      ]},
     ],
   },
   {
     name: "Машини", href: "/category/mashini", Icon: IconMachine,
     children: [
-      { group: "Оборудване", items: ["Заточни машини", "Лентови триони", "Слайсъри"] },
-      { group: "Консумативи", items: ["Резервни части", "Масла и охладители"] },
+      { group: "Оборудване", items: [
+        { label: "Заточни машини", href: "/category/mashini" },
+      ]},
+      { group: "Консумативи", items: [
+        { label: "Резервни части", href: "/category/konsumativi" },
+        { label: "Гърбици и измервателни уреди", href: "/category/konsumativi" },
+      ]},
     ],
   },
 ];
@@ -171,9 +205,9 @@ export function Header() {
                         </div>
                         <ul className="list-none p-0 m-0 flex flex-col gap-2">
                           {grp.items.map((it) => (
-                            <li key={it}>
-                              <Link href="/shop" className="font-sans text-[13px] text-ink-70 no-underline hover:text-ink transition-colors">
-                                {it}
+                            <li key={it.label}>
+                              <Link href={it.href} className="font-sans text-[13px] text-ink-70 no-underline hover:text-ink transition-colors">
+                                {it.label}
                               </Link>
                             </li>
                           ))}
@@ -226,8 +260,8 @@ export function Header() {
                       <div key={grp.group} className="mb-2">
                         <div className="font-mono text-[9px] tracking-[0.12em] uppercase text-ink-50 mb-1">{grp.group}</div>
                         {grp.items.map((it) => (
-                          <Link key={it} href="/shop" className="block py-1 pl-4 text-[13px] text-ink-70 no-underline" onClick={() => setMobileOpen(false)}>
-                            {it}
+                          <Link key={it.label} href={it.href} className="block py-1 pl-4 text-[13px] text-ink-70 no-underline" onClick={() => setMobileOpen(false)}>
+                            {it.label}
                           </Link>
                         ))}
                       </div>
