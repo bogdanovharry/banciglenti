@@ -184,8 +184,8 @@ export function Header() {
             );
           })}
 
-          <Link href="/contact" className="flex items-center gap-2 px-[18px] h-12 font-sans text-[13px] font-medium text-orange no-underline">
-            <IconRuler size={16} /> Поръчай по размер
+          <Link href="/configurator" className="flex items-center gap-2 px-[18px] h-12 font-sans text-[13px] font-medium text-orange no-underline hover:brightness-110 transition-all">
+            <IconRuler size={16} /> Конфигуратор
           </Link>
 
           <div className="flex-1" />

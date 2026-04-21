@@ -24,7 +24,7 @@ function HeroCustom() {
             Произвеждаме и заваряваме банцигови ленти по индивидуални размери за дърво, метал и хранителна промишленост — от 1&nbsp;650 до 12&nbsp;000&nbsp;мм, за 24&nbsp;часа.
           </p>
           <div className="flex gap-3 items-center flex-wrap">
-            <Link href="/contact"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Конфигурирай лента</Btn></Link>
+            <Link href="/configurator"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Конфигурирай лента</Btn></Link>
             <Link href="/shop"><Btn variant="ghost" size="lg">Разгледай каталог</Btn></Link>
           </div>
           {/* Spec rail */}
@@ -70,7 +70,7 @@ function HeroCustom() {
                 <div className="font-mono text-[10px] text-white/50 tracking-[0.1em] uppercase">от</div>
                 <div className="font-display text-[28px] font-bold">48.90 лв<span className="text-xs text-white/50 font-normal ml-1">/бр</span></div>
               </div>
-              <Link href="/contact"><Btn variant="primary" size="md">Отвори конфигуратор</Btn></Link>
+              <Link href="/configurator"><Btn variant="primary" size="md">Отвори конфигуратор</Btn></Link>
             </div>
           </div>
           <div className="absolute -top-2.5 -left-2.5 font-mono text-[9px] text-ink-50 tracking-[0.15em]">TL · SPEC-01</div>
