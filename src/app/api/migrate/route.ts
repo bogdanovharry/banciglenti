@@ -1,49 +1,31 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
-
   try {
-    const client = await pool.connect();
+    const { getPayload } = await import("payload");
+    const config = (await import("@payload-config")).default;
 
-    // Drop ALL existing tables so Payload can recreate them properly
-    await client.query(`
-      DO $$ DECLARE
-        r RECORD;
-      BEGIN
-        FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-          EXECUTE 'DROP TABLE IF EXISTS "' || r.tablename || '" CASCADE';
-        END LOOP;
-      END $$;
-    `);
+    // This will initialize Payload and with push:true it should create/sync tables
+    const payload = await getPayload({ config });
 
-    // Also drop enums
-    await client.query(`
-      DO $$ DECLARE
-        r RECORD;
-      BEGIN
-        FOR r IN (SELECT typname FROM pg_type WHERE typtype = 'e' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')) LOOP
-          EXECUTE 'DROP TYPE IF EXISTS "' || r.typname || '" CASCADE';
-        END LOOP;
-      END $$;
-    `);
-
-    client.release();
-    await pool.end();
+    // If we get here, tables were created
+    const users = await payload.find({ collection: "users", limit: 1 });
 
     return NextResponse.json({
       status: "ok",
-      message: "All tables dropped. Now redeploy to let Payload recreate them with push:true, or visit /admin which will trigger schema creation.",
+      message: "Payload initialized successfully! Tables are ready.",
+      usersCount: users.totalDocs,
+      nextStep: users.totalDocs === 0
+        ? "Visit /admin to create your first admin user, then /api/seed to populate data"
+        : "Visit /admin to login",
     });
   } catch (error) {
-    await pool.end();
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return NextResponse.json({
+      status: "error",
+      error: String(error).substring(0, 500),
+    }, { status: 500 });
   }
 }
