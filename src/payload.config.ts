@@ -1,7 +1,6 @@
 import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import { seoPlugin } from '@payloadcms/plugin-seo'
 import sharp from 'sharp'
 
 import { Products } from './payload/collections/Products'
@@ -40,20 +39,10 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
     },
-    push: true, // Auto-create tables in development/first deploy
+    push: true,
   }),
   sharp,
   typescript: {
     outputFile: 'src/payload-types.ts',
   },
-  plugins: [
-    seoPlugin({
-      collections: ['products', 'articles', 'pages'],
-      uploadsCollection: 'media',
-      generateTitle: ({ doc }: { doc: Record<string, unknown> }) =>
-        `${doc?.title || doc?.name || 'ТЕХНОЛЕС'} | Банциг ленти и режещи инструменти`,
-      generateDescription: ({ doc }: { doc: Record<string, unknown> }) =>
-        (doc?.shortDescription as string) || (doc?.description as string) || '',
-    }),
-  ],
 })
