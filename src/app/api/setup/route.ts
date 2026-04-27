@@ -34,9 +34,10 @@ export async function GET(request: Request) {
 
   if (step === "init") {
     try {
-      // FORCE push by temporarily setting NODE_ENV to development
-      // (Payload only runs push:true when NODE_ENV !== 'production')
+      // FORCE push: Payload checks NODE_ENV !== 'production' AND push !== false
+      // Also set PAYLOAD_FORCE_DRIZZLE_PUSH to bypass schema comparison
       (process.env as Record<string, string>).NODE_ENV = "development";
+      (process.env as Record<string, string>).PAYLOAD_FORCE_DRIZZLE_PUSH = "true";
 
       const { getPayload } = await import("payload");
       const config = (await import("@payload-config")).default;
