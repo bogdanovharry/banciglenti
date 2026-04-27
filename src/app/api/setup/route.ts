@@ -34,16 +34,16 @@ export async function GET(request: Request) {
 
   if (step === "init") {
     try {
-      // FORCE push by temporarily setting NODE_ENV
-      const origEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "development";
+      // FORCE push by temporarily setting NODE_ENV to development
+      // (Payload only runs push:true when NODE_ENV !== 'production')
+      (process.env as Record<string, string>).NODE_ENV = "development";
 
       const { getPayload } = await import("payload");
       const config = (await import("@payload-config")).default;
       const payload = await getPayload({ config });
 
       // Restore
-      process.env.NODE_ENV = origEnv;
+      (process.env as Record<string, string>).NODE_ENV = "production";
 
       // Create admin
       const existing = await payload.find({ collection: "users", limit: 1 });
