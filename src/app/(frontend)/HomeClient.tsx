@@ -11,6 +11,9 @@ import {
   HORIZONTAL_WOOD_BLADES,
   VERTICAL_WOOD_BLADES,
   METAL_BIMETAL_BLADES,
+  METAL_CARBON_BLADES,
+  MEAT_BLADES,
+  BREAD_BLADES,
   calculateBladePrice,
   getUniqueValues,
   getOptionsForWidth,
@@ -567,28 +570,147 @@ function ExpertiseBlock() {
   );
 }
 
-// ========== BRANDS ==========
-function BrandsBlock() {
-  const brands = ["MasterGold", "Sandvik", "Hermes", "Tyrolit", "Böhler", "Kodiak", "Flamme", "Bahco", "Starrett", "Bizerba", "Berkel", "Tehnoles"];
+// ========== SERVICES ==========
+/**
+ * Replaces a wall of twelve identical brand boxes. Six of those names — Sandvik,
+ * Hermes, Flamme, Bahco, Starrett, Berkel — appear nowhere in the catalogue, so
+ * the block asserted distribution agreements we cannot show a single product
+ * for, and it gave a visitor nothing to do.
+ *
+ * The shop floor work is the better story and it was invisible on the site:
+ * welding, sharpening, setting and heat treatment are priced per metre in the
+ * same tables the quote card uses. Every "от" figure below is the real minimum
+ * across those tables, so it moves when the price list moves.
+ */
+const SERVICE_TABLES = [
+  HORIZONTAL_WOOD_BLADES,
+  VERTICAL_WOOD_BLADES,
+  METAL_BIMETAL_BLADES,
+  METAL_CARBON_BLADES,
+  MEAT_BLADES,
+  BREAD_BLADES,
+].flat();
+
+/** Lowest non-zero rate for a service across the whole price list. */
+function minRate(key: "welding" | "sharpening" | "setting" | "heatTreatment") {
+  const rates = SERVICE_TABLES.map((b) => b[key]).filter((n) => n > 0);
+  return rates.length ? Math.min(...rates) : 0;
+}
+
+const SERVICES = [
+  {
+    name: "Заваряване по размер",
+    detail: "Индукционно заваряване и shot-blasting на шева. Всяка дължина между 1 650 и 12 000 мм.",
+    unit: "на брой",
+    rate: minRate("welding"),
+    tag: "24ч",
+  },
+  {
+    name: "Заточване",
+    detail: "CBN и диамантени дискове. Възстановява геометрията на зъба вместо да купувате нова лента.",
+    unit: "на метър",
+    rate: minRate("sharpening"),
+    tag: null,
+  },
+  {
+    name: "Чапраз",
+    detail: "Разводка по спецификация на машината — определя ширината на реза и правотата.",
+    unit: "на метър",
+    rate: minRate("setting"),
+    tag: null,
+  },
+  {
+    name: "Термообработка",
+    detail: "Отпускане на гърба след заваряване. Удължава живота на лентата при тежък режим.",
+    unit: "на метър",
+    rate: minRate("heatTreatment"),
+    tag: null,
+  },
+];
+
+function ServicesBlock() {
   return (
-    <section className="bg-white py-[100px] border-t border-b border-ink-15">
+    <section className="bg-blue-deep text-white py-20 md:py-[120px] relative overflow-hidden">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
-        <Reveal className="text-center mb-12">
-          <SectionNumber n="№ 06" label="Оторизиран дистрибутор" />
-        </Reveal>
-        <div className="grid grid-cols-3 md:grid-cols-6 border border-ink-15">
-          {brands.map((b, i) => (
-            <div
-              key={b}
-              className={`py-9 px-4 text-center font-display text-lg md:text-[22px] font-bold text-ink-70 tracking-tight hover:text-ink transition-colors
-                ${(i + 1) % 6 !== 0 ? "md:border-r md:border-ink-15" : ""}
-                ${(i + 1) % 3 !== 0 ? "border-r border-ink-15" : ""}
-                ${i < 6 ? "border-b border-ink-15" : ""}
-              `}
-            >
-              {b}
+        <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-10 lg:gap-16 items-stretch">
+          {/* Photograph carries the left column full-bleed to the section edge */}
+          <Reveal className="relative min-h-[320px] lg:min-h-full">
+            <Image
+              src="/images/hero/punching.webp"
+              alt="Заточване на циркулярен диск в цеха"
+              fill
+              sizes="(max-width: 1024px) 100vw, 40vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-blue mix-blend-color opacity-60" />
+            <div className="absolute inset-0 bg-gradient-to-t from-blue-deep/85 via-blue-deep/20 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-7">
+              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/60 mb-2">
+                Цех · Габрово
+              </div>
+              <div className="font-display text-2xl font-bold tracking-tight">
+                Носите лентата. Връщате я в работа.
+              </div>
             </div>
-          ))}
+          </Reveal>
+
+          <div>
+            <Reveal>
+              <SectionNumber n="№ 06" label="Услуги в цеха" tone="light" />
+              <h2 className="font-display text-4xl md:text-5xl lg:text-[56px] leading-none tracking-[-0.035em] font-bold mt-7 mb-5">
+                Не само продаваме.<br />
+                <span className={`${accent} text-orange-light`}>Обработваме.</span>
+              </h2>
+              <p className="font-sans text-[17px] leading-relaxed text-white/70 max-w-[520px] mb-10">
+                Заточена лента реже като нова на част от цената. Цените са от актуалния ценоразпис —
+                точната сума зависи от широчината и дължината.
+              </p>
+            </Reveal>
+
+            <Reveal delay={80} y={0} className="tl-stagger border-t border-white/15">
+              {SERVICES.map((s) => (
+                <div
+                  key={s.name}
+                  className="group grid grid-cols-[1fr_auto] gap-6 items-baseline py-6 border-b border-white/15"
+                >
+                  <div>
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <h3 className="font-display text-xl md:text-[22px] font-semibold tracking-tight m-0">
+                        {s.name}
+                      </h3>
+                      {s.tag && (
+                        <span className="font-mono text-[9px] tracking-[0.12em] uppercase bg-orange text-white px-1.5 py-0.5">
+                          {s.tag}
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-sans text-[14px] leading-snug text-white/60 m-0 max-w-[46ch]">
+                      {s.detail}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="font-mono text-[9px] tracking-[0.12em] uppercase text-white/45">от</div>
+                    <div className="font-display text-2xl md:text-[26px] font-bold tracking-tight tabular-nums leading-none mt-0.5">
+                      {s.rate.toFixed(2)}
+                      <span className="text-sm font-normal text-white/50 ml-1">€</span>
+                    </div>
+                    <div className="font-mono text-[9px] text-white/45 mt-1">{s.unit}</div>
+                  </div>
+                </div>
+              ))}
+            </Reveal>
+
+            <div className="mt-8 flex gap-3 flex-wrap">
+              <Link href="/contact">
+                <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>
+                  Заяви обработка
+                </Btn>
+              </Link>
+              <a href="tel:066800822">
+                <Btn variant="ghostLight" size="lg" icon={<IconPhone size={16} />}>066 800 822</Btn>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -641,21 +763,73 @@ function BlogTeaser() {
 }
 
 // ========== CONTACT CTA ==========
+/**
+ * The number is the interface. This used to be a flat orange band with a
+ * headline and two buttons of equal weight, which buried the one action that
+ * closes a custom order — a phone call to someone who can size a blade.
+ * The photograph sits under the orange as a multiply layer so the panel reads
+ * as the workshop rather than as a coloured rectangle.
+ */
 function ContactCTA() {
   return (
-    <section className="bg-orange text-white py-16 md:py-20">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10 grid grid-cols-1 lg:grid-cols-[2fr_1fr] items-center gap-10">
-        <Reveal>
-          <div className="font-mono text-[11px] tracking-[0.15em] uppercase opacity-80 mb-3">№ 08 — Техническа поддръжка</div>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-[56px] leading-none tracking-[-0.035em] font-bold m-0">
-            Търсите размер, който не е в каталога? Обадете се.
-          </h2>
-        </Reveal>
-        <div className="flex flex-col gap-3">
-          <a href="tel:066800822" className="flex items-center gap-3 p-[18px] px-6 bg-ink text-white no-underline font-mono text-[15px] tracking-[0.05em] hover:brightness-110 transition-all">
-            <IconPhone size={18} /> 066 800 822
-          </a>
-          <Link href="/contact"><Btn variant="ghostLight" size="lg" className="w-full !border-white/40">Контактна форма</Btn></Link>
+    <section className="relative isolate bg-orange text-white overflow-hidden">
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src="/images/hero/man_working_bandsaw_blades.avif"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-orange mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-r from-orange via-orange/90 to-orange/55" />
+      </div>
+
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 md:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-12 lg:gap-20 items-end">
+          <Reveal>
+            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-white/75 mb-4">
+              № 08 — Техническа поддръжка
+            </div>
+            <h2 className="font-display text-3xl md:text-4xl lg:text-[52px] leading-[1.02] tracking-[-0.035em] font-bold m-0 max-w-[16ch]">
+              Търсите размер, който не е в каталога?
+            </h2>
+            <p className="font-sans text-[16px] leading-relaxed text-white/80 max-w-[440px] mt-5">
+              Инженер вдига телефона и оразмерява лентата с вас. Безплатно, включително ако
+              машината е стара и няма маркировка.
+            </p>
+          </Reveal>
+
+          {/* Call panel — the number set as display type, not as a button label */}
+          <Reveal delay={120} className="w-full lg:w-auto">
+            <div className="bg-ink text-white p-7 md:p-8 lg:min-w-[380px]">
+              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-3">
+                Пряка линия · Пн–Пт 8:00–17:30
+              </div>
+              <a
+                href="tel:066800822"
+                className="group flex items-center gap-3 no-underline text-white"
+              >
+                <IconPhone size={26} className="text-orange shrink-0 transition-transform duration-300 group-hover:-rotate-12" />
+                <span className="font-display text-[34px] md:text-[40px] font-extrabold tracking-tight tabular-nums leading-none group-hover:text-orange-light transition-colors">
+                  066 800 822
+                </span>
+              </a>
+              <a
+                href="tel:0878800162"
+                className="block font-mono text-[13px] text-white/60 hover:text-white no-underline mt-3 tabular-nums transition-colors"
+              >
+                +359 878 800 162 · мобилен
+              </a>
+              <div className="mt-6 pt-6 border-t border-white/15">
+                <Link href="/contact" className="block">
+                  <Btn variant="ghostLight" size="md" fullWidth iconRight={<IconArrowRight size={14} />}>
+                    Или изпратете запитване
+                  </Btn>
+                </Link>
+              </div>
+            </div>
+          </Reveal>
         </div>
       </div>
     </section>
@@ -678,7 +852,7 @@ export function HomeClient({
       <CustomOrderBlock />
       <BestsellersBlock products={bestsellers} />
       <ExpertiseBlock />
-      <BrandsBlock />
+      <ServicesBlock />
       <BlogTeaser />
       <ContactCTA />
     </>

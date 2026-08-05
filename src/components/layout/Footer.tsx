@@ -37,24 +37,45 @@ export function Footer() {
   return (
     <footer className="bg-blue-deep text-white pt-20">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
-        {/* Top: wordmark + tagline */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-12 lg:gap-20 pb-16 border-b border-white/10">
+        {/* Top: wordmark + tagline.
+            The tagline was set in orange italic at 88px, the only italic on the
+            site — the June pass replaced that treatment with heavy upright
+            everywhere else and the footer was missed. Scale comes down so the
+            footer reads as a close, not as a second hero, and a measured rail
+            of facts carries the credibility instead of a slab of display type. */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-12 lg:gap-20 pb-14 border-b border-white/10">
           <div>
-            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-orange-light mb-6">
+            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-orange-light mb-5">
               № 00 — Tehnoles Ltd. · est. 1993
             </div>
-            <div className="font-display text-5xl md:text-7xl lg:text-[88px] leading-[0.95] font-extrabold tracking-[-0.04em]">
-              Режещи<br />инструменти,<br />
-              <span className="text-orange italic font-medium">направени точно.</span>
+            <div className="font-display text-4xl md:text-5xl lg:text-[56px] leading-[1.02] font-extrabold tracking-[-0.035em]">
+              Режещи инструменти,<br />
+              <span className="text-orange">направени точно.</span>
             </div>
+
+            {/* Verifiable facts, set as data rather than as prose */}
+            <dl className="mt-9 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-5 max-w-[520px]">
+              {[
+                ["1993", "основана"],
+                ["Габрово", "цех и склад"],
+                ["24ч", "изработка"],
+                ["БГ + Балкани", "доставка"],
+              ].map(([v, l]) => (
+                <div key={l}>
+                  <dt className="font-display text-lg font-bold tracking-tight tabular-nums">{v}</dt>
+                  <dd className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/50 mt-1 m-0">{l}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
-          <div className="self-end pb-4">
+
+          <div className="self-end">
             <p className="font-sans text-[15px] leading-relaxed text-white/70 max-w-[380px]">
               Над 30 години доставяме банцигови ленти, циркулярни триони и консумативи за дървообработка,
               металообработка и хранителна индустрия в България и Балканите.
             </p>
             <div className="mt-7 flex gap-3 flex-wrap">
-              <Link href="/contact">
+              <Link href="/configurator">
                 <Btn variant="primary" size="md" iconRight={<IconArrowRight size={14} />}>Заяви по размер</Btn>
               </Link>
               <Link href="/contact">
@@ -72,7 +93,7 @@ export function Footer() {
             <div className="font-display text-lg font-semibold mb-1">ТЕХНОЛЕС ООД</div>
             <div className="font-sans text-sm text-white/70 leading-relaxed">
               гр. Габрово 5300<br />
-              ул. „Негенска" 2<br />
+              ул. „Негенска“ 2<br />
               България
             </div>
             <div className="mt-5 flex flex-col gap-1.5 font-mono text-xs">

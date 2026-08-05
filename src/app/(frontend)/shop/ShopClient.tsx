@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
@@ -73,10 +74,15 @@ export function ShopClient({
   products: ShopProduct[];
   filters: ShopFilter[];
 }) {
+  // Deep links land pre-filtered: /shop?brand=Einhell&category=hobi-bantsig.
+  // Read once as the initial state so the controls stay the source of truth
+  // afterwards and a user's clicks are never overwritten by the URL.
+  const params = useSearchParams();
+
   const [sort, setSort] = useState("Популярност");
-  const [activeCategory, setActiveCategory] = useState("");
-  const [materials, setMaterials] = useState<string[]>([]);
-  const [brands, setBrands] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState(() => params.get("category") ?? "");
+  const [materials, setMaterials] = useState<string[]>(() => params.getAll("material"));
+  const [brands, setBrands] = useState<string[]>(() => params.getAll("brand"));
   const [inStockOnly, setInStockOnly] = useState(false);
   // Width is how buyers actually search — they know what their machine takes.
   const [widthMin, setWidthMin] = useState("");

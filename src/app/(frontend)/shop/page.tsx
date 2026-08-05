@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { getCategories, getCategoryCounts, getProducts } from "@/lib/catalog";
 import { ShopClient, type ShopFilter } from "./ShopClient";
@@ -35,22 +36,27 @@ export default async function ShopPage() {
   ];
 
   return (
-    <ShopClient
-      products={products.map((p) => ({
-        sku: p.sku,
-        slug: p.slug,
-        name: p.name,
-        dim: p.dim,
-        price: p.price,
-        industry: p.industry,
-        stock: p.stock,
-        badge: p.badge,
-        categorySlugs: p.categorySlugs,
-        specs: p.specs,
-        brandName: p.brandName,
-        stockCount: p.stockCount,
-      }))}
-      filters={filters}
-    />
+    // ShopClient reads the query string for deep links; the Suspense boundary
+    // keeps the surrounding page prerenderable rather than forcing the whole
+    // route dynamic.
+    <Suspense fallback={null}>
+      <ShopClient
+        products={products.map((p) => ({
+          sku: p.sku,
+          slug: p.slug,
+          name: p.name,
+          dim: p.dim,
+          price: p.price,
+          industry: p.industry,
+          stock: p.stock,
+          badge: p.badge,
+          categorySlugs: p.categorySlugs,
+          specs: p.specs,
+          brandName: p.brandName,
+          stockCount: p.stockCount,
+        }))}
+        filters={filters}
+      />
+    </Suspense>
   );
 }
