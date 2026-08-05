@@ -33,7 +33,7 @@ export default function FrontendLayout({
 }) {
   return (
     <html lang="bg" className={inter.variable}>
-      <body className="font-sans antialiased text-ink bg-white">
+      <body className="tl-grain font-sans antialiased text-ink bg-white">
         <CartProvider>
           <a
             href="#main-content"

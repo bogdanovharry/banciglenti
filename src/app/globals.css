@@ -64,6 +64,68 @@
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 }
 
+/* Headlines wrap balanced so no single word is orphaned on the last line. */
+.font-display {
+  text-wrap: balance;
+}
+
+/* Figures line up in tables, price columns and spec rows. */
+.font-mono,
+.tl-figures {
+  font-variant-numeric: tabular-nums;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Staggered entry — put on a <Reveal> whose children should cascade rather than
+   arrive together. The parent stays untransformed so grid borders are unaffected;
+   only the cells move. */
+.tl-stagger > * {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tl-stagger[data-shown="true"] > * {
+  opacity: 1;
+  transform: none;
+}
+.tl-stagger > *:nth-child(1) { transition-delay: 0ms; }
+.tl-stagger > *:nth-child(2) { transition-delay: 70ms; }
+.tl-stagger > *:nth-child(3) { transition-delay: 140ms; }
+.tl-stagger > *:nth-child(4) { transition-delay: 210ms; }
+.tl-stagger > *:nth-child(5) { transition-delay: 280ms; }
+.tl-stagger > *:nth-child(6) { transition-delay: 350ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-stagger > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Grain — breaks the flatness of the large paper/ink fields without reading as
+   texture on its own. Fixed so it does not swim against scrolling content. */
+.tl-grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 /* Selection */
 ::selection {
   background: #004FC6;

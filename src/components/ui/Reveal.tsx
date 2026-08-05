@@ -57,6 +57,9 @@ export function Reveal({
     <Tag
       ref={ref}
       className={className}
+      // Exposed so a caller can cascade its own children in CSS (see .tl-stagger)
+      // instead of the whole block arriving at once.
+      data-shown={shown ? "true" : "false"}
       style={
         instant
           ? undefined

@@ -46,6 +46,9 @@ export default async function ShopPage() {
         stock: p.stock,
         badge: p.badge,
         categorySlugs: p.categorySlugs,
+        specs: p.specs,
+        brandName: p.brandName,
+        stockCount: p.stockCount,
       }))}
       filters={filters}
     />

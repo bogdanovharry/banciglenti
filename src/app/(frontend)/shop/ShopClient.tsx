@@ -1,15 +1,70 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconClose, IconRuler, IconArrowRight } from "@/components/ui/icons";
 
 export type ShopFilter = { slug: string; label: string; count: number };
 
-/** Card data plus the category membership the sidebar filter needs. */
-export type ShopProduct = ProductCardData & { categorySlugs: string[] };
+export type ShopProduct = ProductCardData & {
+  categorySlugs: string[];
+};
+
+type Facet = { value: string; count: number };
+
+/** Multi-select facet list with live counts. */
+function FacetGroup({
+  title,
+  facets,
+  selected,
+  onToggle,
+}: {
+  title: string;
+  facets: Facet[];
+  selected: string[];
+  onToggle: (value: string) => void;
+}) {
+  if (facets.length === 0) return null;
+
+  return (
+    <div className="mb-6 pb-6 border-b border-ink-15">
+      <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-3.5 font-semibold">
+        {title}
+      </h4>
+      <ul className="list-none m-0 p-0 flex flex-col gap-1">
+        {facets.map((f) => {
+          const on = selected.includes(f.value);
+          return (
+            <li key={f.value}>
+              <button
+                onClick={() => onToggle(f.value)}
+                aria-pressed={on}
+                className={`w-full flex justify-between items-center gap-2 px-2.5 py-1.5 border-none cursor-pointer text-left font-sans text-[13px] transition-colors ${
+                  on ? "bg-ink text-white" : "bg-transparent text-ink-70 hover:bg-paper"
+                }`}
+              >
+                <span className="flex items-center gap-2 min-w-0">
+                  <span
+                    aria-hidden
+                    className={`w-3 h-3 shrink-0 border ${on ? "bg-orange border-orange" : "border-ink-30"}`}
+                  />
+                  <span className="truncate">{f.value}</span>
+                </span>
+                <span
+                  className={`font-mono text-[11px] tabular-nums shrink-0 ${on ? "text-white/60" : "text-ink-50"}`}
+                >
+                  {f.count}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 export function ShopClient({
   products,
@@ -20,83 +75,230 @@ export function ShopClient({
 }) {
   const [sort, setSort] = useState("Популярност");
   const [activeCategory, setActiveCategory] = useState("");
+  const [materials, setMaterials] = useState<string[]>([]);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [inStockOnly, setInStockOnly] = useState(false);
+  // Width is how buyers actually search — they know what their machine takes.
+  const [widthMin, setWidthMin] = useState("");
+  const [widthMax, setWidthMax] = useState("");
 
-  const filteredProducts = activeCategory
-    ? products.filter((p) => p.categorySlugs.includes(activeCategory))
-    : products;
+  const toggle = (list: string[], set: (v: string[]) => void, value: string) =>
+    set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sort === "Цена ↑") return a.price - b.price;
-    if (sort === "Цена ↓") return b.price - a.price;
-    return 0;
-  });
+  // Facets are computed from everything in the current category, not from the
+  // fully-filtered set, so counts stay stable while you tick boxes.
+  const inCategory = useMemo(
+    () => (activeCategory ? products.filter((p) => p.categorySlugs.includes(activeCategory)) : products),
+    [products, activeCategory],
+  );
+
+  const materialFacets = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of inCategory) {
+      const m = p.specs?.material;
+      if (m) counts.set(m, (counts.get(m) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([value, count]) => ({ value, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [inCategory]);
+
+  const brandFacets = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of inCategory) {
+      const b = p.brandName;
+      if (b) counts.set(b, (counts.get(b) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([value, count]) => ({ value, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [inCategory]);
+
+  const filtered = useMemo(() => {
+    const min = widthMin === "" ? null : Number(widthMin);
+    const max = widthMax === "" ? null : Number(widthMax);
+
+    return inCategory.filter((p) => {
+      if (materials.length && !(p.specs?.material && materials.includes(p.specs.material))) return false;
+      if (brands.length && !(p.brandName && brands.includes(p.brandName))) return false;
+      if (inStockOnly && p.stock === "Изчерпан") return false;
+
+      if (min !== null || max !== null) {
+        const w = p.specs?.width;
+        // A product with no recorded width cannot satisfy a width filter.
+        if (typeof w !== "number") return false;
+        if (min !== null && !Number.isNaN(min) && w < min) return false;
+        if (max !== null && !Number.isNaN(max) && w > max) return false;
+      }
+      return true;
+    });
+  }, [inCategory, materials, brands, inStockOnly, widthMin, widthMax]);
+
+  const sorted = useMemo(() => {
+    const list = [...filtered];
+    if (sort === "Цена ↑") list.sort((a, b) => a.price - b.price);
+    else if (sort === "Цена ↓") list.sort((a, b) => b.price - a.price);
+    else if (sort === "Широчина") list.sort((a, b) => (a.specs?.width ?? 0) - (b.specs?.width ?? 0));
+    return list;
+  }, [filtered, sort]);
+
+  const activeChips = [
+    ...(activeCategory ? [{ label: filters.find((f) => f.slug === activeCategory)?.label ?? activeCategory, clear: () => setActiveCategory("") }] : []),
+    ...materials.map((m) => ({ label: m, clear: () => toggle(materials, setMaterials, m) })),
+    ...brands.map((b) => ({ label: b, clear: () => toggle(brands, setBrands, b) })),
+    ...(inStockOnly ? [{ label: "Само налични", clear: () => setInStockOnly(false) }] : []),
+    ...(widthMin || widthMax
+      ? [{ label: `Широчина ${widthMin || "0"}–${widthMax || "∞"} мм`, clear: () => { setWidthMin(""); setWidthMax(""); } }]
+      : []),
+  ];
+
+  const clearAll = () => {
+    setActiveCategory("");
+    setMaterials([]);
+    setBrands([]);
+    setInStockOnly(false);
+    setWidthMin("");
+    setWidthMax("");
+  };
 
   return (
     <>
       {/* Header */}
       <div className="bg-paper border-b border-ink-15">
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-8 md:py-12">
-          <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 flex gap-2 mb-6">
+          <nav aria-label="Навигация" className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 flex gap-2 mb-6">
             <Link href="/" className="cursor-pointer text-ink-50 no-underline hover:text-ink">Начало</Link>
             <span>/</span>
             <span className="text-ink">Каталог</span>
-          </div>
+          </nav>
           <h1 className="font-display text-4xl md:text-5xl lg:text-6xl leading-none tracking-[-0.04em] font-bold m-0 text-ink">
             Всички <span className="font-extrabold text-orange">продукти</span>
           </h1>
           <p className="font-sans text-base leading-relaxed text-ink-70 max-w-[580px] mt-4">
-            {sortedProducts.length} артикула от {products.length} в нашия каталог. Филтрирайте по категория или използвайте конфигуратора за поръчка по размер.
+            Филтрирайте по широчина, материал или марка. Не намирате размера си — конфигураторът изработва лента по поръчка за 24 часа.
           </p>
         </div>
       </div>
 
       {/* Toolbar */}
       <div className="border-b border-ink-15 bg-white sticky top-[168px] z-30">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-10 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {activeCategory && (
+        <div className="max-w-[1440px] mx-auto px-4 md:px-10 min-h-14 py-2 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-[11px] text-ink-50 tabular-nums">
+              {sorted.length} от {products.length} продукта
+            </span>
+            {activeChips.map((chip) => (
               <button
-                onClick={() => setActiveCategory("")}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-paper font-mono text-[11px] text-ink cursor-pointer border-none"
+                key={chip.label}
+                onClick={chip.clear}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-paper font-mono text-[11px] text-ink cursor-pointer border border-ink-15 hover:border-ink transition-colors"
               >
-                {filters.find((c) => c.slug === activeCategory)?.label} <IconClose size={12} className="text-ink-50" />
+                {chip.label} <IconClose size={11} className="text-ink-50" />
+              </button>
+            ))}
+            {activeChips.length > 1 && (
+              <button
+                onClick={clearAll}
+                className="font-mono text-[11px] text-orange underline cursor-pointer bg-transparent border-none"
+              >
+                Изчисти всички
               </button>
             )}
-            <span className="font-mono text-[11px] text-ink-50">{sortedProducts.length} продукта</span>
           </div>
-          <div className="flex items-center gap-4">
-            <select value={sort} onChange={(e) => setSort(e.target.value)} className="font-mono text-[11px] p-2 border border-ink-15 bg-white">
+          <label className="flex items-center gap-2 font-mono text-[11px] text-ink-50">
+            Подреди
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="font-mono text-[11px] p-2 border border-ink-15 bg-white text-ink"
+            >
               <option>Популярност</option>
               <option>Цена ↑</option>
               <option>Цена ↓</option>
+              <option>Широчина</option>
             </select>
-          </div>
+          </label>
         </div>
       </div>
 
       {/* Grid */}
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-10 md:py-[40px] pb-20 md:pb-[120px] grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-10">
-        {/* Sidebar */}
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-10 pb-20 md:pb-[120px] grid grid-cols-1 lg:grid-cols-[264px_1fr] gap-10">
         <aside className="hidden lg:block">
-          {/* Category filter */}
-          <div className="mb-7 pb-7 border-b border-ink-15">
-            <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-4 font-semibold">Категория</h4>
+          {/* Find by size — the way buyers actually shop for blades */}
+          <div className="mb-6 pb-6 border-b border-ink-15">
+            <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
+              Намери по широчина
+            </h4>
+            <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">Широчина на лентата в мм.</p>
+            <div className="flex gap-2 items-center">
+              <input
+                type="number"
+                inputMode="numeric"
+                value={widthMin}
+                onChange={(e) => setWidthMin(e.target.value)}
+                placeholder="от"
+                aria-label="Минимална широчина в мм"
+                className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
+              />
+              <span className="font-mono text-ink-30 text-xs">–</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={widthMax}
+                onChange={(e) => setWidthMax(e.target.value)}
+                placeholder="до"
+                aria-label="Максимална широчина в мм"
+                className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Category */}
+          <div className="mb-6 pb-6 border-b border-ink-15">
+            <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-3.5 font-semibold">Категория</h4>
             <ul className="list-none m-0 p-0 flex flex-col gap-1">
               {filters.map((cat) => (
                 <li key={cat.slug}>
                   <button
                     onClick={() => setActiveCategory(cat.slug)}
-                    className={`w-full text-left px-3 py-2 font-sans text-[13px] border-none cursor-pointer transition-colors flex justify-between items-center ${activeCategory === cat.slug ? "bg-ink text-white" : "bg-transparent text-ink-70 hover:bg-paper"}`}
+                    aria-pressed={activeCategory === cat.slug}
+                    className={`w-full text-left px-2.5 py-1.5 font-sans text-[13px] border-none cursor-pointer transition-colors flex justify-between items-center gap-2 ${
+                      activeCategory === cat.slug ? "bg-ink text-white" : "bg-transparent text-ink-70 hover:bg-paper"
+                    }`}
                   >
-                    <span>{cat.label}</span>
-                    <span className={`font-mono text-[11px] ${activeCategory === cat.slug ? "text-white/60" : "text-ink-50"}`}>{cat.count}</span>
+                    <span className="truncate">{cat.label}</span>
+                    <span className={`font-mono text-[11px] tabular-nums shrink-0 ${activeCategory === cat.slug ? "text-white/60" : "text-ink-50"}`}>
+                      {cat.count}
+                    </span>
                   </button>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Configurator CTA in sidebar */}
+          <FacetGroup
+            title="Материал"
+            facets={materialFacets}
+            selected={materials}
+            onToggle={(v) => toggle(materials, setMaterials, v)}
+          />
+          <FacetGroup
+            title="Марка"
+            facets={brandFacets}
+            selected={brands}
+            onToggle={(v) => toggle(brands, setBrands, v)}
+          />
+
+          <label className="flex items-center gap-2.5 mb-6 pb-6 border-b border-ink-15 cursor-pointer font-sans text-[13px] text-ink-70">
+            <input
+              type="checkbox"
+              checked={inStockOnly}
+              onChange={(e) => setInStockOnly(e.target.checked)}
+              className="w-3.5 h-3.5 accent-orange"
+            />
+            Само налични
+          </label>
+
           <Link href="/configurator" className="block no-underline">
             <div className="bg-ink text-white p-5 hover:bg-ink-80 transition-colors">
               <div className="flex items-center gap-3 mb-3">
@@ -113,27 +315,51 @@ export function ShopClient({
           </Link>
         </aside>
 
-        {/* Products */}
         <div>
-          {/* Configurator banner above products */}
-          <Link href="/configurator" className="no-underline block mb-6">
-            <div className="bg-paper border border-ink-15 p-5 flex items-center justify-between gap-4 hover:border-ink transition-colors">
-              <div className="flex items-center gap-4">
-                <IconRuler size={28} className="text-blue shrink-0" />
-                <div>
-                  <div className="font-display text-base font-bold text-ink">Поръчай лента по твоя размер</div>
-                  <div className="font-mono text-[11px] text-ink-50 mt-0.5 tracking-[0.04em]">8 типа ленти · Дължина от 1650 до 12000 мм · Изработка за 24ч</div>
-                </div>
+          {sorted.length === 0 ? (
+            // An empty result is the single best moment to sell the configurator:
+            // the buyer has just told us exactly what they could not find.
+            <div className="border border-ink-15 bg-paper p-10 text-center">
+              <div className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink-50 mb-3">Няма съвпадения</div>
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-ink tracking-tight m-0 mb-3">
+                Този размер не е в каталога — но можем да го изработим.
+              </h2>
+              <p className="font-sans text-[15px] text-ink-70 max-w-[440px] mx-auto mb-7">
+                Заваряваме банцигови ленти по индивидуален размер от 1&nbsp;650 до 12&nbsp;000&nbsp;мм, готови за 24 часа.
+              </p>
+              <div className="flex gap-3 justify-center flex-wrap">
+                <Link href="/configurator">
+                  <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Конфигурирай лента</Btn>
+                </Link>
+                <button onClick={clearAll} className="bg-transparent border-none cursor-pointer">
+                  <Btn variant="ghost" size="lg">Изчисти филтрите</Btn>
+                </button>
               </div>
-              <Btn variant="primary" size="sm" iconRight={<IconArrowRight size={12} />}>Конфигуратор</Btn>
             </div>
-          </Link>
+          ) : (
+            <>
+              <Link href="/configurator" className="no-underline block mb-6">
+                <div className="bg-paper border border-ink-15 p-5 flex items-center justify-between gap-4 hover:border-ink transition-colors">
+                  <div className="flex items-center gap-4">
+                    <IconRuler size={28} className="text-blue shrink-0" />
+                    <div>
+                      <div className="font-display text-base font-bold text-ink">Поръчай лента по твоя размер</div>
+                      <div className="font-mono text-[11px] text-ink-50 mt-0.5 tracking-[0.04em]">
+                        8 типа ленти · Дължина от 1650 до 12000 мм · Изработка за 24ч
+                      </div>
+                    </div>
+                  </div>
+                  <Btn variant="primary" size="sm" iconRight={<IconArrowRight size={12} />}>Конфигуратор</Btn>
+                </div>
+              </Link>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {sortedProducts.map((p) => (
-              <ProductCard key={p.sku} p={p} compact />
-            ))}
-          </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {sorted.map((p) => (
+                  <ProductCard key={p.sku} p={p} compact />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

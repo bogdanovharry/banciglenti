@@ -56,6 +56,9 @@ export default async function CategoryPage({ params }: PageProps) {
         industry: p.industry,
         stock: p.stock,
         badge: p.badge,
+        specs: p.specs,
+        brandName: p.brandName,
+        stockCount: p.stockCount,
       }))}
     />
   );
