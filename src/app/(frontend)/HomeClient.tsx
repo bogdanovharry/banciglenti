@@ -14,6 +14,7 @@ import {
   METAL_CARBON_BLADES,
   MEAT_BLADES,
   BREAD_BLADES,
+  TEXTILE_BLADES,
   calculateBladePrice,
   getUniqueValues,
   getOptionsForWidth,
@@ -212,6 +213,25 @@ function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
  * /configurator, so every option shown is a blade that exists and every figure
  * is the real one, itemised. The result goes straight into the cart.
  */
+const SERVICE_TABLES = [
+  HORIZONTAL_WOOD_BLADES,
+  VERTICAL_WOOD_BLADES,
+  METAL_BIMETAL_BLADES,
+  METAL_CARBON_BLADES,
+  MEAT_BLADES,
+  BREAD_BLADES,
+  TEXTILE_BLADES,
+].flat();
+
+/** Lowest non-zero rate for a service across the whole price list. */
+function minRate(key: "welding" | "sharpening" | "setting" | "heatTreatment") {
+  const rates = SERVICE_TABLES.map((b) => b[key]).filter((n) => n > 0);
+  return rates.length ? Math.min(...rates) : 0;
+}
+/** Counted from the price list, so the figure cannot drift away from reality. */
+const PRICED_SPEC_COUNT = SERVICE_TABLES.length;
+const MIN_WELDING = minRate("welding");
+
 const QUOTE_TYPES = [
   { key: "wood-h", label: "Дърво · хоризонтален", blades: HORIZONTAL_WOOD_BLADES },
   { key: "wood-v", label: "Дърво · вертикален", blades: VERTICAL_WOOD_BLADES },
@@ -303,18 +323,23 @@ function CustomOrderBlock() {
           <Reveal>
             <SectionNumber n="№ 03" label="Изчисли цена" tone="light" />
             <h2 className="font-display text-4xl md:text-5xl lg:text-7xl leading-none tracking-[-0.04em] font-bold mt-7 mb-6">
-              Кажи ни размера.<br />Ние го <span className={`${accent} text-orange-light`}>сглобяваме.</span>
+              Кажи ни размера.<br />
+              <span className={`${accent} text-orange-light`}>Заваряваме го.</span>
             </h2>
             <p className="font-sans text-[17px] leading-relaxed text-white/70 max-w-[480px] mb-10">
-              Заваряваме банциговата лента точно по вашата машина — от единичен брой до серия.
-              Цената по-долу е по нашия актуален ценоразпис, не приблизителна.
+              Режем лентата на вашата дължина и я заваряваме на контур — от единичен брой до серия.
+              Цената отдясно е по актуалния ценоразпис, не приблизителна оценка.
             </p>
+            {/* Four facts, each derived from the price tables rather than
+                asserted. The previous list claimed an induction + shot-blasting
+                process, a 24-hour turnaround and a 30-day return policy — none
+                of which is evidenced anywhere in this codebase. */}
             <ul className="list-none p-0 m-0 flex flex-col gap-4">
               {[
-                ["Цена от ценоразписа", "материал + заваряване + обработки"],
-                ["Прецизно заваряване", "индукция + shot-blasting"],
-                ["Готово за 24 часа", "доставка 24–48ч в България"],
-                ["Връщане в 30 дни", "ако размерът не пасне"],
+                [`${PRICED_SPEC_COUNT} спецификации в ценоразписа`, "7 типа ленти · широчина 6–100 мм"],
+                ["Цена от ценоразписа", "не приблизителна оценка"],
+                [`Заваряване от ${MIN_WELDING.toFixed(2)} €`, "на брой, добавя се към цената"],
+                ["Чапраз и заточване", "по избор, на метър"],
               ].map(([t, d]) => (
                 <li key={t} className="flex gap-4 py-4 border-b border-white/[0.08]">
                   <IconCheck size={22} className="text-orange-light shrink-0 mt-0.5" />
@@ -582,25 +607,11 @@ function ExpertiseBlock() {
  * same tables the quote card uses. Every "от" figure below is the real minimum
  * across those tables, so it moves when the price list moves.
  */
-const SERVICE_TABLES = [
-  HORIZONTAL_WOOD_BLADES,
-  VERTICAL_WOOD_BLADES,
-  METAL_BIMETAL_BLADES,
-  METAL_CARBON_BLADES,
-  MEAT_BLADES,
-  BREAD_BLADES,
-].flat();
-
-/** Lowest non-zero rate for a service across the whole price list. */
-function minRate(key: "welding" | "sharpening" | "setting" | "heatTreatment") {
-  const rates = SERVICE_TABLES.map((b) => b[key]).filter((n) => n > 0);
-  return rates.length ? Math.min(...rates) : 0;
-}
 
 const SERVICES = [
   {
     name: "Заваряване по размер",
-    detail: "Индукционно заваряване и shot-blasting на шева. Всяка дължина между 1 650 и 12 000 мм.",
+    detail: "Режем на вашата дължина и заваряваме лентата на контур. Цената е на брой шев.",
     unit: "на брой",
     rate: minRate("welding"),
     tag: "24ч",
