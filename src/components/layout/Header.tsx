@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
-  IconSearch, IconCart, IconPhone, IconMail, IconMenu, IconUser, IconHeart,
+  IconSearch, IconCart, IconPhone, IconMail, IconMenu,
   IconChevron, IconWood, IconMetal, IconHobby, IconFood, IconMachine, IconRuler, IconClose,
 } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
@@ -96,6 +97,15 @@ export function Header() {
   const [open, setOpen] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    router.push(q ? `/shop?q=${encodeURIComponent(q)}` : "/shop");
+    setMobileOpen(false);
+  };
   const { itemCount } = useCart();
 
   useEffect(() => {
@@ -109,59 +119,81 @@ export function Header() {
       className="sticky top-0 z-50 bg-white transition-[border-color] duration-200"
       style={{ borderBottom: `1px solid ${scrolled ? "#D9D9D9" : "transparent"}` }}
     >
-      {/* Top utility bar */}
+      {/* Top utility bar — only claims that hold up. It previously advertised
+          "Доставка до 24–72ч", contradicting the 24–48ч stated everywhere else. */}
       <div className="bg-ink text-white/80">
-        <div className="max-w-[1440px] mx-auto px-10 h-9 flex items-center justify-between font-mono text-[11px] tracking-[0.08em] uppercase">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-10 h-9 flex items-center justify-between font-mono text-[11px] tracking-[0.08em] uppercase">
           <div className="hidden md:flex gap-6">
-            <span className="text-white">● На склад / България</span>
-            <span className="opacity-60">Доставка до 24–72ч</span>
-            <span className="opacity-60">TÜV NORD сертифициран</span>
+            <span className="text-white">● Габрово · собствен цех</span>
+            <span className="opacity-60">Заваряване по размер</span>
           </div>
           <div className="flex gap-5 items-center ml-auto">
             <a href="tel:066800822" className="flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
-              <IconPhone size={12} /> <span className="hidden sm:inline">066 800 822</span>
+              <IconPhone size={12} /> <span className="hidden sm:inline tabular-nums">066 800 822</span>
             </a>
             <a href="mailto:tehnoles@tehnoles.com" className="hidden md:flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
               <IconMail size={12} /> tehnoles@tehnoles.com
             </a>
-            <span className="opacity-60">BG / EN</span>
           </div>
         </div>
       </div>
 
-      {/* Main brand row */}
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10 h-[84px] flex items-center gap-4 md:gap-10">
-        {/* Logo */}
-        <Link href="/" className="flex flex-col justify-center no-underline text-ink shrink-0" aria-label="ТЕХНОЛЕС — начало">
+      {/* Main brand row.
+          The search is the centre of gravity rather than a slot beside the
+          logo: this is a catalogue people arrive at knowing a dimension, so
+          finding by size is the primary act, not a secondary convenience. */}
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-4 flex items-center gap-4 md:gap-10">
+        {/* Logo. items-start matters — in a column flex box the image would
+            otherwise stretch to the width of the strapline beneath it, which is
+            what was squashing the mark. */}
+        <Link
+          href="/"
+          className="flex flex-col items-start justify-center no-underline text-ink shrink-0"
+          aria-label="ТЕХНОЛЕС — начало"
+        >
           <Image
             src="/images/hero/tehnoles-logo.png"
             alt="ТЕХНОЛЕС"
             width={1177}
             height={210}
             preload
-            className="h-7 w-auto md:h-[30px]"
+            className="h-8 w-auto md:h-9"
           />
-          <div className="font-mono text-[10px] tracking-[0.12em] text-ink-50 mt-1 uppercase">Band saw blade expert · est. 1993</div>
+          <div className="font-mono text-[9px] md:text-[10px] tracking-[0.14em] text-ink-50 mt-1.5 uppercase whitespace-nowrap">
+            Innovation sharpened to perfection.
+          </div>
         </Link>
 
-        {/* Search */}
-        <div className="hidden md:block flex-1 max-w-[520px] ml-6 relative">
-          <IconSearch size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-50" />
-          <input
-            placeholder="Търси по размер, марка или машина — напр. 3810×27×0.9 M42"
-            className="w-full h-11 pl-10 pr-24 bg-ink-05 border border-ink-05 text-[13px] font-sans outline-none focus:bg-white focus:border-ink-15 transition-colors"
-          />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] text-ink-50 border border-ink-15 px-1.5 py-0.5">⌘ K</span>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-1 ml-auto">
-          <div className="hidden md:flex items-center gap-1">
-            <HeaderIconBtn icon={<IconUser size={18} />} label="Профил" href="/account" />
-            <HeaderIconBtn icon={<IconHeart size={18} />} label="Списък" badge={3} />
+        {/* Search — a real one. Submitting goes to the catalogue filtered by
+            the query; it used to be an inert box wearing a ⌘K badge. */}
+        <form
+          onSubmit={handleSearch}
+          role="search"
+          className="hidden md:flex flex-1 max-w-[560px] ml-4 items-stretch border border-ink-15 focus-within:border-blue transition-colors bg-white"
+        >
+          <div className="relative flex-1">
+            <IconSearch size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-50 pointer-events-none" />
+            <input
+              name="q"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="Търси в каталога"
+              placeholder="2360 · Kodiak · Holzmann BS128"
+              className="w-full h-12 pl-10 pr-3 bg-transparent font-mono text-[13px] text-ink outline-none placeholder:text-ink-30"
+            />
           </div>
+          <button
+            type="submit"
+            className="px-5 bg-ink text-white font-mono text-[10px] tracking-[0.12em] uppercase cursor-pointer border-none hover:bg-orange transition-colors"
+          >
+            Търси
+          </button>
+        </form>
+
+        {/* Actions. The wishlist carried a hardcoded badge of 3 and the profile
+            linked to /account, which does not exist — both removed. */}
+        <div className="flex items-center gap-1 ml-auto">
           <HeaderIconBtn icon={<IconCart size={18} />} label="Количка" badge={itemCount || undefined} href="/cart" />
-          {/* Mobile menu toggle */}
           <button
             className="md:hidden p-2 ml-2"
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -239,12 +271,26 @@ export function Header() {
       {/* Mobile nav */}
       {mobileOpen && (
         <nav className="md:hidden bg-white border-t border-ink-05 shadow-lg max-h-[80vh] overflow-y-auto" aria-label="Мобилна навигация">
-          <div className="p-4 border-b border-ink-05">
-            <div className="relative">
-              <IconSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-50" />
-              <input placeholder="Търси..." className="w-full h-10 pl-10 pr-4 bg-ink-05 border border-ink-05 text-sm font-sans" />
+          {/* Same handler as the desktop field — this used to be an inert box. */}
+          <form onSubmit={handleSearch} role="search" className="p-4 border-b border-ink-05 flex items-stretch gap-2">
+            <div className="relative flex-1">
+              <IconSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-50 pointer-events-none" />
+              <input
+                name="q"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                aria-label="Търси в каталога"
+                placeholder="2360 · Kodiak · Holzmann"
+                className="w-full h-11 pl-10 pr-4 bg-ink-05 border border-ink-05 font-mono text-[13px] outline-none focus:bg-white focus:border-ink-15 transition-colors"
+              />
             </div>
-          </div>
+            <button
+              type="submit"
+              className="px-4 bg-ink text-white font-mono text-[10px] tracking-[0.1em] uppercase cursor-pointer border-none"
+            >
+              Търси
+            </button>
+          </form>
           <Link href="/shop" className="flex items-center gap-3 px-4 py-3 font-semibold text-white bg-navy no-underline" onClick={() => setMobileOpen(false)}>
             <IconMenu size={16} /> Всички продукти
           </Link>

@@ -90,6 +90,7 @@ export function ShopClient({
   );
 
   const [sort, setSort] = useState("Популярност");
+  const [query, setQuery] = useState(() => params.get("q") ?? "");
   const [activeCategory, setActiveCategory] = useState(() => params.get("category") ?? "");
   const [materials, setMaterials] = useState<string[]>(() => params.getAll("material"));
   const [brands, setBrands] = useState<string[]>(() => params.getAll("brand"));
@@ -158,7 +159,19 @@ export function ShopClient({
     const wMin = num(widthMin), wMax = num(widthMax);
     const lMin = num(lengthMin), lMax = num(lengthMax);
 
+    // Free text matches name, brand, dimensions and machine names, so a header
+    // search for "Holzmann BS128" or "3810×27" both land somewhere useful.
+    // Normalised so "3810x27", "3810×27" and "3810 27" behave the same.
+    const normalise = (s: string) => s.toLowerCase().replace(/[×хx]/g, "x").replace(/\s+/g, " ").trim();
+    const terms = normalise(query).split(" ").filter(Boolean);
+
     return inCategory.filter((p) => {
+      if (terms.length) {
+        const haystack = normalise(
+          [p.name, p.brandName ?? "", p.dim, ...(p.machines ?? [])].join(" "),
+        );
+        if (!terms.every((t) => haystack.includes(t))) return false;
+      }
       if (materials.length && !(p.specs?.material && materials.includes(p.specs.material))) return false;
       if (brands.length && !(p.brandName && brands.includes(p.brandName))) return false;
       if (machines.length && !(p.machines ?? []).some((m) => machines.includes(m))) return false;
@@ -167,7 +180,7 @@ export function ShopClient({
       if (!inRange(p.specs?.length, lMin, lMax)) return false;
       return true;
     });
-  }, [inCategory, materials, brands, machines, inStockOnly, widthMin, widthMax, lengthMin, lengthMax]);
+  }, [inCategory, query, materials, brands, machines, inStockOnly, widthMin, widthMax, lengthMin, lengthMax]);
 
   const sorted = useMemo(() => {
     const list = [...filtered];
@@ -178,6 +191,7 @@ export function ShopClient({
   }, [filtered, sort]);
 
   const activeChips = [
+    ...(query.trim() ? [{ label: `„${query.trim()}"`, clear: () => setQuery("") }] : []),
     ...(activeCategory ? [{ label: filters.find((f) => f.slug === activeCategory)?.label ?? activeCategory, clear: () => setActiveCategory("") }] : []),
     ...materials.map((m) => ({ label: m, clear: () => toggle(materials, setMaterials, m) })),
     ...brands.map((b) => ({ label: b, clear: () => toggle(brands, setBrands, b) })),
@@ -192,6 +206,7 @@ export function ShopClient({
   ];
 
   const clearAll = () => {
+    setQuery("");
     setActiveCategory("");
     setMaterials([]);
     setBrands([]);
