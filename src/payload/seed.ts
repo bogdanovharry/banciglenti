@@ -57,11 +57,15 @@ const BRAND_PATTERNS: { name: string; test: RegExp }[] = [
 // Every product without an explicit brand is house-branded.
 const DEFAULT_BRAND = 'Tehnoles'
 
+// Order matters: the first match wins. The alloy patterns require their M / М
+// prefix — matching a bare "42" or "51" pulled the length out of names like
+// "L=1425мм" and "510х30х3" and labelled carbon blades and planer knives as
+// bimetal. 100Cr6 is tested before the alloys for the same reason.
 const MATERIAL_PATTERNS: { material: string; test: RegExp }[] = [
-  { material: 'M42 HSS', test: /м?42/i },
-  { material: 'M51 Cobalt', test: /м?51/i },
+  { material: '100Cr6', test: /100\s?cr\s?6/i },
+  { material: 'M42 HSS', test: /[MМ]\s?42/ },
+  { material: 'M51 Cobalt', test: /[MМ]\s?51/ },
   { material: 'HSS', test: /\bhss\b/i },
-  { material: '100Cr6', test: /100cr6/i },
   { material: 'CBN', test: /cbn|боразон/i },
   { material: 'Диамант', test: /диамант/i },
   { material: 'HM Carbide', test: /\bwz\b|\bz\d+\b/i },

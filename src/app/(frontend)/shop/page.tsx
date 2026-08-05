@@ -50,6 +50,7 @@ export default async function ShopPage() {
           industry: p.industry,
           stock: p.stock,
           badge: p.badge,
+          image: p.image,
           categorySlugs: p.categorySlugs,
           specs: p.specs,
           brandName: p.brandName,

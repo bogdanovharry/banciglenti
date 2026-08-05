@@ -114,10 +114,12 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
         {/* Visual: real photo when we have one, otherwise the spec itself */}
         <div className="relative overflow-hidden">
           {p.image ? (
+            // Same 4:3 as the spec tile, so cards with and without photography
+            // line up in the grid instead of stepping up and down.
             <div className="transition-transform duration-500 ease-out group-hover:scale-[1.04]">
               <Placeholder
                 tone="paper"
-                ratio="1/1"
+                ratio="4/3"
                 src={p.image}
                 alt={p.name}
                 fit="contain"

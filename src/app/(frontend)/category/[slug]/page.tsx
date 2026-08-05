@@ -76,6 +76,7 @@ export default async function CategoryPage({ params }: PageProps) {
         industry: p.industry,
         stock: p.stock,
         badge: p.badge,
+        image: p.image,
         specs: p.specs,
         brandName: p.brandName,
         machines: p.machines,

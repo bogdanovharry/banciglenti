@@ -59,6 +59,50 @@ function relationName(value: unknown): string | null {
   return null
 }
 
+/**
+ * Representative product photography, used until real per-SKU images are
+ * uploaded through /admin. An uploaded image always wins over this.
+ *
+ * These are ТЕХНОЛЕС's own watermarked blade shots, matched by tooth profile:
+ * the two wood blades have coarse hook teeth and bright steel, the bimetal and
+ * carbon ones are dark with a fine pitch. They are representative of the type,
+ * not photographs of each individual size — which is normal for a blade
+ * catalogue, where a 35 mm and a 40 mm blade of the same series are visually
+ * identical.
+ *
+ * Deliberately restricted to band blades. Circular saws, planer knives,
+ * abrasives, machines and consumables keep their spec tile: putting a bandsaw
+ * blade next to a circular saw would misrepresent the product.
+ */
+const BLADE_CATEGORIES = new Set([
+  'horizontalni-bantsizi',
+  'vertikalni-bantsizi',
+  'bimetalni-lenti',
+  'vyglerodna-lenti-cs',
+  'hobi-bantsig',
+  'meso-i-riba',
+  'hlebni-izdeliya',
+  'slicers',
+])
+
+function fallbackImage(
+  categorySlugs: string[],
+  brandName: string | null,
+  material?: string,
+): string | undefined {
+  if (!categorySlugs.some((s) => BLADE_CATEGORIES.has(s))) return undefined
+
+  if (brandName === 'Kodiak') return '/images/products/kodiak.png'
+  if (brandName === 'MasterGold') return '/images/products/mastergold.png'
+
+  // Fine-pitch dark blades for metal; the coarse bright ones are for wood.
+  if (material && /M42|M51|HSS|BiMetal/i.test(material)) return '/images/products/bohler_fixed.png'
+  if (categorySlugs.includes('bimetalni-lenti')) return '/images/products/bohler_fixed.png'
+  if (categorySlugs.includes('horizontalni-bantsizi')) return '/images/products/kodiak.png'
+
+  return '/images/products/hardback_fixed.png'
+}
+
 function stockLabel(stock: number): ProductCardData['stock'] {
   if (stock <= 0) return 'Изчерпан'
   if (stock <= 5) return 'Ниска наличност'
@@ -138,6 +182,16 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
     })
     .filter((s): s is string => s !== null)
 
+  const brandName = relationName(doc.brand)
+
+  // An image uploaded in /admin takes precedence; the mapping is only a stand-in
+  // until per-SKU photography exists.
+  const uploaded = Array.isArray(doc.images) ? doc.images[0] : undefined
+  const uploadedUrl =
+    uploaded && typeof uploaded === 'object' && 'image' in uploaded
+      ? ((uploaded as { image?: { url?: string } }).image?.url ?? undefined)
+      : undefined
+
   return {
     sku: String(doc.slug),
     slug: String(doc.slug),
@@ -147,9 +201,10 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
     industry,
     stock: stockLabel(stockCount),
     badge: doc.topProduct ? 'TOP' : null,
+    image: uploadedUrl ?? fallbackImage(categorySlugs, brandName, specs.material),
     stockCount,
     categorySlugs,
-    brandName: relationName(doc.brand),
+    brandName,
     shortDescription: typeof doc.shortDescription === 'string' ? doc.shortDescription : undefined,
     specs,
     machines,
