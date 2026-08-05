@@ -1,4 +1,5 @@
 import { ReactNode, ButtonHTMLAttributes } from "react";
+import Image from "next/image";
 
 // Design tokens inline (matching globals.css @theme)
 const T = {
@@ -22,6 +23,11 @@ export function Placeholder({
   caption,
   children,
   className,
+  src,
+  alt,
+  fit = "cover",
+  sizes = "(max-width: 768px) 100vw, 33vw",
+  preload,
 }: {
   label?: string;
   ratio?: string;
@@ -29,6 +35,12 @@ export function Placeholder({
   caption?: string;
   children?: ReactNode;
   className?: string;
+  /** When set, renders a real optimised image inside the tick-mark frame. */
+  src?: string;
+  alt?: string;
+  fit?: "cover" | "contain";
+  sizes?: string;
+  preload?: boolean;
 }) {
   const bg = tone === "ink" ? T.navyDeep : T.paperDeep;
   const fg = tone === "ink" ? "rgba(255,255,255,0.45)" : "rgba(17,24,39,0.45)";
@@ -41,13 +53,24 @@ export function Placeholder({
         aspectRatio: ratio,
         position: "relative",
         background: bg,
-        backgroundImage: `repeating-linear-gradient(135deg, ${line} 0 1px, transparent 1px 14px)`,
+        backgroundImage: src ? undefined : `repeating-linear-gradient(135deg, ${line} 0 1px, transparent 1px 14px)`,
         overflow: "hidden",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
+      {src && (
+        <Image
+          src={src}
+          alt={alt ?? caption ?? label}
+          fill
+          sizes={sizes}
+          preload={preload}
+          style={{ objectFit: fit, objectPosition: "center" }}
+        />
+      )}
+
       {/* Corner tick marks */}
       {(["tl", "tr", "bl", "br"] as const).map((c) => {
         const pos: Record<string, Record<string, number>> = {
@@ -73,21 +96,22 @@ export function Placeholder({
           />
         );
       })}
-      {children ?? (
-        <div
-          style={{
-            textAlign: "center",
-            color: fg,
-            fontFamily: "var(--font-mono)",
-            fontSize: 10,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-          }}
-        >
-          <div>[ {label} ]</div>
-          {caption && <div style={{ marginTop: 4, opacity: 0.75 }}>{caption}</div>}
-        </div>
-      )}
+      {!src &&
+        (children ?? (
+          <div
+            style={{
+              textAlign: "center",
+              color: fg,
+              fontFamily: "var(--font-mono)",
+              fontSize: 10,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+            }}
+          >
+            <div>[ {label} ]</div>
+            {caption && <div style={{ marginTop: 4, opacity: 0.75 }}>{caption}</div>}
+          </div>
+        ))}
     </div>
   );
 }

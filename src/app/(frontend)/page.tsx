@@ -4,10 +4,15 @@ import Link from "next/link";
 import { useState } from "react";
 import { SectionNumber, Placeholder, Btn, Tag, TickRule } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
+import { Reveal } from "@/components/ui/Reveal";
+import { BandPreview } from "@/components/product/BandPreview";
 import {
   IconArrowRight, IconCheck, IconPhone, IconWood, IconMetal, IconFood,
   IconHobby, IconMachine, IconAbrasive,
 } from "@/components/ui/icons";
+
+// Industrial accent for highlighted words — heavy upright sans, brand orange
+const accent = "font-extrabold";
 
 // ========== HERO ==========
 function HeroCustom() {
@@ -18,7 +23,7 @@ function HeroCustom() {
           <SectionNumber n="№ 01" label="Режещи инструменти по поръчка" />
           <h1 className="font-display text-5xl md:text-7xl lg:text-[104px] font-extrabold leading-[0.95] tracking-[-0.045em] mt-8 mb-8 text-ink">
             Всяка лента<br />точно по<br />
-            <span className="italic font-medium text-orange">вашата машина.</span>
+            <span className={`${accent} text-orange`}>вашата машина.</span>
           </h1>
           <p className="font-sans text-lg leading-relaxed text-ink-70 max-w-[560px] mb-10">
             Произвеждаме и заваряваме банцигови ленти по индивидуални размери за дърво, метал и хранителна промишленост — от 1&nbsp;650 до 12&nbsp;000&nbsp;мм, за 24&nbsp;часа.
@@ -53,7 +58,14 @@ function HeroCustom() {
               </div>
               <Tag tone="orange">custom</Tag>
             </div>
-            <Placeholder tone="ink" ratio="16/9" caption="Техническа схема на лента" />
+            <Placeholder
+              tone="ink"
+              ratio="16/9"
+              src="/images/hero/shutterstock_2512301009.webp"
+              alt="Биметална банцигова лента — детайл на зъбите"
+              sizes="(max-width: 1024px) 100vw, 32vw"
+              preload
+            />
             <div className="mt-5 grid grid-cols-2 gap-3 font-mono text-[11px]">
               {[
                 ["Дължина", "3 810 мм"], ["Широчина", "27 мм"], ["Дебелина", "0.9 мм"],
@@ -109,18 +121,18 @@ function IndustriesBlock() {
     <section className="bg-white py-20 md:py-[120px]">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-end mb-14 md:mb-[72px]">
-          <div>
+          <Reveal>
             <SectionNumber n="№ 02" label="Шест индустрии · един доставчик" />
             <h2 className="font-display text-4xl md:text-5xl lg:text-[64px] leading-none tracking-[-0.035em] font-bold mt-7 text-ink">
-              Каталог, организиран<br />по това с което <span className="italic text-orange font-medium">работите</span>.
+              Каталог, организиран<br />по това с което <span className={`${accent} text-orange`}>работите</span>.
             </h2>
-          </div>
-          <p className="font-sans text-base leading-relaxed text-ink-70 max-w-[480px] lg:justify-self-end">
+          </Reveal>
+          <Reveal as="p" delay={120} className="font-sans text-base leading-relaxed text-ink-70 max-w-[480px] lg:justify-self-end">
             Не се налага да знаете стандарти и обозначения — изберете вашата индустрия и филтрирайте по машина, материал или размер.
-          </p>
+          </Reveal>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border border-ink-15">
+        <Reveal delay={80} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border border-ink-15">
           {industries.map((c, i) => {
             const CIcon = c.Icon;
             const col = i % 3;
@@ -129,14 +141,14 @@ function IndustriesBlock() {
               <Link
                 key={c.name}
                 href={c.href}
-                className={`p-9 no-underline text-ink min-h-[260px] flex flex-col gap-5 bg-white hover:bg-paper transition-colors relative
+                className={`group p-9 no-underline text-ink min-h-[260px] flex flex-col gap-5 bg-white hover:bg-paper transition-colors duration-300 relative
                   ${col < 2 ? "lg:border-r lg:border-ink-15" : ""}
                   ${row === 0 ? "border-b border-ink-15" : ""}
                   ${i % 2 === 0 && i < 4 ? "md:border-r md:border-ink-15" : ""}
                 `}
               >
                 <div className="flex justify-between items-start">
-                  <CIcon size={40} strokeWidth={1.25} className="text-navy" />
+                  <CIcon size={40} strokeWidth={1.25} className="text-navy transition-transform duration-300 group-hover:-translate-y-0.5" />
                   <span className="font-mono text-[10px] text-ink-50 tracking-[0.12em]">0{i + 1} / 06</span>
                 </div>
                 <div className="mt-auto">
@@ -144,13 +156,13 @@ function IndustriesBlock() {
                   <p className="font-sans text-sm leading-snug text-ink-70 m-0">{c.desc}</p>
                   <div className="mt-4 pt-4 border-t border-ink-15 flex justify-between items-center font-mono text-[11px] text-ink-50 tracking-[0.04em]">
                     <span>{c.count}</span>
-                    <span className="text-orange flex items-center gap-1.5">Разгледай <IconArrowRight size={12} /></span>
+                    <span className="text-orange flex items-center gap-1.5">Разгледай <IconArrowRight size={12} className="transition-transform duration-300 group-hover:translate-x-1" /></span>
                   </div>
                 </div>
               </Link>
             );
           })}
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -170,10 +182,10 @@ function CustomOrderBlock() {
       <div aria-hidden className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize: "48px 48px", maskImage: "linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent)" }} />
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 relative">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-20">
-          <div>
+          <Reveal>
             <SectionNumber n="№ 03" label="Конфигуратор" tone="light" />
             <h2 className="font-display text-4xl md:text-5xl lg:text-7xl leading-none tracking-[-0.04em] font-bold mt-7 mb-6">
-              Кажи ни размера.<br />Ние го <span className="italic text-orange-light font-medium">сглобяваме.</span>
+              Кажи ни размера.<br />Ние го <span className={`${accent} text-orange-light`}>сглобяваме.</span>
             </h2>
             <p className="font-sans text-[17px] leading-relaxed text-white/70 max-w-[480px] mb-10">
               Завареждаме банциговата лента точно по вашата машина — от кратки серии до масов клиент. Доставка за 24–48 часа в България.
@@ -194,7 +206,7 @@ function CustomOrderBlock() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Reveal>
 
           {/* Configurator card */}
           <div className="bg-white text-ink p-6 md:p-10 relative">
@@ -202,7 +214,11 @@ function CustomOrderBlock() {
               <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50">Конфигуратор · 01</div>
               <Tag tone="ok">Готово за 24ч</Tag>
             </div>
-            <div className="font-display text-[28px] font-bold tracking-tight mb-7">Вашата лента</div>
+            <div className="font-display text-[28px] font-bold tracking-tight mb-5">Вашата лента</div>
+
+            <div className="mb-7">
+              <BandPreview len={len} w={w} tpi={tpi} mat={mat} />
+            </div>
 
             <div className="flex flex-col gap-6">
               <ConfigSlider label="Обща дължина" unit="мм" value={len} min={1650} max={12000} step={10} onChange={setLen} />
@@ -261,12 +277,12 @@ function ConfigSlider({ label, unit, value, min, max, step, onChange }: { label:
 
 // ========== BESTSELLERS ==========
 const BESTSELLERS: ProductCardData[] = [
-  { sku: "M42-3810-27-09", slug: "bimetalna-lenta-m42-hss", name: "Биметална лента M42 HSS", dim: "3810 × 27 × 0.9 мм · 3 TPI", price: 48.90, industry: "Метал", stock: "На склад", badge: "TOP" },
-  { sku: "CS-2240-13-06", slug: "vyglerodna-cs-hardback", name: "Въглеродна CS Hardback", dim: "2240 × 13 × 0.65 мм · 6 TPI", price: 18.40, industry: "Дърво", stock: "На склад", badge: null },
-  { sku: "SL-2455-16-05", slug: "lenta-za-slaysyr-bizerba", name: "Лента за слайсър Bizerba", dim: "2455 × 16 × 0.5 мм · 4 TPI", price: 32.00, industry: "Храни", stock: "Ниска наличност", badge: "NEW" },
+  { sku: "M42-3810-27-09", slug: "bimetalna-lenta-m42-hss", name: "Биметална лента M42 HSS", dim: "3810 × 27 × 0.9 мм · 3 TPI", price: 48.90, industry: "Метал", stock: "На склад", badge: "TOP", image: "/images/products/mastergold.png" },
+  { sku: "CS-2240-13-06", slug: "vyglerodna-cs-hardback", name: "Въглеродна CS Hardback", dim: "2240 × 13 × 0.65 мм · 6 TPI", price: 18.40, industry: "Дърво", stock: "На склад", badge: null, image: "/images/products/hardback_fixed.png" },
+  { sku: "SL-2455-16-05", slug: "lenta-za-slaysyr-bizerba", name: "Лента за слайсър Bizerba", dim: "2455 × 16 × 0.5 мм · 4 TPI", price: 32.00, industry: "Храни", stock: "Ниска наличност", badge: "NEW", image: "/images/products/bohler_fixed.png" },
   { sku: "CBN-200-3-10", slug: "cbn-zatochen-disk", name: "CBN заточен диск", dim: "Ø200 × 3 × 10 мм", price: 188.00, industry: "Абразиви", stock: "На склад", badge: null },
   { sku: "CIR-350-72-30", slug: "tsirkulyaren-trion-hm-350", name: "Циркулярен трион HM", dim: "Ø350 × 3.2 · 72 зъба", price: 96.40, industry: "Дърво", stock: "На склад", badge: null },
-  { sku: "M51-5280-41-13", slug: "bimetalna-lenta-m51-cobalt", name: "Биметална лента M51 Cobalt", dim: "5280 × 41 × 1.3 мм · 2/3 TPI", price: 112.50, industry: "Метал", stock: "Изчерпан", badge: null },
+  { sku: "M51-5280-41-13", slug: "bimetalna-lenta-m51-cobalt", name: "Биметална лента M51 Cobalt", dim: "5280 × 41 × 1.3 мм · 2/3 TPI", price: 112.50, industry: "Метал", stock: "Изчерпан", badge: null, image: "/images/products/kodiak.png" },
 ];
 
 function BestsellersBlock() {
@@ -278,12 +294,12 @@ function BestsellersBlock() {
     <section className="bg-paper py-20 md:py-[120px]">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-14">
-          <div>
+          <Reveal>
             <SectionNumber n="№ 04" label="Най-търсени · Април 2026" />
             <h2 className="font-display text-4xl md:text-[56px] leading-none tracking-[-0.035em] font-bold mt-7 text-ink">
               Каквото пазарят<br />професионалистите.
             </h2>
-          </div>
+          </Reveal>
           <div className="flex gap-1 bg-white border border-ink-15 p-1">
             {tabs.map((t) => (
               <button
@@ -298,8 +314,10 @@ function BestsellersBlock() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((p) => (
-            <ProductCard key={p.sku} p={p} />
+          {filtered.map((p, i) => (
+            <Reveal key={p.sku} delay={i * 70}>
+              <ProductCard p={p} />
+            </Reveal>
           ))}
         </div>
 
@@ -316,14 +334,20 @@ function ExpertiseBlock() {
   return (
     <section className="bg-navy text-white py-20 md:py-[120px]">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-20 items-center">
-        <div>
-          <Placeholder tone="ink" ratio="4/5" caption="Производствен цех, Габрово · 2026" />
-        </div>
-        <div>
+        <Reveal>
+          <Placeholder
+            tone="ink"
+            ratio="4/5"
+            src="/images/hero/man_working_bandsaw_blades.avif"
+            alt="Производство и заваряване на банцигови ленти в цеха в Габрово"
+            sizes="(max-width: 1024px) 100vw, 48vw"
+          />
+        </Reveal>
+        <Reveal delay={120}>
           <SectionNumber n="№ 05" label="От 1993 · Габрово" tone="light" />
           <h2 className="font-display text-4xl md:text-5xl lg:text-7xl leading-none tracking-[-0.04em] font-bold mt-7 mb-8">
             Най-големият склад<br />за режещи инструменти<br />
-            <span className="italic text-orange-light font-medium">на Балканите.</span>
+            <span className={`${accent} text-orange-light`}>на Балканите.</span>
           </h2>
           <p className="font-sans text-[17px] leading-relaxed text-white/75 max-w-[560px] mb-10">
             30 години доставяме режещи инструменти на дървопреработвателни заводи, металообработващи цехове и хранителни производители.
@@ -341,7 +365,7 @@ function ExpertiseBlock() {
               </div>
             ))}
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -353,9 +377,9 @@ function BrandsBlock() {
   return (
     <section className="bg-white py-[100px] border-t border-b border-ink-15">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
-        <div className="text-center mb-12">
+        <Reveal className="text-center mb-12">
           <SectionNumber n="№ 06" label="Оторизиран дистрибутор" />
-        </div>
+        </Reveal>
         <div className="grid grid-cols-3 md:grid-cols-6 border border-ink-15">
           {brands.map((b, i) => (
             <div
@@ -378,24 +402,29 @@ function BrandsBlock() {
 // ========== BLOG ==========
 function BlogTeaser() {
   const posts = [
-    { cat: "Техническо", date: "18.04.2026", title: "Как да изберете правилната широчина на банциговата лента", read: "6 мин" },
-    { cat: "Казус", date: "02.04.2026", title: "Защо M42 е по-добро от M51 за въглеродна стомана", read: "4 мин" },
-    { cat: "Ръководство", date: "27.03.2026", title: "5-те най-чести причини за скъсване на лента", read: "8 мин" },
+    { cat: "Техническо", date: "18.04.2026", title: "Как да изберете правилната широчина на банциговата лента", read: "6 мин", img: "/images/hero/shutterstock_1510054877.avif" },
+    { cat: "Казус", date: "02.04.2026", title: "Защо M42 е по-добро от M51 за въглеродна стомана", read: "4 мин", img: "/images/hero/metal-cutting-2023-11-27-04-59-56-utc-2.avif" },
+    { cat: "Ръководство", date: "27.03.2026", title: "5-те най-чести причини за скъсване на лента", read: "8 мин", img: "/images/hero/shutterstock_1753030058.webp" },
   ];
   return (
     <section className="bg-bone py-20 md:py-[120px]">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-14">
-          <div>
+          <Reveal>
             <SectionNumber n="№ 07" label="Journal · ръководства" />
             <h2 className="font-display text-4xl md:text-[56px] leading-none tracking-[-0.035em] font-bold mt-7 text-ink">Техническо ноу-хау.</h2>
-          </div>
+          </Reveal>
           <Link href="/blog"><Btn variant="ghost" size="md" iconRight={<IconArrowRight size={14} />}>Всички статии</Btn></Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {posts.map((p, i) => (
-            <article key={i} className="bg-white border border-ink-15 overflow-hidden cursor-pointer flex flex-col hover:border-ink transition-colors">
-              <Placeholder tone="paper" ratio="4/3" caption={p.title} />
+            <Reveal key={i} delay={i * 80}>
+            <article className="group bg-white border border-ink-15 overflow-hidden cursor-pointer flex flex-col h-full hover:border-ink hover:shadow-[0_18px_40px_-22px_rgba(17,17,17,0.45)] hover:-translate-y-1 transition-all duration-300">
+              <div className="overflow-hidden">
+                <div className="transition-transform duration-500 ease-out group-hover:scale-[1.04]">
+                  <Placeholder tone="paper" ratio="4/3" src={p.img} alt={p.title} sizes="(max-width: 768px) 100vw, 33vw" />
+                </div>
+              </div>
               <div className="p-7 flex flex-col gap-3">
                 <div className="flex justify-between font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
                   <span className="text-orange">{p.cat}</span>
@@ -403,10 +432,11 @@ function BlogTeaser() {
                 </div>
                 <h3 className="font-display text-[22px] leading-tight tracking-tight font-semibold m-0 text-ink">{p.title}</h3>
                 <div className="mt-2 font-mono text-[11px] text-orange flex items-center gap-1.5 tracking-[0.05em]">
-                  Прочети <IconArrowRight size={12} />
+                  Прочети <IconArrowRight size={12} className="transition-transform duration-300 group-hover:translate-x-1" />
                 </div>
               </div>
             </article>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -419,12 +449,12 @@ function ContactCTA() {
   return (
     <section className="bg-orange text-white py-16 md:py-20">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 grid grid-cols-1 lg:grid-cols-[2fr_1fr] items-center gap-10">
-        <div>
+        <Reveal>
           <div className="font-mono text-[11px] tracking-[0.15em] uppercase opacity-80 mb-3">№ 08 — Техническа поддръжка</div>
           <h2 className="font-display text-3xl md:text-4xl lg:text-[56px] leading-none tracking-[-0.035em] font-bold m-0">
             Търсите размер, който не е в каталога? Обадете се.
           </h2>
-        </div>
+        </Reveal>
         <div className="flex flex-col gap-3">
           <a href="tel:066800822" className="flex items-center gap-3 p-[18px] px-6 bg-ink text-white no-underline font-mono text-[15px] tracking-[0.05em] hover:brightness-110 transition-all">
             <IconPhone size={18} /> 066 800 822

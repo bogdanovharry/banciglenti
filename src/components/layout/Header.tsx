@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import {
   IconSearch, IconCart, IconPhone, IconMail, IconMenu, IconUser, IconHeart,
@@ -131,16 +132,16 @@ export function Header() {
       {/* Main brand row */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 h-[84px] flex items-center gap-4 md:gap-10">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 no-underline text-ink shrink-0">
-          <svg width="36" height="36" viewBox="0 0 36 36" aria-label="Tehnoles">
-            <ellipse cx="18" cy="18" rx="15" ry="10" fill="none" stroke="#004FC6" strokeWidth="2" />
-            <path d="M3 18h30" stroke="#004FC6" strokeWidth="2" />
-            <path d="M12 11h12M18 11v14" stroke="#111111" strokeWidth="2.5" strokeLinecap="round" />
-          </svg>
-          <div className="leading-none">
-            <div className="font-display font-extrabold text-xl tracking-tight">ТЕХНОЛЕС</div>
-            <div className="font-mono text-[10px] tracking-[0.12em] text-ink-50 mt-1 uppercase">Band saw blade expert · est. 1993</div>
-          </div>
+        <Link href="/" className="flex flex-col justify-center no-underline text-ink shrink-0" aria-label="ТЕХНОЛЕС — начало">
+          <Image
+            src="/images/hero/tehnoles-logo.png"
+            alt="ТЕХНОЛЕС"
+            width={1177}
+            height={210}
+            preload
+            className="h-7 w-auto md:h-[30px]"
+          />
+          <div className="font-mono text-[10px] tracking-[0.12em] text-ink-50 mt-1 uppercase">Band saw blade expert · est. 1993</div>
         </Link>
 
         {/* Search */}

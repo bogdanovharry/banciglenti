@@ -12,13 +12,6 @@ const inter = localFont({
   fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
 });
 
-const jetbrains = localFont({
-  src: [{ path: "../../fonts/inter-latin-cyrillic.woff2", weight: "400 600" }],
-  variable: "--font-jetbrains",
-  display: "swap",
-  fallback: ["ui-monospace", "monospace"],
-});
-
 export const metadata: Metadata = {
   title: {
     default: "ТЕХНОЛЕС — Банцигови ленти и режещи инструменти",
@@ -39,7 +32,7 @@ export default function FrontendLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="bg" className={`${inter.variable} ${jetbrains.variable}`}>
+    <html lang="bg" className={inter.variable}>
       <body className="font-sans antialiased text-ink bg-white">
         <CartProvider>
           <a

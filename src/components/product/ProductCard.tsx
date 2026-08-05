@@ -14,6 +14,7 @@ export interface ProductCardData {
   dim: string;
   stock: "На склад" | "Ниска наличност" | "Изчерпан";
   badge?: "TOP" | "NEW" | null;
+  image?: string;
 }
 
 export function ProductCard({ p, compact }: { p: ProductCardData; compact?: boolean }) {
@@ -22,11 +23,24 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
     p.stock === "На склад" ? "text-ok" : p.stock === "Ниска наличност" ? "text-orange" : "text-ink-50";
 
   return (
-    <article className="bg-white border border-ink-15 cursor-pointer flex flex-col transition-colors duration-150 hover:border-ink group">
-      <Link href={`/product/${p.slug}`} className="no-underline text-inherit">
+    <article className="bg-white border border-ink-15 cursor-pointer flex flex-col h-full transition-all duration-300 hover:border-ink hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(17,17,17,0.45)] group">
+      <Link href={`/product/${p.slug}`} className="no-underline text-inherit flex flex-col h-full">
         {/* Image */}
-        <div className="relative">
-          <Placeholder tone="paper" ratio="1/1" caption={p.sku} />
+        <div className="relative overflow-hidden">
+          <div className="transition-transform duration-500 ease-out group-hover:scale-[1.04]">
+            {p.image ? (
+              <Placeholder
+                tone="paper"
+                ratio="1/1"
+                src={p.image}
+                alt={p.name}
+                fit="contain"
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              />
+            ) : (
+              <Placeholder tone="paper" ratio="1/1" caption={p.sku} />
+            )}
+          </div>
           {p.badge && (
             <div className="absolute top-3 left-3">
               <Tag tone={p.badge === "TOP" ? "orange" : "ink"}>{p.badge}</Tag>
