@@ -2,11 +2,22 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { SectionNumber, Placeholder, Btn, Tag } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
-import { BandPreview } from "@/components/product/BandPreview";
+import { useCart } from "@/lib/cart";
+import {
+  HORIZONTAL_WOOD_BLADES,
+  VERTICAL_WOOD_BLADES,
+  METAL_BIMETAL_BLADES,
+  calculateBladePrice,
+  getUniqueValues,
+  getOptionsForWidth,
+  getAvailablePitches,
+  findBlade,
+  BGN_RATE,
+} from "@/lib/pricing";
 import {
   IconArrowRight, IconCheck, IconPhone, IconWood, IconMetal, IconFood,
   IconHobby, IconMachine, IconAbrasive,
@@ -180,33 +191,119 @@ function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
   );
 }
 
-// ========== CUSTOM ORDER ==========
-function CustomOrderBlock() {
-  const [len, setLen] = useState(3810);
-  const [w, setW] = useState(27);
-  const [tpi, setTpi] = useState(3);
-  const [mat, setMat] = useState("M42");
+// ========== CUSTOM ORDER / QUOTE ==========
+/**
+ * A working quote, not a teaser. This previously invented its price with
+ * `(len/100) * (w/10) * 0.42`, offered any width from 6 to 80 mm and any TPI
+ * from 1 to 14 — combinations that are not in the price list and cannot be
+ * made — and had no way to carry the result anywhere.
+ *
+ * It now runs on the same tables and the same `calculateBladePrice` as
+ * /configurator, so every option shown is a blade that exists and every figure
+ * is the real one, itemised. The result goes straight into the cart.
+ */
+const QUOTE_TYPES = [
+  { key: "wood-h", label: "Дърво · хоризонтален", blades: HORIZONTAL_WOOD_BLADES },
+  { key: "wood-v", label: "Дърво · вертикален", blades: VERTICAL_WOOD_BLADES },
+  { key: "metal", label: "Метал · биметал", blades: METAL_BIMETAL_BLADES },
+] as const;
 
-  const price = ((len / 100) * (w / 10) * (mat === "M42" ? 0.42 : mat === "M51" ? 0.58 : mat === "CBN" ? 1.2 : 0.22)).toFixed(2);
+const MIN_LEN = 1650;
+const MAX_LEN = 12000;
+
+/** Keeps a selection valid as its parent selection changes, without effects. */
+function pick<T>(options: readonly T[], current: T | null): T | undefined {
+  if (current !== null && options.includes(current)) return current;
+  return options[0];
+}
+
+function CustomOrderBlock() {
+  const [typeKey, setTypeKey] = useState<(typeof QUOTE_TYPES)[number]["key"]>("wood-h");
+  const [selWidth, setSelWidth] = useState<number | null>(null);
+  const [selThickness, setSelThickness] = useState<number | null>(null);
+  const [selBrand, setSelBrand] = useState<string | null>(null);
+  const [selPitch, setSelPitch] = useState<string | null>(null);
+  const [lengthInput, setLengthInput] = useState("3810");
+  const [welding, setWelding] = useState(true);
+  const [setting, setSetting] = useState(true);
+  const [sharpening, setSharpening] = useState(false);
+  const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
+
+  const blades = QUOTE_TYPES.find((t) => t.key === typeKey)!.blades;
+
+  // Each level is derived from the one above, so an impossible combination
+  // cannot be selected in the first place.
+  const widths = useMemo(() => getUniqueValues(blades).widths, [blades]);
+  const width = pick(widths, selWidth)!;
+
+  const { thicknesses, brands } = useMemo(
+    () => getOptionsForWidth(blades, width),
+    [blades, width],
+  );
+  const thickness = pick(thicknesses, selThickness)!;
+  const brand = pick(brands, selBrand)!;
+
+  const pitches = useMemo(
+    () => getAvailablePitches(blades, width, thickness, brand),
+    [blades, width, thickness, brand],
+  );
+  const pitch = pick(pitches, selPitch);
+
+  const blade = pitch ? findBlade(blades, width, thickness, pitch, brand) : undefined;
+
+  const length = Number(lengthInput);
+  const lengthValid = Number.isFinite(length) && length >= MIN_LEN && length <= MAX_LEN;
+
+  const quote =
+    blade && lengthValid
+      ? calculateBladePrice(blade, length, { welding, sharpening, heatTreatment: false, setting })
+      : null;
+
+  const handleAdd = () => {
+    if (!blade || !quote || !lengthValid) return;
+    addItem({
+      sku: `CUSTOM-${brand}-${width}x${thickness}-${pitch}-${length}`,
+      name: `Банцигова лента ${brand} ${width}×${thickness} мм · стъпка ${pitch}`,
+      dim: `${length} × ${width} × ${thickness} мм`,
+      price: quote.totalWithoutVat,
+      quantity: 1,
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2200);
+  };
+
+  const selectClass =
+    "w-full h-11 px-3 border border-ink-15 bg-white font-mono text-[13px] text-ink outline-none focus:border-blue transition-colors cursor-pointer";
 
   return (
     <section id="custom" className="bg-ink text-white py-20 md:py-[120px] relative overflow-hidden">
-      <div aria-hidden className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize: "48px 48px", maskImage: "linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent)" }} />
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+          maskImage: "linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent)",
+        }}
+      />
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 relative">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-20">
           <Reveal>
-            <SectionNumber n="№ 03" label="Конфигуратор" tone="light" />
+            <SectionNumber n="№ 03" label="Изчисли цена" tone="light" />
             <h2 className="font-display text-4xl md:text-5xl lg:text-7xl leading-none tracking-[-0.04em] font-bold mt-7 mb-6">
               Кажи ни размера.<br />Ние го <span className={`${accent} text-orange-light`}>сглобяваме.</span>
             </h2>
             <p className="font-sans text-[17px] leading-relaxed text-white/70 max-w-[480px] mb-10">
-              Завареждаме банциговата лента точно по вашата машина — от кратки серии до масов клиент. Доставка за 24–48 часа в България.
+              Заваряваме банциговата лента точно по вашата машина — от единичен брой до серия.
+              Цената по-долу е по нашия актуален ценоразпис, не приблизителна.
             </p>
             <ul className="list-none p-0 m-0 flex flex-col gap-4">
               {[
-                ["Над 8 000 комбинации", "размер × материал × зъби"],
+                ["Цена от ценоразписа", "материал + заваряване + обработки"],
                 ["Прецизно заваряване", "индукция + shot-blasting"],
-                ["Сертификат за всяка партида", "MTR по ISO 9001"],
+                ["Готово за 24 часа", "доставка 24–48ч в България"],
                 ["Връщане в 30 дни", "ако размерът не пасне"],
               ].map(([t, d]) => (
                 <li key={t} className="flex gap-4 py-4 border-b border-white/[0.08]">
@@ -220,70 +317,157 @@ function CustomOrderBlock() {
             </ul>
           </Reveal>
 
-          {/* Configurator card */}
-          <div className="bg-white text-ink p-6 md:p-10 relative">
-            <div className="flex justify-between items-center mb-7">
-              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50">Конфигуратор · 01</div>
+          {/* Quote card */}
+          <div className="bg-white text-ink p-6 md:p-9 relative">
+            <div className="flex justify-between items-center mb-6">
+              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50">Бърза оферта</div>
               <Tag tone="ok">Готово за 24ч</Tag>
             </div>
-            <div className="font-display text-[28px] font-bold tracking-tight mb-5">Вашата лента</div>
 
-            <div className="mb-7">
-              <BandPreview len={len} w={w} tpi={tpi} mat={mat} />
+            {/* Type */}
+            <div className="grid grid-cols-3 gap-1.5 mb-6">
+              {QUOTE_TYPES.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => {
+                    setTypeKey(t.key);
+                    setSelWidth(null);
+                    setSelThickness(null);
+                    setSelBrand(null);
+                    setSelPitch(null);
+                  }}
+                  className={`py-2.5 px-2 font-mono text-[10px] leading-tight tracking-[0.04em] uppercase cursor-pointer border transition-colors ${
+                    typeKey === t.key
+                      ? "bg-ink text-white border-ink"
+                      : "bg-white text-ink-70 border-ink-15 hover:border-ink-30"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
             </div>
 
-            <div className="flex flex-col gap-6">
-              <ConfigSlider label="Обща дължина" unit="мм" value={len} min={1650} max={12000} step={10} onChange={setLen} />
-              <ConfigSlider label="Широчина" unit="мм" value={w} min={6} max={80} step={1} onChange={setW} />
-              <ConfigSlider label="Зъби на инч" unit="TPI" value={tpi} min={1} max={14} step={0.5} onChange={setTpi} />
+            <div className="grid grid-cols-2 gap-4">
+              <label className="block">
+                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">Широчина · мм</span>
+                <select
+                  className={selectClass}
+                  value={width}
+                  onChange={(e) => { setSelWidth(Number(e.target.value)); setSelThickness(null); setSelBrand(null); setSelPitch(null); }}
+                >
+                  {widths.map((w) => <option key={w} value={w}>{w}</option>)}
+                </select>
+              </label>
 
-              <div>
-                <label className="font-mono text-[11px] tracking-[0.1em] uppercase text-ink-50 block mb-2.5">Материал</label>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {["CS", "M42", "M51", "CBN"].map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => setMat(m)}
-                      className={`py-3 font-mono text-xs font-semibold cursor-pointer border transition-colors ${mat === m ? "bg-ink text-white border-ink" : "bg-white text-ink border-ink-15 hover:border-ink-30"}`}
-                    >
-                      {m}
-                    </button>
-                  ))}
+              <label className="block">
+                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">Дебелина · мм</span>
+                <select
+                  className={selectClass}
+                  value={thickness}
+                  onChange={(e) => { setSelThickness(Number(e.target.value)); setSelPitch(null); }}
+                >
+                  {thicknesses.map((t) => <option key={t} value={t}>{t.toFixed(2)}</option>)}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">Марка</span>
+                <select
+                  className={selectClass}
+                  value={brand}
+                  onChange={(e) => { setSelBrand(e.target.value); setSelPitch(null); }}
+                >
+                  {brands.map((b) => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">Стъпка / зъб</span>
+                <select className={selectClass} value={pitch ?? ""} onChange={(e) => setSelPitch(e.target.value)}>
+                  {pitches.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </label>
+            </div>
+
+            {/* Length is typed, not dragged — buyers know their exact length. */}
+            <label className="block mt-4">
+              <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">
+                Обща дължина · мм
+              </span>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={lengthInput}
+                min={MIN_LEN}
+                max={MAX_LEN}
+                onChange={(e) => setLengthInput(e.target.value)}
+                aria-invalid={!lengthValid}
+                className={`w-full h-11 px-3 border bg-white font-mono text-[15px] font-semibold text-ink tabular-nums outline-none transition-colors ${
+                  lengthValid ? "border-ink-15 focus:border-blue" : "border-danger"
+                }`}
+              />
+              <span className={`font-mono text-[10px] mt-1.5 block ${lengthValid ? "text-ink-50" : "text-danger"}`}>
+                {lengthValid ? `Заваряваме от ${MIN_LEN} до ${MAX_LEN} мм` : `Дължината трябва да е между ${MIN_LEN} и ${MAX_LEN} мм`}
+              </span>
+            </label>
+
+            {/* Processing */}
+            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
+              {([
+                ["Заваряване", welding, setWelding],
+                ["Чапраз", setting, setSetting],
+                ["Заточване", sharpening, setSharpening],
+              ] as const).map(([label, val, set]) => (
+                <label key={label} className="flex items-center gap-2 font-sans text-[13px] text-ink-70 cursor-pointer">
+                  <input type="checkbox" checked={val} onChange={(e) => set(e.target.checked)} className="w-3.5 h-3.5 accent-orange" />
+                  {label}
+                </label>
+              ))}
+            </div>
+
+            {/* Itemised price */}
+            <div className="mt-6 p-5 bg-paper">
+              {quote ? (
+                <>
+                  <div className="flex flex-col gap-1.5 font-mono text-[11px] text-ink-70 mb-4 pb-4 border-b border-ink-15">
+                    <div className="flex justify-between"><span>Лента {(length / 1000).toFixed(2)} м</span><span className="tabular-nums">{quote.bladePrice.toFixed(2)} €</span></div>
+                    {welding && <div className="flex justify-between"><span>Заваряване</span><span className="tabular-nums">{quote.weldingPrice.toFixed(2)} €</span></div>}
+                    {setting && <div className="flex justify-between"><span>Чапраз</span><span className="tabular-nums">{quote.settingPrice.toFixed(2)} €</span></div>}
+                    {sharpening && <div className="flex justify-between"><span>Заточване</span><span className="tabular-nums">{quote.sharpeningPrice.toFixed(2)} €</span></div>}
+                  </div>
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">Цена без ДДС</div>
+                      <div className="font-display text-4xl font-extrabold tracking-tight text-ink tabular-nums leading-none mt-1">
+                        {quote.totalWithoutVat.toFixed(2)} <span className="text-sm text-ink-50 font-normal">€</span>
+                      </div>
+                      <div className="font-mono text-[10px] text-ink-50 mt-1.5 tabular-nums">
+                        {(quote.totalWithoutVat * BGN_RATE).toFixed(2)} лв · с ДДС {quote.totalWithVat.toFixed(2)} €
+                      </div>
+                    </div>
+                    <Btn variant="primary" size="lg" onClick={handleAdd} iconRight={<IconArrowRight size={16} />}>
+                      {added ? "✓ Добавено" : "Добави"}
+                    </Btn>
+                  </div>
+                </>
+              ) : (
+                <div className="font-sans text-sm text-ink-70">
+                  Тази комбинация не е в ценоразписа.{" "}
+                  <Link href="/contact" className="text-orange underline">Запитайте ни</Link> — правим и нестандартни.
                 </div>
-              </div>
+              )}
             </div>
 
-            <div className="mt-8 p-5 bg-paper flex justify-between items-center">
-              <div>
-                <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">Ориентировъчна цена</div>
-                <div className="font-display text-4xl font-extrabold tracking-tight text-ink">
-                  {price} <span className="text-sm text-ink-50 font-normal">лв</span>
-                </div>
-              </div>
-              <Link href="/contact"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Добави</Btn></Link>
-            </div>
-            <div className="mt-4 font-mono text-[10px] text-ink-50 tracking-[0.08em] text-center">
-              L={len} × W={w} × TPI={tpi} · {mat} · LOT-{Math.floor((len * w) / 10).toString(16).toUpperCase()}
+            <div className="mt-4 flex justify-between items-center font-mono text-[10px] text-ink-50 tracking-[0.06em]">
+              <span className="tabular-nums">
+                {lengthValid ? length : "—"} × {width} × {thickness.toFixed(2)} мм · {brand}
+              </span>
+              <Link href="/configurator" className="text-orange underline">Още 5 типа →</Link>
             </div>
           </div>
         </div>
       </div>
     </section>
-  );
-}
-
-function ConfigSlider({ label, unit, value, min, max, step, onChange }: { label: string; unit: string; value: number; min: number; max: number; step: number; onChange: (v: number) => void }) {
-  return (
-    <div>
-      <div className="flex justify-between items-baseline mb-2.5">
-        <label className="font-mono text-[11px] tracking-[0.1em] uppercase text-ink-50">{label}</label>
-        <span className="font-mono text-sm font-semibold text-ink">{value} <span className="text-ink-50 font-normal">{unit}</span></span>
-      </div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(+e.target.value)} className="w-full accent-orange" />
-      <div className="flex justify-between font-mono text-[9px] text-ink-50 mt-1">
-        <span>{min}</span><span>{max}</span>
-      </div>
-    </div>
   );
 }
 
