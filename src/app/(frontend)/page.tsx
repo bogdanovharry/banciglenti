@@ -12,8 +12,12 @@ export default async function HomePage() {
   // Bestsellers are the products actually flagged TOP in the CMS. Previously
   // this block was hardcoded and every one of its six links 404'd, because none
   // of those slugs existed in the catalogue.
+  // Machines are excluded even when flagged TOP. A €5,742 sharpening machine is
+  // not an impulse buy from a homepage row, and having no width or thickness it
+  // renders an empty spec tile beside blades that have both. It still appears
+  // under its own category, where a buyer is actually shopping for one.
   const bestsellers: ProductCardData[] = products
-    .filter((p) => p.badge === "TOP")
+    .filter((p) => p.badge === "TOP" && !p.categorySlugs.includes("mashini"))
     .slice(0, 6)
     .map((p) => ({
       sku: p.sku,

@@ -41,7 +41,10 @@ function SpecBlock({
   const hasLength = typeof specs.length === "number";
 
   return (
-    <div className="relative aspect-square bg-paper border-b border-ink-15 flex flex-col justify-center px-5 overflow-hidden">
+    // 4:3 rather than square. A square tile left a lot of empty drafting grid
+    // above and below a single line of figures, which read as a broken image
+    // slot rather than as a deliberate spec panel.
+    <div className="relative aspect-[4/3] bg-paper border-b border-ink-15 flex flex-col justify-center px-5 overflow-hidden">
       {/* Engineering grid, very low contrast — reads as drafting paper */}
       <div
         aria-hidden
@@ -82,11 +85,11 @@ function SpecBlock({
               мм · широчина × дебелина
             </div>
           </>
-        ) : (
-          <div className="font-mono text-[13px] tracking-[0.12em] uppercase text-ink-50">
-            Виж спецификация
-          </div>
-        )}
+        ) : null}
+        {/* Products with no dimensions — machines, coolant, consumables — get
+            the drafting grid and their material chip alone. The old fallback
+            said "виж спецификация", which promises a specification the product
+            does not have. */}
 
         {material && (
           <div className="mt-4 inline-flex font-mono text-[10px] tracking-[0.1em] uppercase bg-ink text-white px-2 py-1">

@@ -511,7 +511,10 @@ function CustomOrderBlock() {
 function BestsellersBlock({ products }: { products: ProductCardData[] }) {
   const [filter, setFilter] = useState("Всички");
   // Only offer a tab if the catalogue actually has products behind it.
-  const tabs = ["Всички", ...Array.from(new Set(products.map((p) => p.industry)))];
+  // A filter offering one real choice is just decoration, so the row only
+  // appears once there are at least two industries to switch between.
+  const industries = Array.from(new Set(products.map((p) => p.industry)));
+  const tabs = industries.length > 1 ? ["Всички", ...industries] : [];
   const filtered = filter === "Всички" ? products : products.filter((b) => b.industry === filter);
 
   return (
@@ -524,17 +527,19 @@ function BestsellersBlock({ products }: { products: ProductCardData[] }) {
               Какво купуват<br />професионалистите.
             </h2>
           </Reveal>
-          <div className="flex gap-1 bg-white border border-ink-15 p-1">
-            {tabs.map((t) => (
-              <button
-                key={t}
-                onClick={() => setFilter(t)}
-                className={`px-4 py-2.5 font-mono text-[11px] tracking-[0.1em] uppercase cursor-pointer border-none transition-colors ${filter === t ? "bg-ink text-white" : "bg-transparent text-ink-70 hover:text-ink"}`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
+          {tabs.length > 0 && (
+            <div className="flex gap-1 bg-white border border-ink-15 p-1">
+              {tabs.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setFilter(t)}
+                  className={`px-4 py-2.5 font-mono text-[11px] tracking-[0.1em] uppercase cursor-pointer border-none transition-colors ${filter === t ? "bg-ink text-white" : "bg-transparent text-ink-70 hover:text-ink"}`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
