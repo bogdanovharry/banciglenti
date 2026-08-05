@@ -86,11 +86,29 @@ export const Products: CollectionConfig = {
       admin: { position: 'sidebar' },
     },
     {
+      name: 'stock',
+      type: 'number',
+      label: 'Наличност (бр.)',
+      defaultValue: 0,
+      min: 0,
+      admin: { position: 'sidebar' },
+    },
+    {
       name: 'featured',
       type: 'checkbox',
       label: 'Препоръчан продукт',
       defaultValue: false,
       admin: { position: 'sidebar' },
+    },
+    {
+      name: 'topProduct',
+      type: 'checkbox',
+      label: 'TOP продукт',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Показва значка TOP в каталога.',
+      },
     },
   ],
 }
