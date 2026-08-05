@@ -11,26 +11,32 @@ import { ALL_PRODUCTS } from '@/lib/products-data'
 // Two-level taxonomy: industry parents, then the categories products attach to.
 // `parent: null` marks the top level — those are created first so children can
 // reference them by id.
-const CATEGORIES: { name: string; slug: string; parent: string | null; sortOrder: number }[] = [
-  { name: 'Дърво', slug: 'dyrvo', parent: null, sortOrder: 1 },
-  { name: 'Метал', slug: 'metal', parent: null, sortOrder: 2 },
-  { name: 'Храни', slug: 'hrani', parent: null, sortOrder: 3 },
-  { name: 'Хоби банциг', slug: 'hobi-bantsig', parent: null, sortOrder: 4 },
-  { name: 'Абразиви', slug: 'abrazivi', parent: null, sortOrder: 5 },
-  { name: 'Машини', slug: 'mashini', parent: null, sortOrder: 6 },
-  { name: 'Консумативи', slug: 'konsumativi', parent: null, sortOrder: 7 },
+const CATEGORIES: {
+  name: string
+  slug: string
+  parent: string | null
+  sortOrder: number
+  description: string
+}[] = [
+  { name: 'Дърво', slug: 'dyrvo', parent: null, sortOrder: 1, description: 'Банцигови ленти, циркулярни триони и ножове за абрихт за дървообработка.' },
+  { name: 'Метал', slug: 'metal', parent: null, sortOrder: 2, description: 'Биметални и въглеродни отрезни ленти за металообработка.' },
+  { name: 'Храни', slug: 'hrani', parent: null, sortOrder: 3, description: 'Лентови ножове за месо, риба, хляб и слайсъри.' },
+  { name: 'Хоби банциг', slug: 'hobi-bantsig', parent: null, sortOrder: 4, description: 'Ленти за Einhell, Parkside, Raider, Metabo, Scheppach и други хоби банцизи.' },
+  { name: 'Абразиви', slug: 'abrazivi', parent: null, sortOrder: 5, description: 'Абразивни, диамантени и CBN заточни дискове. Охлаждащи течности.' },
+  { name: 'Машини', slug: 'mashini', parent: null, sortOrder: 6, description: 'Заточни машини, устройства за чапраз и оборудване.' },
+  { name: 'Консумативи', slug: 'konsumativi', parent: null, sortOrder: 7, description: 'Резервни части, гърбици и измервателни уреди.' },
 
-  { name: 'Хоризонтални банцизи', slug: 'horizontalni-bantsizi', parent: 'dyrvo', sortOrder: 10 },
-  { name: 'Вертикални банцизи', slug: 'vertikalni-bantsizi', parent: 'dyrvo', sortOrder: 11 },
-  { name: 'Циркулярни триони', slug: 'tsirkulyarni-trioni', parent: 'dyrvo', sortOrder: 12 },
-  { name: 'Ножове за абрихт', slug: 'nozhove-za-abriht', parent: 'dyrvo', sortOrder: 13 },
+  { name: 'Хоризонтални банцизи', slug: 'horizontalni-bantsizi', parent: 'dyrvo', sortOrder: 10, description: 'Банцигови ленти за хоризонтални банцизи и гатери. MasterGold, Kodiak, Böhler.' },
+  { name: 'Вертикални банцизи', slug: 'vertikalni-bantsizi', parent: 'dyrvo', sortOrder: 11, description: 'Банцигови ленти за вертикални банцизи. Всички размери по поръчка.' },
+  { name: 'Циркулярни триони', slug: 'tsirkulyarni-trioni', parent: 'dyrvo', sortOrder: 12, description: 'Обикновени и със сменяеми твърдосплавни пластини. Диаметри от Ø100 до Ø600.' },
+  { name: 'Ножове за абрихт', slug: 'nozhove-za-abriht', parent: 'dyrvo', sortOrder: 13, description: 'HSS и 100Cr6 ножове за абрихт машини. Дължини от 260 до 810 мм.' },
 
-  { name: 'Биметални ленти', slug: 'bimetalni-lenti', parent: 'metal', sortOrder: 20 },
-  { name: 'Въглеродна стомана CS', slug: 'vyglerodna-lenti-cs', parent: 'metal', sortOrder: 21 },
+  { name: 'Биметални ленти', slug: 'bimetalni-lenti', parent: 'metal', sortOrder: 20, description: 'M42 и M51 биметални ленти за рязане на стомана до 68 HRC.' },
+  { name: 'Въглеродна стомана CS', slug: 'vyglerodna-lenti-cs', parent: 'metal', sortOrder: 21, description: 'Отрезни ленти от въглеродна стомана. Flexback и Hardback.' },
 
-  { name: 'Месо и риба', slug: 'meso-i-riba', parent: 'hrani', sortOrder: 30 },
-  { name: 'Хлебни изделия', slug: 'hlebni-izdeliya', parent: 'hrani', sortOrder: 31 },
-  { name: 'Слайсъри', slug: 'slicers', parent: 'hrani', sortOrder: 32 },
+  { name: 'Месо и риба', slug: 'meso-i-riba', parent: 'hrani', sortOrder: 30, description: 'Лентови ножове за рязане на месо и риба.' },
+  { name: 'Хлебни изделия', slug: 'hlebni-izdeliya', parent: 'hrani', sortOrder: 31, description: 'Лентови ножове за хлеборезни машини.' },
+  { name: 'Слайсъри', slug: 'slicers', parent: 'hrani', sortOrder: 32, description: 'Лентови ножове за слайсъри Bizerba, Berkel и др.' },
 ]
 
 // Matched against the product name, first hit wins. The source sheet mixes Latin
@@ -118,7 +124,12 @@ export async function seed(payload: Payload): Promise<SeedResult> {
   for (const category of CATEGORIES.filter((c) => c.parent === null)) {
     const created = await payload.create({
       collection: 'categories',
-      data: { name: category.name, slug: category.slug, sortOrder: category.sortOrder },
+      data: {
+        name: category.name,
+        slug: category.slug,
+        sortOrder: category.sortOrder,
+        description: category.description,
+      },
     })
     categoryIds[category.slug] = created.id as number
   }
@@ -130,6 +141,7 @@ export async function seed(payload: Payload): Promise<SeedResult> {
         name: category.name,
         slug: category.slug,
         sortOrder: category.sortOrder,
+        description: category.description,
         parent: categoryIds[category.parent as string],
       },
     })

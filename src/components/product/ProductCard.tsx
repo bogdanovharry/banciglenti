@@ -72,7 +72,7 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
             <div>
               <div className="font-mono text-[9px] text-ink-50 tracking-[0.12em] uppercase">от</div>
               <div className="font-display text-[22px] font-bold tracking-tight text-ink">
-                {p.price.toFixed(2)} <span className="text-[11px] text-ink-50 font-normal">лв</span>
+                {p.price.toFixed(2)} <span className="text-[11px] text-ink-50 font-normal">€</span>
               </div>
             </div>
             <button
