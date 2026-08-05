@@ -70,7 +70,26 @@ export const Products: CollectionConfig = {
       fields: [
         { name: 'width', type: 'number', label: 'Ширина (mm)' },
         { name: 'thickness', type: 'number', label: 'Дебелина (mm)' },
+        {
+          name: 'length',
+          type: 'number',
+          label: 'Дължина на контура (mm)',
+          admin: { description: 'Обиколката на лентата — размерът, който трябва да съвпадне с машината.' },
+        },
         { name: 'material', type: 'text', label: 'Материал' },
+      ],
+    },
+    {
+      name: 'machines',
+      type: 'array',
+      label: 'Пасва на машини',
+      admin: {
+        description:
+          'Марка и модел на машините, за които е този размер. Показва се като филтър в каталога.',
+      },
+      fields: [
+        { name: 'brand', type: 'text', required: true, label: 'Марка' },
+        { name: 'model', type: 'text', required: true, label: 'Модел' },
       ],
     },
     {

@@ -26,6 +26,7 @@ export default async function HomePage() {
       badge: p.badge,
       specs: p.specs,
       brandName: p.brandName,
+      machines: p.machines,
       stockCount: p.stockCount,
     }));
 

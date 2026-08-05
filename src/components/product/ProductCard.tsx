@@ -18,7 +18,7 @@ export interface ProductCardData {
   badge?: "TOP" | "NEW" | null;
   image?: string;
   /** Drives the spec block that stands in for a photo. */
-  specs?: { width?: number; thickness?: number; material?: string };
+  specs?: { width?: number; thickness?: number; length?: number; material?: string };
   brandName?: string | null;
   stockCount?: number;
 }
@@ -34,10 +34,11 @@ function SpecBlock({
   specs,
   material,
 }: {
-  specs: { width?: number; thickness?: number };
+  specs: { width?: number; thickness?: number; length?: number };
   material?: string;
 }) {
   const hasDims = typeof specs.width === "number" && typeof specs.thickness === "number";
+  const hasLength = typeof specs.length === "number";
 
   return (
     <div className="relative aspect-square bg-paper border-b border-ink-15 flex flex-col justify-center px-5 overflow-hidden">
@@ -53,7 +54,24 @@ function SpecBlock({
       />
 
       <div className="relative">
-        {hasDims ? (
+        {hasLength ? (
+          // Loop length leads: it is the one figure that must match the machine
+          // exactly, so it gets the type size and the section rank.
+          <>
+            <div className="font-mono text-[38px] leading-none font-semibold text-ink tracking-[-0.03em] tabular-nums">
+              {specs.length}
+              <span className="text-[15px] text-ink-50 font-normal ml-1.5">мм</span>
+            </div>
+            <div className="font-mono text-[10px] tracking-[0.16em] uppercase text-ink-50 mt-2">
+              дължина на контура
+            </div>
+            {hasDims && (
+              <div className="font-mono text-[12px] text-ink-70 mt-2.5 tabular-nums">
+                {specs.width} × {specs.thickness} мм
+              </div>
+            )}
+          </>
+        ) : hasDims ? (
           <>
             <div className="font-mono text-[34px] leading-none font-semibold text-ink tracking-[-0.02em] tabular-nums">
               {specs.width}

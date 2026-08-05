@@ -37,7 +37,9 @@ export type CatalogProduct = ProductCardData & {
   categorySlugs: string[]
   brandName: string | null
   shortDescription?: string
-  specs: { width?: number; thickness?: number; material?: string }
+  specs: { width?: number; thickness?: number; length?: number; material?: string }
+  /** Machines this size fits — "Holzmann BS128HDR". Drives the machine filter. */
+  machines: string[]
 }
 
 const getClient = cache(async () => getPayload({ config }))
@@ -63,12 +65,22 @@ function stockLabel(stock: number): ProductCardData['stock'] {
   return 'На склад'
 }
 
-/** "3810 × 27 × 0.9 мм" style summary, from whatever specs the product has. */
-function dimensionLabel(specs: { width?: number | null; thickness?: number | null }): string {
-  const parts = [specs.width, specs.thickness].filter(
+/**
+ * "2360 × 13 × 0.65 мм" — length first, because that is the figure that has to
+ * match the machine. Falls back to width × thickness when no length is recorded.
+ */
+function dimensionLabel(specs: {
+  width?: number | null
+  thickness?: number | null
+  length?: number | null
+}): string {
+  const wt = [specs.width, specs.thickness].filter(
     (n): n is number => typeof n === 'number' && Number.isFinite(n),
   )
-  return parts.length === 2 ? `${parts[0]} × ${parts[1]} мм` : ''
+  if (wt.length !== 2) return ''
+
+  const hasLength = typeof specs.length === 'number' && Number.isFinite(specs.length)
+  return hasLength ? `${specs.length} × ${wt[0]} × ${wt[1]} мм` : `${wt[0]} × ${wt[1]} мм`
 }
 
 export const getCategories = cache(async (): Promise<CatalogCategory[]> => {
@@ -110,8 +122,21 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
   const industry =
     attached.find((c) => c.parentSlug === null)?.name ?? attached[0]?.name ?? 'Друго'
 
-  const specs = (doc.specs ?? {}) as { width?: number; thickness?: number; material?: string }
+  const specs = (doc.specs ?? {}) as {
+    width?: number
+    thickness?: number
+    length?: number
+    material?: string
+  }
   const stockCount = typeof doc.stock === 'number' ? doc.stock : 0
+
+  const machines = (Array.isArray(doc.machines) ? doc.machines : [])
+    .map((m) => {
+      if (!m || typeof m !== 'object') return null
+      const { brand, model } = m as { brand?: unknown; model?: unknown }
+      return brand && model ? `${String(brand)} ${String(model)}` : null
+    })
+    .filter((s): s is string => s !== null)
 
   return {
     sku: String(doc.slug),
@@ -127,6 +152,7 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
     brandName: relationName(doc.brand),
     shortDescription: typeof doc.shortDescription === 'string' ? doc.shortDescription : undefined,
     specs,
+    machines,
   }
 }
 

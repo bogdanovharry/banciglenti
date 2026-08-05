@@ -7,11 +7,13 @@ import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconClose, IconRuler, IconArrowRight } from "@/components/ui/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { ConfiguratorPanel } from "@/components/configurator/ConfiguratorPanel";
 
 export type ShopFilter = { slug: string; label: string; count: number };
 
 export type ShopProduct = ProductCardData & {
   categorySlugs: string[];
+  machines?: string[];
 };
 
 type Facet = { value: string; count: number };
@@ -80,14 +82,25 @@ export function ShopClient({
   // afterwards and a user's clicks are never overwritten by the URL.
   const params = useSearchParams();
 
+  // Ready stock and made-to-order are the same decision for a buyer — "can I get
+  // this size?" — so they live on one page rather than behind separate routes.
+  // ?mode=custom deep-links straight into the configurator.
+  const [mode, setMode] = useState<"stock" | "custom">(() =>
+    params.get("mode") === "custom" ? "custom" : "stock",
+  );
+
   const [sort, setSort] = useState("Популярност");
   const [activeCategory, setActiveCategory] = useState(() => params.get("category") ?? "");
   const [materials, setMaterials] = useState<string[]>(() => params.getAll("material"));
   const [brands, setBrands] = useState<string[]>(() => params.getAll("brand"));
   const [inStockOnly, setInStockOnly] = useState(false);
-  // Width is how buyers actually search — they know what their machine takes.
+  const [machines, setMachines] = useState<string[]>(() => params.getAll("machine"));
+  // Width and loop length are how buyers actually search — they know what their
+  // machine takes, and length is the figure that must match exactly.
   const [widthMin, setWidthMin] = useState("");
   const [widthMax, setWidthMax] = useState("");
+  const [lengthMin, setLengthMin] = useState(() => params.get("lengthMin") ?? "");
+  const [lengthMax, setLengthMax] = useState(() => params.get("lengthMax") ?? "");
 
   const toggle = (list: string[], set: (v: string[]) => void, value: string) =>
     set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
@@ -121,25 +134,40 @@ export function ShopClient({
       .sort((a, b) => b.count - a.count);
   }, [inCategory]);
 
+  const machineFacets = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of inCategory) {
+      for (const m of p.machines ?? []) counts.set(m, (counts.get(m) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([value, count]) => ({ value, count }))
+      .sort((a, b) => a.value.localeCompare(b.value));
+  }, [inCategory]);
+
   const filtered = useMemo(() => {
-    const min = widthMin === "" ? null : Number(widthMin);
-    const max = widthMax === "" ? null : Number(widthMax);
+    const num = (s: string) => (s === "" ? null : Number(s));
+    const inRange = (v: unknown, min: number | null, max: number | null) => {
+      if (min === null && max === null) return true;
+      // A product with no recorded figure cannot satisfy a range filter.
+      if (typeof v !== "number") return false;
+      if (min !== null && !Number.isNaN(min) && v < min) return false;
+      if (max !== null && !Number.isNaN(max) && v > max) return false;
+      return true;
+    };
+
+    const wMin = num(widthMin), wMax = num(widthMax);
+    const lMin = num(lengthMin), lMax = num(lengthMax);
 
     return inCategory.filter((p) => {
       if (materials.length && !(p.specs?.material && materials.includes(p.specs.material))) return false;
       if (brands.length && !(p.brandName && brands.includes(p.brandName))) return false;
+      if (machines.length && !(p.machines ?? []).some((m) => machines.includes(m))) return false;
       if (inStockOnly && p.stock === "Изчерпан") return false;
-
-      if (min !== null || max !== null) {
-        const w = p.specs?.width;
-        // A product with no recorded width cannot satisfy a width filter.
-        if (typeof w !== "number") return false;
-        if (min !== null && !Number.isNaN(min) && w < min) return false;
-        if (max !== null && !Number.isNaN(max) && w > max) return false;
-      }
+      if (!inRange(p.specs?.width, wMin, wMax)) return false;
+      if (!inRange(p.specs?.length, lMin, lMax)) return false;
       return true;
     });
-  }, [inCategory, materials, brands, inStockOnly, widthMin, widthMax]);
+  }, [inCategory, materials, brands, machines, inStockOnly, widthMin, widthMax, lengthMin, lengthMax]);
 
   const sorted = useMemo(() => {
     const list = [...filtered];
@@ -153,9 +181,13 @@ export function ShopClient({
     ...(activeCategory ? [{ label: filters.find((f) => f.slug === activeCategory)?.label ?? activeCategory, clear: () => setActiveCategory("") }] : []),
     ...materials.map((m) => ({ label: m, clear: () => toggle(materials, setMaterials, m) })),
     ...brands.map((b) => ({ label: b, clear: () => toggle(brands, setBrands, b) })),
+    ...machines.map((m) => ({ label: m, clear: () => toggle(machines, setMachines, m) })),
     ...(inStockOnly ? [{ label: "Само налични", clear: () => setInStockOnly(false) }] : []),
     ...(widthMin || widthMax
       ? [{ label: `Широчина ${widthMin || "0"}–${widthMax || "∞"} мм`, clear: () => { setWidthMin(""); setWidthMax(""); } }]
+      : []),
+    ...(lengthMin || lengthMax
+      ? [{ label: `Дължина ${lengthMin || "0"}–${lengthMax || "∞"} мм`, clear: () => { setLengthMin(""); setLengthMax(""); } }]
       : []),
   ];
 
@@ -163,9 +195,12 @@ export function ShopClient({
     setActiveCategory("");
     setMaterials([]);
     setBrands([]);
+    setMachines([]);
     setInStockOnly(false);
     setWidthMin("");
     setWidthMax("");
+    setLengthMin("");
+    setLengthMax("");
   };
 
   return (
@@ -184,6 +219,36 @@ export function ShopClient({
         description="Филтрирайте по широчина, материал или марка. Не намирате размера си — конфигураторът изработва лента по поръчка за 24 часа."
       />
 
+      {/* Mode switch */}
+      <div className="border-b border-ink-15 bg-paper">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-10 flex gap-0">
+          {([
+            ["stock", "Готови продукти", `${products.length} размера на склад`],
+            ["custom", "По твой размер", "Заваряваме за 24 часа"],
+          ] as const).map(([key, label, hint]) => (
+            <button
+              key={key}
+              onClick={() => setMode(key)}
+              aria-pressed={mode === key}
+              className={`px-5 md:px-7 py-4 text-left border-none cursor-pointer transition-colors ${
+                mode === key
+                  ? "bg-white border-b-2 border-orange -mb-px"
+                  : "bg-transparent border-b-2 border-transparent hover:bg-white/60"
+              }`}
+            >
+              <span className={`block font-display text-[15px] font-bold tracking-tight ${mode === key ? "text-ink" : "text-ink-50"}`}>
+                {label}
+              </span>
+              <span className="block font-mono text-[10px] tracking-[0.06em] text-ink-50 mt-0.5">{hint}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {mode === "custom" ? (
+        <ConfiguratorPanel />
+      ) : (
+      <>
       {/* Toolbar */}
       <div className="border-b border-ink-15 bg-white sticky top-[168px] z-30">
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 min-h-14 py-2 flex items-center justify-between gap-4 flex-wrap">
@@ -228,7 +293,74 @@ export function ShopClient({
       {/* Grid */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-10 pb-20 md:pb-[120px] grid grid-cols-1 lg:grid-cols-[264px_1fr] gap-10">
         <aside className="hidden lg:block">
-          {/* Find by size — the way buyers actually shop for blades */}
+          {/* Find by machine — a buyer knows their machine before they know a
+              blade size, so this sits above the dimensional filters. */}
+          {machineFacets.length > 0 && (
+            <div className="mb-6 pb-6 border-b border-ink-15">
+              <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
+                Намери по машина
+              </h4>
+              <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">Марка и модел на вашия банциг.</p>
+              <select
+                value=""
+                onChange={(e) => { if (e.target.value) toggle(machines, setMachines, e.target.value); }}
+                aria-label="Избери машина"
+                className="w-full h-10 px-2.5 border border-ink-15 bg-white font-sans text-[13px] text-ink outline-none focus:border-blue cursor-pointer"
+              >
+                <option value="">— избери машина —</option>
+                {machineFacets
+                  .filter((f) => !machines.includes(f.value))
+                  .map((f) => (
+                    <option key={f.value} value={f.value}>{f.value} ({f.count})</option>
+                  ))}
+              </select>
+              {machines.length > 0 && (
+                <ul className="list-none m-0 mt-2 p-0 flex flex-wrap gap-1.5">
+                  {machines.map((m) => (
+                    <li key={m}>
+                      <button
+                        onClick={() => toggle(machines, setMachines, m)}
+                        className="inline-flex items-center gap-1.5 px-2 py-1 bg-ink text-white font-mono text-[10px] cursor-pointer border-none"
+                      >
+                        {m} <IconClose size={10} className="text-white/60" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* Loop length — the figure that must match the machine exactly */}
+          <div className="mb-6 pb-6 border-b border-ink-15">
+            <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
+              Намери по дължина
+            </h4>
+            <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">Обиколка на контура в мм.</p>
+            <div className="flex gap-2 items-center">
+              <input
+                type="number"
+                inputMode="numeric"
+                value={lengthMin}
+                onChange={(e) => setLengthMin(e.target.value)}
+                placeholder="от"
+                aria-label="Минимална дължина в мм"
+                className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
+              />
+              <span className="font-mono text-ink-30 text-xs">–</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={lengthMax}
+                onChange={(e) => setLengthMax(e.target.value)}
+                placeholder="до"
+                aria-label="Максимална дължина в мм"
+                className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Width */}
           <div className="mb-6 pb-6 border-b border-ink-15">
             <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
               Намери по широчина
@@ -366,6 +498,8 @@ export function ShopClient({
           )}
         </div>
       </div>
+      </>
+      )}
     </>
   );
 }
