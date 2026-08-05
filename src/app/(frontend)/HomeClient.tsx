@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
-import { SectionNumber, Placeholder, Btn, Tag, TickRule } from "@/components/ui/primitives";
+import { SectionNumber, Placeholder, Btn, Tag } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { BandPreview } from "@/components/product/BandPreview";
@@ -15,77 +16,63 @@ import {
 const accent = "font-extrabold";
 
 // ========== HERO ==========
+/**
+ * Full-bleed and dark, over a photograph of a blade actually being welded.
+ * That image is the business: cutting stock to length and welding it to fit a
+ * customer's machine in 24 hours is the thing competitors do not do, and the
+ * sparks carry the brand orange without needing a graphic. The previous hero
+ * was a white panel beside a spec card of invented figures.
+ */
 function HeroCustom() {
   return (
-    <section className="bg-paper relative overflow-hidden">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 md:py-[64px] grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-10 lg:gap-16 items-end">
-        <div>
-          <SectionNumber n="№ 01" label="Режещи инструменти по поръчка" />
-          <h1 className="font-display text-5xl md:text-7xl lg:text-[104px] font-extrabold leading-[0.95] tracking-[-0.045em] mt-8 mb-8 text-ink">
+    <section className="relative isolate bg-ink text-white overflow-hidden">
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src="/images/hero/shutterstock_1753030058.webp"
+          alt="Заваряване на банцигова лента по размер в цеха на ТЕХНОЛЕС"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        {/* Legibility scrim: heavy at the left where the copy sits, opening up
+            to the right so the sparks stay visible. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-ink/60" />
+      </div>
+
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-20 pb-12 md:pt-[124px] md:pb-16">
+        <div className="max-w-[860px]">
+          <SectionNumber n="№ 01" label="Режещи инструменти по поръчка" tone="light" />
+          <h1 className="font-display text-5xl md:text-7xl lg:text-[92px] font-extrabold leading-[0.94] tracking-[-0.045em] mt-8 mb-7">
             Всяка лента<br />точно по<br />
-            <span className={`${accent} text-orange`}>вашата машина.</span>
+            <span className={`${accent} text-orange-light`}>вашата машина.</span>
           </h1>
-          <p className="font-sans text-lg leading-relaxed text-ink-70 max-w-[560px] mb-10">
-            Произвеждаме и заваряваме банцигови ленти по индивидуални размери за дърво, метал и хранителна промишленост — от 1&nbsp;650 до 12&nbsp;000&nbsp;мм, за 24&nbsp;часа.
+          <p className="font-sans text-lg leading-relaxed text-white/75 max-w-[560px] mb-10">
+            Произвеждаме и заваряваме банцигови ленти по индивидуални размери за дърво, метал и
+            хранителна промишленост — от 1&nbsp;650 до 12&nbsp;000&nbsp;мм, за 24&nbsp;часа.
           </p>
           <div className="flex gap-3 items-center flex-wrap">
-            <Link href="/configurator"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Конфигурирай лента</Btn></Link>
-            <Link href="/shop"><Btn variant="ghost" size="lg">Разгледай каталог</Btn></Link>
-          </div>
-          {/* Spec rail */}
-          <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-ink-15">
-            {[
-              ["30+", "години"],
-              ["12 000", "активни клиенти"],
-              ["24ч", "изработка"],
-              ["±0.01", "мм точност"],
-            ].map(([v, l], i) => (
-              <div key={i} className={`pt-5 pr-4 ${i > 0 ? "border-l border-ink-15 pl-5" : ""}`}>
-                <div className="font-display text-3xl font-bold tracking-tight text-ink">{v}</div>
-                <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mt-1.5">{l}</div>
-              </div>
-            ))}
+            <Link href="/configurator">
+              <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Конфигурирай лента</Btn>
+            </Link>
+            <Link href="/shop"><Btn variant="ghostLight" size="lg">Разгледай каталог</Btn></Link>
           </div>
         </div>
 
-        {/* Right — spec card */}
-        <div className="relative hidden lg:block">
-          <div className="bg-ink text-white p-7 relative shadow-[0_40px_80px_-24px_rgba(11,30,51,0.4)]">
-            <div className="flex justify-between items-start mb-5">
-              <div>
-                <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50">Spec sheet · template</div>
-                <div className="font-display text-xl font-semibold mt-1">Биметална M42 · поръчка</div>
-              </div>
-              <Tag tone="orange">custom</Tag>
+        {/* Proof rail */}
+        <div className="mt-16 md:mt-24 grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-white/20">
+          {[
+            ["30+", "години"],
+            ["12 000", "активни клиенти"],
+            ["24ч", "изработка"],
+            ["±0.01", "мм точност"],
+          ].map(([v, l], i) => (
+            <div key={l} className={`pt-5 pb-1 pr-4 ${i > 0 ? "md:border-l md:border-white/20 md:pl-5" : ""}`}>
+              <div className="font-display text-3xl md:text-4xl font-bold tracking-tight tabular-nums">{v}</div>
+              <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/55 mt-1.5">{l}</div>
             </div>
-            <Placeholder
-              tone="ink"
-              ratio="16/9"
-              src="/images/hero/shutterstock_2512301009.webp"
-              alt="Биметална банцигова лента — детайл на зъбите"
-              sizes="(max-width: 1024px) 100vw, 32vw"
-              preload
-            />
-            <div className="mt-5 grid grid-cols-2 gap-3 font-mono text-[11px]">
-              {[
-                ["Дължина", "3 810 мм"], ["Широчина", "27 мм"], ["Дебелина", "0.9 мм"],
-                ["Зъби/инч", "3 TPI"], ["Материал", "M42 HSS"], ["Срок", "24 часа"],
-              ].map(([k, v]) => (
-                <div key={k} className="flex justify-between py-2 border-b border-white/[0.08]">
-                  <span className="text-white/50 tracking-[0.05em]">{k}</span>
-                  <span className="text-white">{v}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-5 flex justify-between items-center pt-4 border-t border-white/15">
-              <div>
-                <div className="font-mono text-[10px] text-white/50 tracking-[0.1em] uppercase">от</div>
-                <div className="font-display text-[28px] font-bold">48.90 лв<span className="text-xs text-white/50 font-normal ml-1">/бр</span></div>
-              </div>
-              <Link href="/configurator"><Btn variant="primary" size="md">Отвори конфигуратор</Btn></Link>
-            </div>
-          </div>
-          <div className="absolute -top-2.5 -left-2.5 font-mono text-[9px] text-ink-50 tracking-[0.15em]">TL · SPEC-01</div>
+          ))}
         </div>
       </div>
     </section>
@@ -107,13 +94,16 @@ function TickerStrip() {
 }
 
 // ========== INDUSTRIES ==========
+// Each industry carries a photograph of that industry's actual work. A buyer
+// recognises their own shop floor faster than they parse an icon, and the
+// licensed photography was already sitting unused in the repo.
 const industriesBase = [
-  { name: "Дърво", Icon: IconWood, desc: "Банцигови ленти, циркулярни триони, абрихт ножове за всякаква дървообработка.", href: "/category/dyrvo" },
-  { name: "Метал", Icon: IconMetal, desc: "Биметални M42/M51 и въглеродни CS ленти за професионална металообработка.", href: "/category/metal" },
-  { name: "Храни", Icon: IconFood, desc: "Ленти и ножове за месо, риба, хляб. Резервни части за слайсъри.", href: "/category/hrani" },
-  { name: "Хоби банциг", Icon: IconHobby, desc: "Ленти за Einhell, Parkside, Scheppach и домашни работилници.", href: "/category/hobi-bantsig" },
-  { name: "Машини", Icon: IconMachine, desc: "Заточни машини, лентови триони, консумативи и резервни части.", href: "/category/mashini" },
-  { name: "Абразиви", Icon: IconAbrasive, desc: "Диамантени и CBN заточни дискове, камъни, полиращи състави.", href: "/category/abrazivi" },
+  { name: "Дърво", Icon: IconWood, desc: "Банцигови ленти, циркулярни триони, абрихт ножове за всякаква дървообработка.", href: "/category/dyrvo", img: "/images/hero/craftsman-using-bandsaw-for-splitting-wood-plank-i-2023-11-27-05-19-15-utc-2.avif" },
+  { name: "Метал", Icon: IconMetal, desc: "Биметални M42/M51 и въглеродни CS ленти за професионална металообработка.", href: "/category/metal", img: "/images/hero/metal-cutting-2023-11-27-04-59-56-utc-2.avif" },
+  { name: "Храни", Icon: IconFood, desc: "Ленти и ножове за месо, риба, хляб. Резервни части за слайсъри.", href: "/category/hrani", img: "/images/hero/shutterstock_1313584316.avif" },
+  { name: "Хоби банциг", Icon: IconHobby, desc: "Ленти за Einhell, Parkside, Scheppach и домашни работилници.", href: "/category/hobi-bantsig", img: "/images/hero/hardworking-man-doing-his-job-woodshop-2.avif" },
+  { name: "Машини", Icon: IconMachine, desc: "Заточни машини, лентови триони, консумативи и резервни части.", href: "/category/mashini", img: "/images/hero/man_working_bandsaw_blades.avif" },
+  { name: "Абразиви", Icon: IconAbrasive, desc: "Диамантени и CBN заточни дискове, камъни, полиращи състави.", href: "/category/abrazivi", img: "/images/hero/punching.webp" },
 ];
 
 function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
@@ -139,35 +129,46 @@ function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
           </Reveal>
         </div>
 
-        <Reveal delay={80} y={0} className="tl-stagger grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border border-ink-15">
+        <Reveal delay={80} y={0} className="tl-stagger grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-ink-15">
           {industries.map((c, i) => {
             const CIcon = c.Icon;
-            const col = i % 3;
-            const row = Math.floor(i / 3);
             return (
               <Link
                 key={c.name}
                 href={c.href}
-                className={`group p-9 no-underline text-ink min-h-[260px] flex flex-col gap-5 bg-white hover:bg-paper transition-colors duration-300 relative
-                  ${col < 2 ? "lg:border-r lg:border-ink-15" : ""}
-                  ${row === 0 ? "border-b border-ink-15" : ""}
-                  ${i % 2 === 0 && i < 4 ? "md:border-r md:border-ink-15" : ""}
-                `}
+                className="group relative isolate no-underline text-white min-h-[340px] flex flex-col justify-end p-7 overflow-hidden bg-ink"
               >
-                <div className="flex justify-between items-start">
-                  <CIcon size={40} strokeWidth={1.25} className="text-navy transition-transform duration-300 group-hover:-translate-y-0.5" />
-                  <span className="font-mono text-[10px] text-ink-50 tracking-[0.12em]">0{i + 1} / 06</span>
+                <Image
+                  src={c.img}
+                  alt=""
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="-z-10 object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
+                />
+                {/* Two-stop scrim keeps the caption legible over any photo while
+                    letting the top of the frame stay bright. */}
+                <div className="absolute inset-0 -z-10 bg-gradient-to-t from-ink via-ink/70 to-ink/15 transition-opacity duration-500 group-hover:opacity-90" />
+
+                <div className="absolute top-7 left-7 right-7 flex justify-between items-start">
+                  <CIcon size={30} strokeWidth={1.25} className="text-white/80 transition-transform duration-300 group-hover:-translate-y-0.5" />
+                  <span className="font-mono text-[10px] text-white/50 tracking-[0.12em] tabular-nums">
+                    0{i + 1} / 06
+                  </span>
                 </div>
-                <div className="mt-auto">
-                  <div className="font-display text-3xl lg:text-4xl font-bold tracking-tight text-ink mb-2">{c.name}</div>
-                  <p className="font-sans text-sm leading-snug text-ink-70 m-0">{c.desc}</p>
-                  <div className="mt-4 pt-4 border-t border-ink-15 flex justify-between items-center font-mono text-[11px] text-ink-50 tracking-[0.04em]">
+
+                <div>
+                  <div className="font-display text-3xl lg:text-[34px] font-bold tracking-tight mb-2">{c.name}</div>
+                  <p className="font-sans text-sm leading-snug text-white/70 m-0 max-w-[34ch]">{c.desc}</p>
+                  <div className="mt-4 pt-4 border-t border-white/20 flex justify-between items-center font-mono text-[11px] text-white/60 tracking-[0.04em]">
                     {/* Категории без наличен склад се предлагат по заявка —
                         показването на „0 артикула“ убива интереса без причина. */}
                     <span className="tabular-nums">
                       {c.count > 0 ? `${c.count} ${c.count === 1 ? "артикул" : "артикула"}` : "по заявка"}
                     </span>
-                    <span className="text-orange flex items-center gap-1.5">Разгледай <IconArrowRight size={12} className="transition-transform duration-300 group-hover:translate-x-1" /></span>
+                    <span className="text-orange-light flex items-center gap-1.5">
+                      Разгледай
+                      <IconArrowRight size={12} className="transition-transform duration-300 group-hover:translate-x-1" />
+                    </span>
                   </div>
                 </div>
               </Link>
