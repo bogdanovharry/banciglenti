@@ -28,15 +28,18 @@ const accent = "font-extrabold";
 
 // ========== HERO ==========
 /**
- * Full-bleed and dark, over a photograph of a blade actually being welded.
- * That image is the business: cutting stock to length and welding it to fit a
- * customer's machine in 24 hours is the thing competitors do not do, and the
- * sparks carry the brand orange without needing a graphic. The previous hero
- * was a white panel beside a spec card of invented figures.
+ * Full-bleed over a photograph of a blade actually being welded. That image is
+ * the business: cutting stock to length and welding it to fit a customer's
+ * machine in 24 hours is the thing competitors do not do.
+ *
+ * The ground is the brand blue rather than ink, and the scrims are deliberately
+ * lighter than a legibility minimum would require — the point is a blue-cast
+ * photograph, not a black panel. Orange sparks survive the cast because the
+ * tint layer shifts hue without collapsing luminance.
  */
 function HeroCustom() {
   return (
-    <section className="relative isolate bg-ink text-white overflow-hidden">
+    <section className="relative isolate bg-blue-deep text-white overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <Image
           src="/images/hero/shutterstock_1753030058.webp"
@@ -46,10 +49,14 @@ function HeroCustom() {
           sizes="100vw"
           className="object-cover object-center"
         />
-        {/* Legibility scrim: heavy at the left where the copy sits, opening up
-            to the right so the sparks stay visible. */}
-        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-ink/60" />
+        {/* Hue shift toward the brand blue. `color` blending keeps the
+            photograph's own light and shadow intact, so this tints rather than
+            darkens — a flat blue fill at this strength would kill the sparks. */}
+        <div className="absolute inset-0 bg-blue mix-blend-color opacity-70" />
+        {/* Directional scrims in blue-deep, so even the darkest corners stay
+            blue instead of going neutral black. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-deep/88 via-blue-ink/50 to-blue/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-blue-deep/65 via-transparent to-blue-deep/20" />
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-20 pb-12 md:pt-[124px] md:pb-16">
