@@ -521,7 +521,7 @@ function BestsellersBlock({ products }: { products: ProductCardData[] }) {
           <Reveal>
             <SectionNumber n="№ 04" label="Най-търсени · Април 2026" />
             <h2 className="font-display text-4xl md:text-[56px] leading-none tracking-[-0.035em] font-bold mt-7 text-ink">
-              Каквото пазарят<br />професионалистите.
+              Какво купуват<br />професионалистите.
             </h2>
           </Reveal>
           <div className="flex gap-1 bg-white border border-ink-15 p-1">
