@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { SectionNumber, Btn, Tag } from "@/components/ui/primitives";
+import { Btn, Tag } from "@/components/ui/primitives";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { IconArrowRight, IconCheck, IconRuler } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import {
@@ -450,19 +451,20 @@ export default function ConfiguratorPage() {
 
   return (
     <div className="bg-white">
-      {/* Hero */}
-      <div className="bg-ink text-white">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-12 md:py-16">
-          <SectionNumber n="№ 01" label="Конфигуратор" tone="light" />
-          <h1 className="font-display text-3xl md:text-5xl lg:text-7xl leading-[0.95] tracking-[-0.04em] font-bold mt-6 mb-4">
+      <PageHeader
+        eyebrowNumber="№ 01"
+        eyebrowLabel="Конфигуратор"
+        image="/images/hero/shutterstock_2512301009.webp"
+        imageAlt="Банцигова лента в работа на гатер"
+        crumbs={[{ label: "Начало", href: "/" }, { label: "Конфигуратор" }]}
+        title={
+          <>
             Поръчай лента<br />
-            <span className="italic text-orange-light font-medium">по твоя размер.</span>
-          </h1>
-          <p className="font-sans text-lg text-white/70 max-w-[560px]">
-            Избери типа лента, задай размерите и получи цена веднага. Изработка за 24 часа, доставка до 48ч в цяла България.
-          </p>
-        </div>
-      </div>
+            <span className="text-orange-light">по твоя размер.</span>
+          </>
+        }
+        description="Избери типа лента, задай размерите и получи цена веднага — по актуалния ценоразпис. Изработка за 24 часа, доставка до 48ч в цяла България."
+      />
 
       {/* Tabs */}
       <div className="border-b border-ink-15 bg-paper overflow-x-auto">

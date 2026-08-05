@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { SectionNumber, Placeholder, Btn } from "@/components/ui/primitives";
+import { Placeholder, Btn } from "@/components/ui/primitives";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { IconMinus, IconPlus, IconClose, IconArrowRight } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 
@@ -10,13 +11,17 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="bg-paper min-h-[60vh] flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-6">🛒</div>
-          <h1 className="font-display text-3xl font-bold text-ink mb-4">Количката е празна</h1>
-          <p className="font-sans text-ink-50 mb-8">Добавете продукти от каталога или конфигурирайте лента по размер.</p>
-          <div className="flex gap-3 justify-center flex-wrap">
-            <Link href="/shop"><Btn variant="primary" size="lg">Каталог</Btn></Link>
+      <div className="bg-paper">
+        <PageHeader
+          eyebrowNumber="Step 01"
+          eyebrowLabel="Количка"
+          crumbs={[{ label: "Начало", href: "/" }, { label: "Количка" }]}
+          title="Количката е празна."
+          description="Добавете артикул от каталога, или задайте размер в конфигуратора и го изработваме за 24 часа."
+        />
+        <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 pb-[120px]">
+          <div className="flex gap-3 flex-wrap">
+            <Link href="/shop"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Към каталога</Btn></Link>
             <Link href="/configurator"><Btn variant="ghost" size="lg">Конфигуратор</Btn></Link>
           </div>
         </div>
@@ -25,20 +30,23 @@ export default function CartPage() {
   }
 
   return (
-    <div className="bg-paper min-h-screen">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-12 pb-[120px]">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-12">
-          <div>
-            <SectionNumber n="Step 01" label="Количка" />
-            <h1 className="font-display text-4xl md:text-[64px] leading-none tracking-[-0.04em] font-bold mt-5 text-ink">Вашата поръчка.</h1>
-          </div>
-          <div className="flex gap-3 font-mono text-[11px] tracking-[0.1em] uppercase text-ink-50">
-            <span className="text-orange">● Количка</span>
-            <span>○ Доставка</span>
-            <span>○ Плащане</span>
-          </div>
+    <div className="bg-paper min-h-dvh">
+      {/* No photograph here on purpose — a large image competes with the
+          figures a buyer is on this page to check. */}
+      <PageHeader
+        eyebrowNumber="Step 01"
+        eyebrowLabel="Количка"
+        crumbs={[{ label: "Начало", href: "/" }, { label: "Количка" }]}
+        title="Вашата поръчка."
+      >
+        <div className="flex gap-3 font-mono text-[11px] tracking-[0.1em] uppercase text-white/50">
+          <span className="text-orange-light">● Количка</span>
+          <span>○ Доставка</span>
+          <span>○ Плащане</span>
         </div>
+      </PageHeader>
 
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-12 pb-[120px]">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8">
           {/* Items */}
           <div className="bg-white border border-ink-15">
@@ -54,13 +62,13 @@ export default function CartPage() {
                     <div className="font-mono text-[11px] text-ink-50 mt-1">{it.dim} · SKU {it.sku}</div>
                   </div>
                 </div>
-                <div className="font-mono text-[13px] text-ink-70">{it.price.toFixed(2)} €</div>
+                <div className="font-mono text-[13px] text-ink-70 tabular-nums">{it.price.toFixed(2)} €</div>
                 <div className="inline-flex border border-ink-15 bg-white">
                   <button onClick={() => updateQuantity(it.id, it.quantity - 1)} className="w-8 h-9 bg-transparent border-none cursor-pointer flex items-center justify-center"><IconMinus size={12} /></button>
                   <div className="w-10 h-9 flex items-center justify-center font-mono text-[13px] font-semibold">{it.quantity}</div>
                   <button onClick={() => updateQuantity(it.id, it.quantity + 1)} className="w-8 h-9 bg-transparent border-none cursor-pointer flex items-center justify-center"><IconPlus size={12} /></button>
                 </div>
-                <div className="text-right font-display text-lg font-bold text-ink">{(it.quantity * it.price).toFixed(2)} <span className="text-[11px] font-normal text-ink-50">€</span></div>
+                <div className="text-right font-display text-lg font-bold text-ink tabular-nums">{(it.quantity * it.price).toFixed(2)} <span className="text-[11px] font-normal text-ink-50">€</span></div>
                 <button onClick={() => removeItem(it.id)} className="bg-transparent border-none cursor-pointer text-ink-50 hover:text-danger transition-colors"><IconClose size={16} /></button>
               </div>
             ))}
@@ -87,7 +95,7 @@ export default function CartPage() {
               <div className="h-px bg-white/15 my-2" />
               <div className="flex justify-between items-baseline">
                 <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/60">Общо</span>
-                <span className="font-display text-4xl font-extrabold tracking-tight">{total.toFixed(2)} <span className="text-[13px] text-white/60 font-normal">€</span></span>
+                <span className="font-display text-4xl font-extrabold tracking-tight tabular-nums">{total.toFixed(2)} <span className="text-[13px] text-white/60 font-normal">€</span></span>
               </div>
               <div className="font-mono text-[11px] text-white/40 text-right">{(total * 1.95583).toFixed(2)} лв.</div>
             </div>

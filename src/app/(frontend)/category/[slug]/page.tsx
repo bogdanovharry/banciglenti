@@ -6,6 +6,22 @@ import { CategoryClient, type Subcategory } from "./CategoryClient";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
+/**
+ * Masthead photography per category. A child falls back to its parent's image,
+ * and anything unmapped renders the header on flat blue rather than showing an
+ * unrelated photograph.
+ */
+const CATEGORY_IMAGES: Record<string, string> = {
+  dyrvo: "/images/hero/craftsman-using-bandsaw-for-splitting-wood-plank-i-2023-11-27-05-19-15-utc-2.avif",
+  metal: "/images/hero/metal-cutting-2023-11-27-04-59-56-utc-2.avif",
+  hrani: "/images/hero/shutterstock_1313584316.avif",
+  "hobi-bantsig": "/images/hero/hardworking-man-doing-his-job-woodshop-2.avif",
+  mashini: "/images/hero/man_working_bandsaw_blades.avif",
+  abrazivi: "/images/hero/punching.webp",
+  konsumativi: "/images/hero/man_working_bandsaw_blades.avif",
+  slicers: "/images/hero/shutterstock_1510054877.avif",
+};
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const category = await getCategoryBySlug(slug);
@@ -45,6 +61,10 @@ export default async function CategoryPage({ params }: PageProps) {
     <CategoryClient
       categoryName={category.name}
       categoryDescription={category.description}
+      categoryImage={
+        CATEGORY_IMAGES[category.slug] ??
+        (category.parentSlug ? CATEGORY_IMAGES[category.parentSlug] : undefined)
+      }
       parent={parentCategory ? { slug: parentCategory.slug, name: parentCategory.name } : null}
       subcategories={subcategories}
       products={products.map((p) => ({

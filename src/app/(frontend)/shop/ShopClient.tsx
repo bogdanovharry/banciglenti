@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconClose, IconRuler, IconArrowRight } from "@/components/ui/icons";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export type ShopFilter = { slug: string; label: string; count: number };
 
@@ -169,22 +170,19 @@ export function ShopClient({
 
   return (
     <>
-      {/* Header */}
-      <div className="bg-paper border-b border-ink-15">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-8 md:py-12">
-          <nav aria-label="Навигация" className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 flex gap-2 mb-6">
-            <Link href="/" className="cursor-pointer text-ink-50 no-underline hover:text-ink">Начало</Link>
-            <span>/</span>
-            <span className="text-ink">Каталог</span>
-          </nav>
-          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl leading-none tracking-[-0.04em] font-bold m-0 text-ink">
-            Всички <span className="font-extrabold text-orange">продукти</span>
-          </h1>
-          <p className="font-sans text-base leading-relaxed text-ink-70 max-w-[580px] mt-4">
-            Филтрирайте по широчина, материал или марка. Не намирате размера си — конфигураторът изработва лента по поръчка за 24 часа.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrowNumber="№ 05"
+        eyebrowLabel="Каталог"
+        image="/images/hero/craftsman-using-bandsaw-for-splitting-wood-plank-i-2023-11-27-05-19-15-utc-2.avif"
+        imageAlt="Банциг в работа"
+        crumbs={[{ label: "Начало", href: "/" }, { label: "Каталог" }]}
+        title={
+          <>
+            Всички <span className="text-orange-light">продукти</span>
+          </>
+        }
+        description="Филтрирайте по широчина, материал или марка. Не намирате размера си — конфигураторът изработва лента по поръчка за 24 часа."
+      />
 
       {/* Toolbar */}
       <div className="border-b border-ink-15 bg-white sticky top-[168px] z-30">

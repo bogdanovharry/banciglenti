@@ -5,18 +5,21 @@ import { useState } from "react";
 import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconRuler, IconArrowRight } from "@/components/ui/icons";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export type Subcategory = { slug: string; name: string; count: number };
 
 export function CategoryClient({
   categoryName,
   categoryDescription,
+  categoryImage,
   parent,
   subcategories,
   products,
 }: {
   categoryName: string;
   categoryDescription: string;
+  categoryImage?: string;
   parent: { slug: string; name: string } | null;
   subcategories: Subcategory[];
   products: ProductCardData[];
@@ -31,35 +34,23 @@ export function CategoryClient({
 
   return (
     <>
-      {/* Header */}
-      <div className="bg-paper border-b border-ink-15">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-8 md:py-12">
-          <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 flex gap-2 mb-6">
-            <Link href="/" className="text-ink-50 no-underline hover:text-ink">Начало</Link>
-            <span>/</span>
-            {parent && (
-              <>
-                <Link href={`/category/${parent.slug}`} className="text-ink-50 no-underline hover:text-ink">
-                  {parent.name}
-                </Link>
-                <span>/</span>
-              </>
-            )}
-            <span className="text-ink">{categoryName}</span>
-          </div>
-
-          <h1 className="font-display text-3xl md:text-5xl lg:text-6xl leading-none tracking-[-0.04em] font-bold m-0 text-ink">
-            {categoryName}
-          </h1>
-          {categoryDescription && (
-            <p className="font-sans text-base leading-relaxed text-ink-70 max-w-[700px] mt-4">{categoryDescription}</p>
-          )}
-
-          <div className="flex items-center gap-6 mt-6 font-mono text-sm text-ink-50">
-            <span><strong className="text-ink font-display text-2xl">{products.length}</strong> артикула</span>
-          </div>
+      <PageHeader
+        eyebrowNumber="№ 05"
+        eyebrowLabel="Категория"
+        image={categoryImage}
+        imageAlt=""
+        crumbs={[
+          { label: "Начало", href: "/" },
+          ...(parent ? [{ label: parent.name, href: `/category/${parent.slug}` }] : []),
+          { label: categoryName },
+        ]}
+        title={categoryName}
+        description={categoryDescription || undefined}
+      >
+        <div className="font-mono text-sm text-white/60">
+          <strong className="text-white font-display text-2xl tabular-nums">{products.length}</strong> артикула
         </div>
-      </div>
+      </PageHeader>
 
       {/* Subcategories if any */}
       {subcategories.length > 0 && (

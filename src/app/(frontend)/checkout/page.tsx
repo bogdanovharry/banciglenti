@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { SectionNumber, Placeholder, Btn } from "@/components/ui/primitives";
+import { Placeholder, Btn } from "@/components/ui/primitives";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { IconArrowRight } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 
@@ -34,13 +35,21 @@ export default function CheckoutPage() {
 
   if (submitted) {
     return (
-      <div className="bg-paper min-h-[60vh] flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-6">✅</div>
-          <h1 className="font-display text-3xl font-bold text-ink mb-4">Поръчката е изпратена!</h1>
-          <p className="font-sans text-ink-50 mb-4">Ще получите потвърждение на имейла си. Нашият екип ще се свърже с вас до 24 часа.</p>
-          <p className="font-mono text-[11px] text-ink-50 mb-8">Номер на поръчка: #TL-{Date.now().toString(36).toUpperCase()}</p>
-          <Link href="/"><Btn variant="primary" size="lg">Към началото</Btn></Link>
+      <div className="bg-paper">
+        <PageHeader
+          eyebrowNumber="Step 03"
+          eyebrowLabel="Потвърждение"
+          title="Поръчката е приета."
+          description="Наш инженер ще се свърже с вас до 24 часа, за да потвърди размерите и срока."
+        >
+          <div className="flex gap-3 font-mono text-[11px] tracking-[0.1em] uppercase text-white/50">
+            <span>✓ Количка</span>
+            <span>✓ Доставка</span>
+            <span className="text-orange-light">● Плащане</span>
+          </div>
+        </PageHeader>
+        <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 pb-[120px]">
+          <Link href="/"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Към началото</Btn></Link>
         </div>
       </div>
     );
@@ -48,10 +57,19 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="bg-paper min-h-[60vh] flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="font-display text-3xl font-bold text-ink mb-4">Количката е празна</h1>
-          <Link href="/shop"><Btn variant="primary" size="lg">Към каталога</Btn></Link>
+      <div className="bg-paper">
+        <PageHeader
+          eyebrowNumber="Step 02"
+          eyebrowLabel="Доставка и плащане"
+          crumbs={[{ label: "Начало", href: "/" }, { label: "Количка", href: "/cart" }]}
+          title="Няма какво да платите."
+          description="Количката е празна — добавете артикул от каталога или конфигурирайте лента по размер."
+        />
+        <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 pb-[120px]">
+          <div className="flex gap-3 flex-wrap">
+            <Link href="/shop"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Към каталога</Btn></Link>
+            <Link href="/configurator"><Btn variant="ghost" size="lg">Конфигуратор</Btn></Link>
+          </div>
         </div>
       </div>
     );
@@ -59,11 +77,21 @@ export default function CheckoutPage() {
 
   return (
     <div className="bg-paper">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-12 pb-[120px]">
-        <div className="mb-12">
-          <SectionNumber n="Step 02" label="Доставка и плащане" />
-          <h1 className="font-display text-4xl md:text-[56px] leading-none tracking-[-0.04em] font-bold mt-5 text-ink">Завърши поръчка.</h1>
+      {/* Transactional page: same masthead typography, no photograph. */}
+      <PageHeader
+        eyebrowNumber="Step 02"
+        eyebrowLabel="Доставка и плащане"
+        crumbs={[{ label: "Начало", href: "/" }, { label: "Количка", href: "/cart" }, { label: "Плащане" }]}
+        title="Завърши поръчка."
+      >
+        <div className="flex gap-3 font-mono text-[11px] tracking-[0.1em] uppercase text-white/50">
+          <span>✓ Количка</span>
+          <span className="text-orange-light">● Доставка</span>
+          <span>○ Плащане</span>
         </div>
+      </PageHeader>
+
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-12 pb-[120px]">
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8">
           <div className="flex flex-col gap-6">
@@ -132,7 +160,7 @@ export default function CheckoutPage() {
                   <div className="font-display text-[13px] font-semibold text-ink leading-tight truncate">{it.name}</div>
                   <div className="font-mono text-[10px] text-ink-50 mt-0.5">{it.quantity} × {it.price.toFixed(2)} €</div>
                 </div>
-                <div className="font-mono text-[13px] font-semibold text-ink shrink-0">{(it.quantity * it.price).toFixed(2)}</div>
+                <div className="font-mono text-[13px] font-semibold text-ink shrink-0 tabular-nums">{(it.quantity * it.price).toFixed(2)}</div>
               </div>
             ))}
             <div className="mt-5 pt-5 border-t border-ink-15">
@@ -141,7 +169,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between text-sm mb-3"><span className="text-ink-50">ДДС 20%</span><span>{tax.toFixed(2)} €</span></div>
               <div className="flex justify-between items-baseline pt-3 border-t border-ink-15">
                 <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-ink-50">Общо</span>
-                <span className="font-display text-[32px] font-extrabold text-ink tracking-tight">{total.toFixed(2)} <span className="text-xs font-normal text-ink-50">€</span></span>
+                <span className="font-display text-[32px] font-extrabold text-ink tracking-tight tabular-nums">{total.toFixed(2)} <span className="text-xs font-normal text-ink-50">€</span></span>
               </div>
               <div className="font-mono text-[10px] text-ink-50 text-right mt-1">{(total * 1.95583).toFixed(2)} лв.</div>
             </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { SectionNumber, Btn } from "@/components/ui/primitives";
+import { Btn } from "@/components/ui/primitives";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { IconPhone, IconMail, IconFactory, IconArrowRight, IconCheck } from "@/components/ui/icons";
 
 function Input({ label, placeholder = "", type = "text", required, value, onChange }: {
@@ -46,18 +47,25 @@ export default function ContactPage() {
 
   return (
     <div className="bg-paper">
+      <PageHeader
+        eyebrowNumber="№ 09"
+        eyebrowLabel="Техническа поддръжка"
+        image="/images/hero/bandsaw-cta-img.avif"
+        imageAlt="Заваряване на банцигова лента в цеха"
+        crumbs={[{ label: "Начало", href: "/" }, { label: "Контакти" }]}
+        title={
+          <>
+            Свържи се с<br />
+            <span className="text-orange-light">инженера.</span>
+          </>
+        }
+        description="Консултацията е безплатна: избор на лента, диагностика на проблем, индивидуален проект. Работно време Пн–Пт 8:00–17:30."
+      />
+
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 pb-[120px]">
         <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-12 lg:gap-20">
           {/* Left */}
           <div>
-            <SectionNumber n="№ 09" label="Техническа поддръжка" />
-            <h1 className="font-display text-4xl md:text-6xl lg:text-[80px] leading-[0.95] tracking-[-0.04em] font-bold mt-6 mb-6 text-ink">
-              Свържи се с<br /><span className="italic text-orange font-medium">инженера.</span>
-            </h1>
-            <p className="font-sans text-[17px] leading-relaxed text-ink-70 max-w-[520px] mb-12">
-              Нашите инженери консултират безплатно: избор на лента, диагностика на проблеми, индивидуален проект. Работно време: Пн–Пт 8:00–17:30.
-            </p>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border border-ink-15 bg-white">
               {[
                 { Icon: IconPhone, title: "066 800 822", desc: "Главен офис · Габрово", href: "tel:066800822" },

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { SectionNumber, Placeholder } from "@/components/ui/primitives";
+import { Placeholder } from "@/components/ui/primitives";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { IconArrowRight } from "@/components/ui/icons";
 
 const posts = [
@@ -14,15 +15,19 @@ const posts = [
 export default function BlogPage() {
   return (
     <>
-      {/* Header */}
-      <div className="bg-paper border-b border-ink-15 px-4 md:px-10 py-16 md:py-[64px]">
-        <div className="max-w-[1440px] mx-auto">
-          <SectionNumber n="Journal" label="Ръководства, казуси и техническо ноу-хау" />
-          <h1 className="font-display text-4xl md:text-6xl lg:text-[80px] leading-[0.95] tracking-[-0.04em] font-bold mt-7 text-ink max-w-[1100px]">
-            30 години опит,<br />достъпни <span className="italic text-orange font-medium">на един клик.</span>
-          </h1>
-        </div>
-      </div>
+      <PageHeader
+        eyebrowNumber="Journal"
+        eyebrowLabel="Ръководства, казуси и техническо ноу-хау"
+        image="/images/hero/hardworking-man-doing-his-job-woodshop-2.avif"
+        crumbs={[{ label: "Начало", href: "/" }, { label: "Блог" }]}
+        title={
+          <>
+            30 години опит,<br />
+            достъпни <span className="text-orange-light">на един клик.</span>
+          </>
+        }
+        description="Как да изберете стъпка на зъба, защо лентата се къса на шева, кога заточването е по-изгодно от нова лента."
+      />
 
       {/* Posts grid */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 pb-[120px]">
