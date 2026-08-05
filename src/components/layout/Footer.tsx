@@ -31,7 +31,11 @@ const columns = [
   ]},
 ];
 
-const certs = ["TÜV NORD ISO 9001", "ISO 14001", "CE", "Сертифициран дистрибутор · Sandvik", "Member · EUWA"];
+// Only certifications the company actually holds. ISO 14001, the Sandvik
+// distributor claim and the EUWA membership were removed as unsubstantiated —
+// the Sandvik one also contradicted the catalogue, which carries no Sandvik
+// product at all.
+const certs = ["TÜV NORD ISO 9001", "CE"];
 
 export function Footer() {
   return (
