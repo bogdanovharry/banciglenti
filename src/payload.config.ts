@@ -3,7 +3,7 @@ import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { bg } from '@payloadcms/translations/languages/bg'
-import { en } from '@payloadcms/translations/languages/en'
+// import { en } from '@payloadcms/translations/languages/en' // re-enable to offer a language switch
 import sharp from 'sharp'
 
 import { Products } from './payload/collections/Products'
@@ -79,16 +79,20 @@ export default buildConfig({
     },
   },
   /**
-   * The panel's own chrome — Dashboard, Create New, Save, every validation
-   * message — shipped in English while the field labels were Bulgarian, which
-   * read as half-translated. Payload carries a complete Bulgarian translation.
+   * Bulgarian only, on purpose.
    *
-   * English stays available so a non-Bulgarian speaker can switch in their
-   * account settings rather than being locked out. Romanian is also bundled in
+   * Payload resolves the admin language from the browser's Accept-Language
+   * header and only falls back to `fallbackLanguage` when nothing matches. With
+   * English also listed, any browser set to English got an English panel — which
+   * is exactly what happened here — while the field labels stayed Bulgarian.
+   *
+   * Listing a single language removes the ambiguity: the panel is Bulgarian
+   * regardless of browser settings. Add `en` (imported below) back to
+   * supportedLanguages to offer a per-user switch. Romanian ships in
    * @payloadcms/translations for when that market opens.
    */
   i18n: {
-    supportedLanguages: { bg, en },
+    supportedLanguages: { bg },
     fallbackLanguage: 'bg',
   },
   collections: [

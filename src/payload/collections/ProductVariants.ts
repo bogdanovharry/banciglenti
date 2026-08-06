@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 export const ProductVariants: CollectionConfig = {
   slug: 'product-variants',
+  labels: { singular: 'Вариант', plural: 'Варианти' },
   admin: {
     useAsTitle: 'sku',
     defaultColumns: ['sku', 'product', 'price', 'stock'],

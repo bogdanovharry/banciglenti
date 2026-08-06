@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 export const Products: CollectionConfig = {
   slug: 'products',
+  labels: { singular: 'Продукт', plural: 'Продукти' },
   admin: {
     useAsTitle: 'name',
     // Scalar and relationship fields only — a group field like `specs` renders
