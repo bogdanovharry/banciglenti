@@ -5,6 +5,7 @@ import { Placeholder, Tag } from "@/components/ui/primitives";
 import { IconPlus } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { currencySymbol, formatAmount } from "@/lib/market";
+import { STOCK_LABELS, type StockState } from "@/lib/catalog-ui";
 
 
 export interface ProductCardData {
@@ -14,7 +15,7 @@ export interface ProductCardData {
   price: number;
   industry: string;
   dim: string;
-  stock: "На склад" | "Ниска наличност" | "Изчерпан";
+  stock: StockState;
   badge?: "TOP" | "NEW" | null;
   image?: string;
   /** Drives the spec block that stands in for a photo. */
@@ -105,8 +106,8 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
   const { addItem } = useCart();
 
   const stockColor =
-    p.stock === "На склад" ? "text-ok" : p.stock === "Ниска наличност" ? "text-orange" : "text-ink-50";
-  const soldOut = p.stock === "Изчерпан";
+    p.stock === "in" ? "text-ok" : p.stock === "low" ? "text-orange" : "text-ink-50";
+  const soldOut = p.stock === "out";
 
   return (
     <article className="bg-white border border-ink-15 flex flex-col h-full transition-all duration-300 hover:border-ink hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(17,17,17,0.45)] group">
@@ -141,7 +142,7 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
         <div className={`${compact ? "p-4" : "p-5"} flex flex-col gap-2 flex-1`}>
           <div className="flex justify-between items-center font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 gap-2">
             <span className="truncate">{p.brandName || p.industry}</span>
-            <span className={`${stockColor} shrink-0`}>● {p.stock}</span>
+            <span className={`${stockColor} shrink-0`}>● {STOCK_LABELS[p.stock]}</span>
           </div>
 
           <h3 className="font-sans text-[14px] leading-snug tracking-[-0.01em] font-semibold text-ink m-0 line-clamp-2">

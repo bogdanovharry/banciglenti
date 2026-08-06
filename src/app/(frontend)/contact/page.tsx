@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Btn } from "@/components/ui/primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { IconPhone, IconMail, IconFactory, IconArrowRight, IconCheck } from "@/components/ui/icons";
+import { INDUSTRY_OPTIONS, type IndustryCode } from "@/lib/catalog-ui";
 
 function Input({ label, placeholder = "", type = "text", required, value, onChange }: {
   label: string; placeholder?: string; type?: string; required?: boolean;
@@ -31,7 +32,7 @@ export default function ContactPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [company, setCompany] = useState("");
-  const [industry, setIndustry] = useState("Метал");
+  const [industry, setIndustry] = useState<IndustryCode>("metal");
   const [message, setMessage] = useState("");
   const [website, setWebsite] = useState(""); // honeypot — see /api/enquiries
   const [sent, setSent] = useState(false);
@@ -132,14 +133,15 @@ export default function ContactPage() {
                   <div>
                     <label className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">Индустрия</label>
                     <div className="grid grid-cols-3 gap-1.5 mt-2">
-                      {["Дърво", "Метал", "Храни", "Хоби", "Абразиви", "Друго"].map((t) => (
+                      {INDUSTRY_OPTIONS.map(({ code, label }) => (
                         <button
-                          key={t}
+                          key={code}
                           type="button"
-                          onClick={() => setIndustry(t)}
-                          className={`py-2.5 font-mono text-[11px] cursor-pointer border transition-colors ${industry === t ? "bg-ink text-white border-ink" : "bg-white text-ink border-ink-15 hover:border-ink-30"}`}
+                          onClick={() => setIndustry(code)}
+                          aria-pressed={industry === code}
+                          className={`py-2.5 font-mono text-[11px] cursor-pointer border transition-colors ${industry === code ? "bg-ink text-white border-ink" : "bg-white text-ink border-ink-15 hover:border-ink-30"}`}
                         >
-                          {t}
+                          {label}
                         </button>
                       ))}
                     </div>

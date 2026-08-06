@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { INDUSTRY_OPTIONS } from '@/lib/catalog-ui'
+
 /**
  * Contact-form submissions.
  *
@@ -75,10 +77,9 @@ export const Enquiries: CollectionConfig = {
           name: 'industry',
           type: 'select',
           label: 'Индустрия',
-          options: ['Дърво', 'Метал', 'Храни', 'Хоби', 'Абразиви', 'Друго'].map((v) => ({
-            label: v,
-            value: v,
-          })),
+          // Stored as a stable code so translating the storefront cannot orphan
+          // existing enquiries; the admin still reads Bulgarian.
+          options: INDUSTRY_OPTIONS.map((o) => ({ label: o.label, value: o.code })),
         },
       ],
     },

@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
+import { INDUSTRY_OPTIONS } from '@/lib/catalog-ui'
+
 export const dynamic = 'force-dynamic'
 
-const INDUSTRIES = ['Дърво', 'Метал', 'Храни', 'Хоби', 'Абразиви', 'Друго']
+const INDUSTRIES: string[] = INDUSTRY_OPTIONS.map((o) => o.code)
 
 /** Caps mirror what the form can produce; anything longer is a bot or a paste bomb. */
 const LIMITS = { name: 120, email: 160, phone: 40, company: 160, message: 4000 } as const

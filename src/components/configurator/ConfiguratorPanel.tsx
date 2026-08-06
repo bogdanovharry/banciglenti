@@ -18,6 +18,8 @@ import {
   getOptionsForWidth,
   getAvailablePitches,
   findBlade,
+  isProfilePitch,
+  pitchLabel,
   type BladeConfig,
 } from "@/lib/pricing";
 import type { BladeTableKey } from "@/lib/order-pricing";
@@ -60,9 +62,11 @@ const BRANDS_HOBBY = ["Einhell", "Parkside", "Scheppach", "Metabo", "Record Powe
 const STEEL_TYPES = ["M42 Allpower", "M42 Shark", "M51 Cobalt", "M42 Vario"];
 const PROFILES_FOOD = ["4 TPI (кост)", "3 TPI (замразено)", "Вълна", "Изпъкнала вълна", "Фини зъби 10 TPI"];
 
-function Select({ label, options, required, value, onChange }: {
+function Select({ label, options, required, value, onChange, format }: {
   label: string; options: string[]; required?: boolean;
   value: string; onChange: (v: string) => void;
+  /** Shows something other than the stored value — tooth profiles are codes. */
+  format?: (v: string) => string;
 }) {
   return (
     <div>
@@ -76,7 +80,7 @@ function Select({ label, options, required, value, onChange }: {
       >
         <option value="">— избери —</option>
         {options.map((o) => (
-          <option key={o} value={o}>{o}</option>
+          <option key={o} value={o}>{format ? format(o) : o}</option>
         ))}
       </select>
     </div>
@@ -230,7 +234,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
         <Select label="Широчина" options={widths.map(String)} required value={width} onChange={handleWidthChange} />
         <Select label="Дебелина" options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
         <Select label="Марка" options={widthNum ? widthOptions.brands : []} required value={brand} onChange={handleBrandChange} />
-        <Select label="Стъпка" options={availablePitches} required value={pitch} onChange={setPitch} />
+        <Select label="Стъпка" options={availablePitches} required value={pitch} onChange={setPitch} format={pitchLabel} />
         <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
         <QuantityStepper value={qty} onChange={setQty} />
       </div>
@@ -346,7 +350,7 @@ function RealDataConfigurator({
         {widthOptions.brands.length > 1 && (
           <Select label="Марка" options={widthOptions.brands} required value={brand} onChange={handleBrandChange} />
         )}
-        <Select label={availablePitches.some(p => p.includes("вълна") || p.includes("TPI") || p.includes("чистач")) ? "Профил и стъпка" : "Стъпка"} options={availablePitches} required value={pitch} onChange={setPitch} />
+        <Select label={availablePitches.some(isProfilePitch) ? "Профил и стъпка" : "Стъпка"} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchLabel} />
       </div>
       <div className="flex flex-col gap-5">
         <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />

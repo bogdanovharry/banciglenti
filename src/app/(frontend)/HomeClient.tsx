@@ -20,6 +20,7 @@ import {
   getOptionsForWidth,
   getAvailablePitches,
   findBlade,
+  pitchLabel,
 } from "@/lib/pricing";
 import type { BladeTableKey } from "@/lib/order-pricing";
 import {
@@ -300,7 +301,9 @@ function CustomOrderBlock() {
     if (!blade || !quote || !lengthValid) return;
     addItem({
       sku: `CUSTOM-${brand}-${width}x${thickness}-${pitch}-${length}`,
-      name: `Банцигова лента ${brand} ${width}×${thickness} мм · стъпка ${pitch}`,
+      // The customer reads this in the cart and on the order, so it carries the
+      // profile's name rather than its internal code.
+      name: `Банцигова лента ${brand} ${width}×${thickness} мм · стъпка ${pitchLabel(pitch!)}`,
       dim: `${length} × ${width} × ${thickness} мм`,
       price: quote.totalWithoutVat,
       quantity: 1,
@@ -436,7 +439,7 @@ function CustomOrderBlock() {
               <label className="block">
                 <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">Стъпка / зъб</span>
                 <select className={selectClass} value={pitch ?? ""} onChange={(e) => setSelPitch(e.target.value)}>
-                  {pitches.map((p) => <option key={p} value={p}>{p}</option>)}
+                  {pitches.map((p) => <option key={p} value={p}>{pitchLabel(p)}</option>)}
                 </select>
               </label>
             </div>

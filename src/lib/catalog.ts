@@ -4,6 +4,7 @@ import config from '@payload-config'
 
 import type { ProductCardData } from '@/components/product/ProductCard'
 import { isSeriesKey, type SeriesKey } from '@/lib/series'
+import { stockStateFor } from '@/lib/catalog-ui'
 
 /**
  * Read side of the catalogue. Everything the storefront renders comes through
@@ -123,11 +124,6 @@ function fallbackImage(
   return '/images/products/hardback_fixed.png'
 }
 
-function stockLabel(stock: number): ProductCardData['stock'] {
-  if (stock <= 0) return 'Изчерпан'
-  if (stock <= 5) return 'Ниска наличност'
-  return 'На склад'
-}
 
 /**
  * "2360 × 13 × 0.65 мм" — length first, because that is the figure that has to
@@ -220,7 +216,7 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
     price: typeof doc.basePrice === 'number' ? doc.basePrice : 0,
     dim: dimensionLabel(specs),
     industry,
-    stock: stockLabel(stockCount),
+    stock: stockStateFor(stockCount),
     badge: doc.topProduct ? 'TOP' : null,
     image: uploadedUrl ?? fallbackImage(categorySlugs, brandName, series, specs.material),
     stockCount,

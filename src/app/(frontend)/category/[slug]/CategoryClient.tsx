@@ -6,6 +6,7 @@ import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconRuler, IconArrowRight } from "@/components/ui/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { SORT_OPTIONS, compareBy, type SortKey } from "@/lib/catalog-ui";
 
 export type Subcategory = { slug: string; name: string; count: number };
 
@@ -24,13 +25,9 @@ export function CategoryClient({
   subcategories: Subcategory[];
   products: ProductCardData[];
 }) {
-  const [sort, setSort] = useState("Популярност");
+  const [sort, setSort] = useState<SortKey>("popularity");
 
-  const sortedProducts = [...products].sort((a, b) => {
-    if (sort === "Цена ↑") return a.price - b.price;
-    if (sort === "Цена ↓") return b.price - a.price;
-    return 0;
-  });
+  const sortedProducts = [...products].sort(compareBy(sort));
 
   return (
     <>
@@ -76,10 +73,18 @@ export function CategoryClient({
             <span className="font-mono text-[11px] text-ink-50">{sortedProducts.length} продукта</span>
           </div>
           <div className="flex items-center gap-4">
-            <select value={sort} onChange={(e) => setSort(e.target.value)} className="font-mono text-[11px] p-2 border border-ink-15 bg-white">
-              <option>Популярност</option>
-              <option>Цена ↑</option>
-              <option>Цена ↓</option>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="font-mono text-[11px] p-2 border border-ink-15 bg-white"
+            >
+              {/* No width sort here: a category mixes blades with circular saws,
+                  planer knives and abrasives, where width means different things. */}
+              {SORT_OPTIONS.filter((o) => o.key !== "width").map((o) => (
+                <option key={o.key} value={o.key}>
+                  {o.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>

@@ -9,6 +9,7 @@ import { IconClose, IconRuler, IconArrowRight } from "@/components/ui/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ConfiguratorPanel } from "@/components/configurator/ConfiguratorPanel";
 import { SERIES, isSeriesKey, type SeriesKey } from "@/lib/series";
+import { SORT_OPTIONS, compareBy, type SortKey } from "@/lib/catalog-ui";
 
 export type ShopFilter = { slug: string; label: string; count: number };
 
@@ -107,7 +108,7 @@ export function ShopClient({
     params.get("mode") === "custom" ? "custom" : "stock",
   );
 
-  const [sort, setSort] = useState("Популярност");
+  const [sort, setSort] = useState<SortKey>("popularity");
   const [query, setQuery] = useState(() => params.get("q") ?? "");
   const [activeCategory, setActiveCategory] = useState(() => params.get("category") ?? "");
   const [materials, setMaterials] = useState<string[]>(() => params.getAll("material"));
@@ -215,7 +216,7 @@ export function ShopClient({
       if (brands.length && !(p.brandName && brands.includes(p.brandName))) return false;
       if (series.length && !(p.series && series.includes(p.series))) return false;
       if (machines.length && !(p.machines ?? []).some((m) => machines.includes(m))) return false;
-      if (inStockOnly && p.stock === "Изчерпан") return false;
+      if (inStockOnly && p.stock === "out") return false;
       if (!inRange(p.specs?.width, wMin, wMax)) return false;
       if (!inRange(p.specs?.length, lMin, lMax)) return false;
       return true;
@@ -224,9 +225,7 @@ export function ShopClient({
 
   const sorted = useMemo(() => {
     const list = [...filtered];
-    if (sort === "Цена ↑") list.sort((a, b) => a.price - b.price);
-    else if (sort === "Цена ↓") list.sort((a, b) => b.price - a.price);
-    else if (sort === "Широчина") list.sort((a, b) => (a.specs?.width ?? 0) - (b.specs?.width ?? 0));
+    list.sort(compareBy(sort));
     return list;
   }, [filtered, sort]);
 
@@ -336,13 +335,14 @@ export function ShopClient({
             Подреди
             <select
               value={sort}
-              onChange={(e) => setSort(e.target.value)}
+              onChange={(e) => setSort(e.target.value as SortKey)}
               className="font-mono text-[11px] p-2 border border-ink-15 bg-white text-ink"
             >
-              <option>Популярност</option>
-              <option>Цена ↑</option>
-              <option>Цена ↓</option>
-              <option>Широчина</option>
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.key} value={o.key}>
+                  {o.label}
+                </option>
+              ))}
             </select>
           </label>
         </div>

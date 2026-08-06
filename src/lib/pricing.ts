@@ -13,6 +13,36 @@ export interface BladeConfig {
   setting: number; // EUR/m (чапраз)
 }
 
+/**
+ * Tooth profiles for food and textile blades. These are not pitches in
+ * millimetres — they name the shape of the edge — so they were stored as
+ * Bulgarian words and used directly as lookup keys by findBlade(), as option
+ * labels, and as the value written onto an order's customSpecs.
+ *
+ * The code is now the stored and compared value; the label is only rendered.
+ * Numeric pitches ("6", "12.5") and TPI values ("14 TPI") are already
+ * language-neutral and stay exactly as they are.
+ */
+export const PITCH_LABELS: Record<string, string> = {
+  'cleaner-tooth': 'Зъб чистач',
+  'concave-wave': 'Вдлъбната вълна',
+  'convex-wave': 'Изпъкнала вълна',
+  'smooth-ground': 'Гладко заточен',
+  wave: 'Вълна',
+};
+
+/** The Bulgarian name for a profile code; anything else is shown as stored. */
+export const pitchLabel = (pitch: string): string => PITCH_LABELS[pitch] ?? pitch;
+
+/**
+ * True when the value names an edge shape rather than a tooth spacing, so the
+ * configurator can title the field "Профил и стъпка" instead of "Стъпка".
+ * Replaces a substring sniff for "вълна" / "чистач", which would have stopped
+ * matching the moment the labels were translated.
+ */
+export const isProfilePitch = (pitch: string): boolean =>
+  pitch in PITCH_LABELS || pitch.includes('TPI');
+
 // Vertical bandsaw blades for wood
 export const VERTICAL_WOOD_BLADES: BladeConfig[] = [
   // Kodiak
@@ -232,22 +262,22 @@ export const METAL_CARBON_BLADES: BladeConfig[] = [
 export const MEAT_BLADES: BladeConfig[] = [
   { width: 16, thickness: 0.50, pitch: "3 TPI", brand: "Tehnoles", pricePerMeter: 4.23, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
   { width: 16, thickness: 0.50, pitch: "4 TPI", brand: "Tehnoles", pricePerMeter: 4.23, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 16, thickness: 0.50, pitch: "Зъб чистач", brand: "Tehnoles", pricePerMeter: 4.85, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 16, thickness: 0.50, pitch: "Вдлъбната вълна", brand: "Tehnoles", pricePerMeter: 6.75, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 16, thickness: 0.50, pitch: "Изпъкнала вълна", brand: "Tehnoles", pricePerMeter: 6.75, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 16, thickness: 0.50, pitch: "Гладко заточен", brand: "Tehnoles", pricePerMeter: 3.93, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 16, thickness: 0.50, pitch: "cleaner-tooth", brand: "Tehnoles", pricePerMeter: 4.85, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 16, thickness: 0.50, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 6.75, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 16, thickness: 0.50, pitch: "convex-wave", brand: "Tehnoles", pricePerMeter: 6.75, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 16, thickness: 0.50, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 3.93, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
   { width: 20, thickness: 0.50, pitch: "4 TPI", brand: "Tehnoles", pricePerMeter: 4.60, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
   { width: 20, thickness: 0.50, pitch: "3 TPI", brand: "Tehnoles", pricePerMeter: 4.60, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 20, thickness: 0.50, pitch: "Зъб чистач", brand: "Tehnoles", pricePerMeter: 5.09, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 20, thickness: 0.50, pitch: "Вдлъбната вълна", brand: "Tehnoles", pricePerMeter: 7.79, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 20, thickness: 0.50, pitch: "Изпъкнала вълна", brand: "Tehnoles", pricePerMeter: 7.79, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 20, thickness: 0.50, pitch: "Гладко заточен", brand: "Tehnoles", pricePerMeter: 4.42, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.50, pitch: "cleaner-tooth", brand: "Tehnoles", pricePerMeter: 5.09, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.50, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 7.79, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.50, pitch: "convex-wave", brand: "Tehnoles", pricePerMeter: 7.79, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.50, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 4.42, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
 ];
 
 // Bread blades
 export const BREAD_BLADES: BladeConfig[] = [
-  { width: 10, thickness: 0.50, pitch: "Вълна", brand: "Tehnoles", pricePerMeter: 4.23, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 12, thickness: 0.45, pitch: "Вдлъбната вълна", brand: "Tehnoles", pricePerMeter: 5.09, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 10, thickness: 0.50, pitch: "wave", brand: "Tehnoles", pricePerMeter: 4.23, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 12, thickness: 0.45, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 5.09, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
 ];
 
 // Textile/paper blades
