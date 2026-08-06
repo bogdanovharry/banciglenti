@@ -58,6 +58,82 @@
   }
 }
 
+/* ---- Sidebar icons ----------------------------------------------------- */
+/*
+ * Payload has no declarative per-collection icon, and replacing its Nav
+ * component would mean reimplementing groups, active state, collapse and
+ * logout. Every nav link has a predictable href, so the icons attach by
+ * attribute selector instead — no custom React, nothing in the import map.
+ *
+ * Drawn as masks rather than background images so they take `currentColor` and
+ * follow the active and hover states with the label.
+ */
+@mixin nav-icon($svg) {
+  &::before {
+    content: '';
+    flex-shrink: 0;
+    width: 15px;
+    height: 15px;
+    background-color: currentColor;
+    opacity: 0.65;
+    mask: url('data:image/svg+xml;utf8,#{$svg}') center / contain no-repeat;
+  }
+}
+
+$sw: "stroke='black' stroke-width='1.7' fill='none' stroke-linecap='round' stroke-linejoin='round'";
+
+.nav__link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  &[aria-current='page'] ::before,
+  &[aria-current='page']::before {
+    opacity: 1;
+  }
+
+  /* Blade — a toothed band. */
+  &[href$='/collections/products'] {
+    @include nav-icon("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path #{$sw} d='M2 15h20M2 15l3-4 3 4 3-4 3 4 3-4 3 4M2 19h20'/></svg>");
+  }
+  /* Variants — stacked sizes. */
+  &[href$='/collections/product-variants'] {
+    @include nav-icon("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path #{$sw} d='M3 7h18M5 12h14M7 17h10'/></svg>");
+  }
+  /* Categories — a tree. */
+  &[href$='/collections/categories'] {
+    @include nav-icon("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path #{$sw} d='M4 4v14h5M9 11H4M15 7h5v4h-5zM15 15h5v4h-5z'/></svg>");
+  }
+  /* Brands — a tag. */
+  &[href$='/collections/brands'] {
+    @include nav-icon("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path #{$sw} d='M3 11V4h7l10 10-7 7z'/><circle cx='7.5' cy='7.5' r='1.3' #{$sw}/></svg>");
+  }
+  /* Orders — a carton. */
+  &[href$='/collections/orders'] {
+    @include nav-icon("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path #{$sw} d='M3 8l9-4 9 4-9 4zM3 8v8l9 4 9-4V8M12 12v8'/></svg>");
+  }
+  /* Customers. */
+  &[href$='/collections/customers'] {
+    @include nav-icon("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='8' r='3.5' #{$sw}/><path #{$sw} d='M4.5 20a7.5 7.5 0 0115 0'/></svg>");
+  }
+  /* Articles. */
+  &[href$='/collections/articles'] {
+    @include nav-icon("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path #{$sw} d='M5 3h11l3 3v15H5zM8 10h8M8 14h8M8 18h5'/></svg>");
+  }
+  /* Pages. */
+  &[href$='/collections/pages'] {
+    @include nav-icon("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path #{$sw} d='M4 4h16v16H4zM4 9h16M9 9v11'/></svg>");
+  }
+  /* Media — an image frame. */
+  &[href$='/collections/media'] {
+    @include nav-icon("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path #{$sw} d='M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6'/><circle cx='8' cy='9' r='1.4' #{$sw}/></svg>");
+  }
+  /* Users — access. */
+  &[href$='/collections/users'] {
+    @include nav-icon("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path #{$sw} d='M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z'/><path #{$sw} d='M9.5 12l1.8 1.8L15 10'/></svg>");
+  }
+}
+
 /* ---- Dashboard cards -------------------------------------------------- */
 /* The dashboard was a flat list of identical white rectangles. A left rule in
    the brand blue gives each card an edge to scan down. */

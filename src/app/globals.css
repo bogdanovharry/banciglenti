@@ -181,6 +181,30 @@ html {
   border-bottom: 1px solid var(--color-ink-15);
 }
 
+/* Skeleton shimmer for loading.tsx. A moving highlight reads as "working"
+   where a static grey block reads as "broken". */
+@keyframes tl-shimmer {
+  from { background-position: -180% 0; }
+  to { background-position: 180% 0; }
+}
+.tl-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 100%
+  );
+  background-size: 180% 100%;
+  background-repeat: no-repeat;
+  animation: tl-shimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-shimmer {
+    animation: none;
+  }
+}
+
 /* Selection */
 ::selection {
   background: #004FC6;
