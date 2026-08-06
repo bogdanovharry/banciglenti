@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Placeholder, Tag } from "@/components/ui/primitives";
 import { IconPlus } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
+import { currencySymbol, formatAmount } from "@/lib/market";
 
-const BGN_PER_EUR = 1.95583;
 
 export interface ProductCardData {
   name: string;
@@ -151,12 +151,10 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
           <div className="mt-auto pt-4 border-t border-ink-05 flex justify-between items-end gap-2">
             <div>
               <div className="font-display text-[21px] font-bold tracking-[-0.02em] text-ink tabular-nums leading-none">
-                {p.price.toFixed(2)} <span className="text-[11px] text-ink-50 font-normal">€</span>
+                {formatAmount(p.price)}{" "}
+                <span className="text-[11px] text-ink-50 font-normal">{currencySymbol()}</span>
               </div>
-              {/* B2B buyers price in BGN as well — the euro is still new here. */}
-              <div className="font-mono text-[10px] text-ink-50 mt-1 tabular-nums">
-                {(p.price * BGN_PER_EUR).toFixed(2)} лв · без ДДС
-              </div>
+              <div className="font-mono text-[10px] text-ink-50 mt-1 tabular-nums">без ДДС</div>
             </div>
 
             <button

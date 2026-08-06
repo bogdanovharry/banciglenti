@@ -6,6 +6,7 @@ import { Placeholder, Tag, Btn } from "@/components/ui/primitives";
 import { IconArrowRight, IconHeart, IconMinus, IconPlus, IconTruck, IconShield, IconWrench } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { SAW_MEISTER, SERIES, type SeriesKey } from "@/lib/series";
+import { currencySymbol, formatAmount } from "@/lib/market";
 
 export type ProductView = {
   slug: string;
@@ -185,11 +186,10 @@ export function ProductClient({ product }: { product: ProductView }) {
                 <div>
                   <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">Единична цена</div>
                   <div className="font-display text-[44px] font-extrabold tracking-tight text-ink leading-none">
-                    {product.price.toFixed(2)} <span className="text-base font-normal text-ink-50">€</span>
+                    {formatAmount(product.price)}{" "}
+                    <span className="text-base font-normal text-ink-50">{currencySymbol()}</span>
                   </div>
-                  <div className="font-mono text-[11px] text-ink-50 mt-1">
-                    {(product.price * 1.95583).toFixed(2)} лв · без ДДС
-                  </div>
+                  <div className="font-mono text-[11px] text-ink-50 mt-1">без ДДС</div>
                 </div>
                 <div className="inline-flex items-center border border-ink-15 bg-white">
                   <button

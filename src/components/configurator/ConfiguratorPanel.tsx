@@ -18,10 +18,18 @@ import {
   getOptionsForWidth,
   getAvailablePitches,
   findBlade,
-  BGN_RATE,
   type BladeConfig,
 } from "@/lib/pricing";
 import type { BladeTableKey } from "@/lib/order-pricing";
+import { DEFAULT_MARKET, formatPrice, vatRateFor } from "@/lib/market";
+
+/**
+ * The rate for a consumer in the market being served. Business customers in
+ * another EU state are reverse charged at 0%, but the configurator quotes
+ * before a customer is known, so it shows the consumer rate — checkout
+ * recalculates once a VAT number has been given and validated.
+ */
+const VAT_RATE = vatRateFor(DEFAULT_MARKET);
 
 // ===== Configurator types =====
 type ConfigType = "wood-h" | "wood-v" | "metal-bi" | "metal-cs" | "hobby" | "meat" | "bread" | "slicer";
@@ -183,7 +191,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
     : null;
 
   const unitPrice = prices?.totalWithoutVat ?? 0;
-  const unitPriceVat = prices?.totalWithVat ?? 0;
+  const unitPriceVat = unitPrice * (1 + VAT_RATE);
 
   // Reset downstream when upstream changes
   const handleWidthChange = (v: string) => { setWidth(v); setThickness(""); setPitch(""); setBrand(""); };
@@ -247,9 +255,9 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
         )}
 
         <div className="mt-auto">
-          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: <span className="text-ink font-semibold">{unitPrice.toFixed(2)} € ({(unitPrice * BGN_RATE).toFixed(2)} лв.)</span></div>
+          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: <span className="text-ink font-semibold">{formatPrice(unitPrice)}</span></div>
           <div className="font-sans text-lg mb-4">
-            цена с ДДС: <span className="text-danger text-2xl font-bold">{unitPriceVat.toFixed(2)} €</span> <span className="text-danger text-2xl font-bold">({(unitPriceVat * BGN_RATE).toFixed(2)} лв.)</span>
+            цена с ДДС: <span className="text-danger text-2xl font-bold">{formatPrice(unitPriceVat)}</span>
           </div>
           <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAdd}>
             {added ? "✓ Добавено в количката!" : "Добави в количката"}
@@ -302,7 +310,7 @@ function RealDataConfigurator({
     : null;
 
   const unitPrice = prices?.totalWithoutVat ?? 0;
-  const unitPriceVat = prices?.totalWithVat ?? 0;
+  const unitPriceVat = unitPrice * (1 + VAT_RATE);
 
   const handleWidthChange = (v: string) => { setWidth(v); setThickness(""); setPitch(""); setBrand(""); };
   const handleThicknessChange = (v: string) => { setThickness(v); setPitch(""); };
@@ -350,8 +358,8 @@ function RealDataConfigurator({
           </div>
         )}
         <div className="mt-auto">
-          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: <span className="text-ink font-semibold">{unitPrice.toFixed(2)} € ({(unitPrice * BGN_RATE).toFixed(2)} лв.)</span></div>
-          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{unitPriceVat.toFixed(2)} € ({(unitPriceVat * BGN_RATE).toFixed(2)} лв.)</span></div>
+          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: <span className="text-ink font-semibold">{formatPrice(unitPrice)}</span></div>
+          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{formatPrice(unitPriceVat)}</span></div>
           <Btn variant="primary" size="lg" fullWidth onClick={handleAdd}>
             {added ? "✓ Добавено!" : "Добави в количката"}
           </Btn>
@@ -386,8 +394,8 @@ function MetalBiConfigurator() {
         <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
         <QuantityStepper value={qty} onChange={setQty} />
         <div className="mt-auto">
-          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: {unitPrice.toFixed(2)} € ({(unitPrice * 1.95583).toFixed(2)} лв.)</div>
-          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{(unitPrice * 1.2).toFixed(2)} € ({(unitPrice * 1.2 * 1.95583).toFixed(2)} лв.)</span></div>
+          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: {formatPrice(unitPrice)}</div>
+          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{formatPrice(unitPrice * (1 + VAT_RATE))}</span></div>
           <Btn variant="primary" size="lg" fullWidth>Добави в количката</Btn>
         </div>
       </div>
@@ -426,8 +434,8 @@ function SimpleConfigurator({ widths, pitchLabel, pitchOptions }: {
         <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
         <QuantityStepper value={qty} onChange={setQty} />
         <div className="mt-auto">
-          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: {unitPrice.toFixed(2)} € ({(unitPrice * 1.95583).toFixed(2)} лв.)</div>
-          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{(unitPrice * 1.2).toFixed(2)} € ({(unitPrice * 1.2 * 1.95583).toFixed(2)} лв.)</span></div>
+          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: {formatPrice(unitPrice)}</div>
+          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{formatPrice(unitPrice * (1 + VAT_RATE))}</span></div>
           <Btn variant="primary" size="lg" fullWidth>Добави в количката</Btn>
         </div>
       </div>
@@ -467,8 +475,8 @@ function HobbyConfigurator() {
           <Checkbox label="Термообработка" checked={heatTreat} onChange={setHeatTreat} />
         </div>
         <div className="mt-auto">
-          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: {unitPrice.toFixed(2)} € ({(unitPrice * 1.95583).toFixed(2)} лв.)</div>
-          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{(unitPrice * 1.2).toFixed(2)} € ({(unitPrice * 1.2 * 1.95583).toFixed(2)} лв.)</span></div>
+          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: {formatPrice(unitPrice)}</div>
+          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{formatPrice(unitPrice * (1 + VAT_RATE))}</span></div>
           <Btn variant="primary" size="lg" fullWidth>Добави в количката</Btn>
         </div>
       </div>
@@ -527,7 +535,7 @@ export function ConfiguratorPanel() {
         <div className="mt-14 pt-10 border-t border-ink-15 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             ["Изработка по поръчка", "Срокът се потвърждава при поръчката"],
-            ["Безплатна доставка", "При поръчка над 200 €"],
+            ["Безплатна доставка", `При поръчка над ${DEFAULT_MARKET.freeShippingThreshold} €`],
             ["±0.01 мм точност", "Прецизно заваряване"],
             ["Гаранция на заварката", "Скъсване на шева — подменяме лентата"],
           ].map(([title, desc]) => (

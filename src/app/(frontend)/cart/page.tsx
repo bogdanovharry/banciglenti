@@ -5,6 +5,7 @@ import { Placeholder, Btn } from "@/components/ui/primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { IconMinus, IconPlus, IconClose, IconArrowRight } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
+import { DEFAULT_MARKET, currencySymbol, formatAmount, formatPrice, vatLabel, vatRateFor } from "@/lib/market";
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, itemCount, subtotal, shipping, tax, total } = useCart();
@@ -62,13 +63,13 @@ export default function CartPage() {
                     <div className="font-mono text-[11px] text-ink-50 mt-1">{it.dim} · SKU {it.sku}</div>
                   </div>
                 </div>
-                <div className="font-mono text-[13px] text-ink-70 tabular-nums">{it.price.toFixed(2)} €</div>
+                <div className="font-mono text-[13px] text-ink-70 tabular-nums">{formatPrice(it.price)}</div>
                 <div className="inline-flex border border-ink-15 bg-white">
                   <button onClick={() => updateQuantity(it.id, it.quantity - 1)} className="w-8 h-9 bg-transparent border-none cursor-pointer flex items-center justify-center"><IconMinus size={12} /></button>
                   <div className="w-10 h-9 flex items-center justify-center font-mono text-[13px] font-semibold">{it.quantity}</div>
                   <button onClick={() => updateQuantity(it.id, it.quantity + 1)} className="w-8 h-9 bg-transparent border-none cursor-pointer flex items-center justify-center"><IconPlus size={12} /></button>
                 </div>
-                <div className="text-right font-display text-lg font-bold text-ink tabular-nums">{(it.quantity * it.price).toFixed(2)} <span className="text-[11px] font-normal text-ink-50">€</span></div>
+                <div className="text-right font-display text-lg font-bold text-ink tabular-nums">{formatAmount(it.quantity * it.price)} <span className="text-[11px] font-normal text-ink-50">{currencySymbol()}</span></div>
                 <button onClick={() => removeItem(it.id)} className="bg-transparent border-none cursor-pointer text-ink-50 hover:text-danger transition-colors"><IconClose size={16} /></button>
               </div>
             ))}
@@ -86,18 +87,17 @@ export default function CartPage() {
             <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-5">Обобщение · {itemCount} артикула</div>
             <div className="flex flex-col gap-3.5 font-sans text-sm">
               {[
-                ["Междинна сума", `${subtotal.toFixed(2)} €`],
-                ["Доставка", shipping === 0 ? "Безплатно" : `${shipping.toFixed(2)} €`],
-                ["ДДС 20%", `${tax.toFixed(2)} €`],
+                ["Междинна сума", formatPrice(subtotal)],
+                ["Доставка", shipping === 0 ? "Безплатно" : formatPrice(shipping)],
+                [`ДДС ${vatLabel(vatRateFor(DEFAULT_MARKET))}`, formatPrice(tax)],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between"><span className="text-white/65">{k}</span><span>{v}</span></div>
               ))}
               <div className="h-px bg-white/15 my-2" />
               <div className="flex justify-between items-baseline">
                 <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/60">Общо</span>
-                <span className="font-display text-4xl font-extrabold tracking-tight tabular-nums">{total.toFixed(2)} <span className="text-[13px] text-white/60 font-normal">€</span></span>
+                <span className="font-display text-4xl font-extrabold tracking-tight tabular-nums">{formatAmount(total)} <span className="text-[13px] text-white/60 font-normal">{currencySymbol()}</span></span>
               </div>
-              <div className="font-mono text-[11px] text-white/40 text-right">{(total * 1.95583).toFixed(2)} лв.</div>
             </div>
             <div className="mt-6">
               <Link href="/checkout" className="no-underline">

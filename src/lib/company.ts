@@ -1,3 +1,5 @@
+import { MARKETS } from './market'
+
 /**
  * The selling entity. One Bulgarian company sells into every market, so this
  * stays a single constant rather than a per-market value — see the multi-market
@@ -98,10 +100,10 @@ export const formattedAddress = () =>
  * away from what checkout really charges.
  */
 export const TERMS = {
-  vatRate: 0.2,
-  freeShippingThreshold: 200,
-  shippingCost: 6,
-  currency: 'EUR',
+  vatRate: MARKETS.bg.vatRate,
+  freeShippingThreshold: MARKETS.bg.freeShippingThreshold,
+  shippingCost: MARKETS.bg.shippingCost,
+  currency: MARKETS.bg.displayCurrency,
   /** Loop lengths we weld, mirroring the configurator's limits. */
   customLengthMin: 1650,
   customLengthMax: 12000,

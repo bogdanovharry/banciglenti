@@ -3,15 +3,18 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 
 import { parseCustomSpecs, priceCustomItem, type CustomSpecs } from '@/lib/order-pricing'
+import { DEFAULT_MARKET, vatRateFor } from '@/lib/market'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
-// Commerce rules. These move into the per-market config in Phase B; for now
-// they mirror src/lib/cart.tsx so the server and the browser agree.
-const VAT_RATE = 0.2
-const FREE_SHIPPING_THRESHOLD = 200
-const SHIPPING_COST = 6
+// Commerce rules come from the market registry, so the server, the browser and
+// the legal pages cannot disagree about what an order costs. This is the
+// authoritative copy: the browser's figures are a preview, and everything is
+// recomputed here before an order is written.
+const VAT_RATE = vatRateFor(DEFAULT_MARKET)
+const { freeShippingThreshold: FREE_SHIPPING_THRESHOLD, shippingCost: SHIPPING_COST } =
+  DEFAULT_MARKET
 
 const PAYMENT_METHODS = ['bank_transfer', 'cod'] as const
 const SHIPPING_METHODS = ['courier', 'pickup'] as const

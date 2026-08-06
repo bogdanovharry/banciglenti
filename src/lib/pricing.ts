@@ -68,8 +68,15 @@ export const VERTICAL_WOOD_BLADES: BladeConfig[] = [
 ];
 
 /**
- * Calculate blade price
+ * Calculate blade price, in EUR, excluding VAT.
  * Formula: (pricePerMeter × lengthInMeters) + welding + (sharpening × length) + (heatTreat × length) + (setting × length)
+ *
+ * Returns ex-VAT only, on purpose. It used to also return `totalWithVat`
+ * computed as `× 1.2`, which hardcoded the Bulgarian rate inside the quote
+ * engine — on a Romanian page that silently produced a 20% total instead of
+ * 19%, and for a VIES-valid business customer it charged VAT that should have
+ * been reverse charged. Removing the field turns that class of bug into a type
+ * error. Callers apply `vatRateFor(market, customer)` at the display boundary.
  */
 export function calculateBladePrice(
   blade: BladeConfig,
@@ -85,7 +92,6 @@ export function calculateBladePrice(
   const settingPrice = options.setting ? blade.setting * lengthM : 0;
 
   const totalWithoutVat = bladePrice + weldingPrice + sharpeningPrice + heatPrice + settingPrice;
-  const totalWithVat = totalWithoutVat * 1.2;
 
   return {
     bladePrice: Math.round(bladePrice * 100) / 100,
@@ -94,7 +100,6 @@ export function calculateBladePrice(
     heatPrice: Math.round(heatPrice * 100) / 100,
     settingPrice: Math.round(settingPrice * 100) / 100,
     totalWithoutVat: Math.round(totalWithoutVat * 100) / 100,
-    totalWithVat: Math.round(totalWithVat * 100) / 100,
   };
 }
 
@@ -253,6 +258,3 @@ export const TEXTILE_BLADES: BladeConfig[] = [
   { width: 25, thickness: 0.60, pitch: "—", brand: "Tehnoles", pricePerMeter: 1.84, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
   { width: 30, thickness: 0.70, pitch: "—", brand: "Tehnoles", pricePerMeter: 1.99, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
 ];
-
-// BGN conversion rate (fixed)
-export const BGN_RATE = 1.95583;

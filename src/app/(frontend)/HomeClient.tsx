@@ -20,13 +20,13 @@ import {
   getOptionsForWidth,
   getAvailablePitches,
   findBlade,
-  BGN_RATE,
 } from "@/lib/pricing";
 import type { BladeTableKey } from "@/lib/order-pricing";
 import {
   IconArrowRight, IconCheck, IconPhone, IconWood, IconMetal, IconFood,
   IconHobby, IconMachine, IconAbrasive,
 } from "@/components/ui/icons";
+import { DEFAULT_MARKET, formatPrice, vatRateFor } from "@/lib/market";
 
 // Industrial accent for highlighted words — heavy upright sans, brand orange
 const accent = "font-extrabold";
@@ -494,7 +494,7 @@ function CustomOrderBlock() {
                         {quote.totalWithoutVat.toFixed(2)} <span className="text-sm text-ink-50 font-normal">€</span>
                       </div>
                       <div className="font-mono text-[10px] text-ink-50 mt-1.5 tabular-nums">
-                        {(quote.totalWithoutVat * BGN_RATE).toFixed(2)} лв · с ДДС {quote.totalWithVat.toFixed(2)} €
+                        с ДДС {formatPrice(quote.totalWithoutVat * (1 + vatRateFor(DEFAULT_MARKET)))}
                       </div>
                     </div>
                     <Btn variant="primary" size="lg" onClick={handleAdd} iconRight={<IconArrowRight size={16} />}>

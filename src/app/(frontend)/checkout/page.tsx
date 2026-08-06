@@ -6,6 +6,7 @@ import { Placeholder, Btn } from "@/components/ui/primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { IconArrowRight } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
+import { DEFAULT_MARKET, currencySymbol, formatAmount, formatPrice, vatLabel, vatRateFor } from "@/lib/market";
 
 function Input({
   label,
@@ -324,12 +325,12 @@ export default function CheckoutPage() {
               </div>
             ))}
             <div className="mt-5 pt-5 border-t border-ink-15">
-              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">Междинна сума</span><span>{subtotal.toFixed(2)} €</span></div>
-              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">Доставка</span><span>{shipping === 0 ? "Безплатно" : `${shipping.toFixed(2)} €`}</span></div>
-              <div className="flex justify-between text-sm mb-3"><span className="text-ink-50">ДДС 20%</span><span>{tax.toFixed(2)} €</span></div>
+              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">Междинна сума</span><span>{formatPrice(subtotal)}</span></div>
+              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">Доставка</span><span>{shipping === 0 ? "Безплатно" : formatPrice(shipping)}</span></div>
+              <div className="flex justify-between text-sm mb-3"><span className="text-ink-50">ДДС {vatLabel(vatRateFor(DEFAULT_MARKET))}</span><span>{formatPrice(tax)}</span></div>
               <div className="flex justify-between items-baseline pt-3 border-t border-ink-15">
                 <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-ink-50">Общо</span>
-                <span className="font-display text-[32px] font-extrabold text-ink tracking-tight tabular-nums">{total.toFixed(2)} <span className="text-xs font-normal text-ink-50">€</span></span>
+                <span className="font-display text-[32px] font-extrabold text-ink tracking-tight tabular-nums">{formatAmount(total)} <span className="text-xs font-normal text-ink-50">{currencySymbol()}</span></span>
               </div>
             </div>
 

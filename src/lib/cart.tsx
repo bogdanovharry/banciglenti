@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 
 import type { CustomSpecs } from "./order-pricing";
+import { DEFAULT_MARKET } from "./market";
 
 export interface CartItem {
   id: string; // unique key: sku + custom specs hash
@@ -35,10 +36,12 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | null>(null);
 
-const BGN_RATE = 1.95583;
-const FREE_SHIPPING_THRESHOLD = 200; // EUR
-const SHIPPING_COST = 6; // EUR
-const TAX_RATE = 0.2;
+// Commercial terms live in one place — see src/lib/market.ts. Bulgaria is the
+// only market currently served, so the cart reads its figures directly; when a
+// second market goes live this becomes the active market rather than a constant.
+const { freeShippingThreshold: FREE_SHIPPING_THRESHOLD, shippingCost: SHIPPING_COST } =
+  DEFAULT_MARKET;
+const TAX_RATE = DEFAULT_MARKET.vatRate;
 
 function generateId(item: Omit<CartItem, "id">): string {
   const specsKey = item.customSpecs
@@ -121,12 +124,3 @@ export function useCart() {
   return ctx;
 }
 
-// Helper: format price in dual currency
-export function formatDualPrice(eur: number) {
-  return {
-    eur: eur.toFixed(2),
-    bgn: (eur * BGN_RATE).toFixed(2),
-    eurVat: (eur * 1.2).toFixed(2),
-    bgnVat: (eur * 1.2 * BGN_RATE).toFixed(2),
-  };
-}
