@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/icons";
 import { DEFAULT_MARKET, formatPrice, vatRateFor } from "@/lib/market";
 import { COMPANY } from "@/lib/company";
+import { useTranslations } from "next-intl";
 
 // Industrial accent for highlighted words — heavy upright sans, brand orange
 const accent = "font-extrabold";
@@ -45,12 +46,14 @@ const accent = "font-extrabold";
  * tint layer shifts hue without collapsing luminance.
  */
 function HeroCustom() {
+  const t = useTranslations("home.hero");
+  const tf = useTranslations("home.facts");
   return (
     <section className="relative isolate bg-blue-deep text-white overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <Image
           src="/images/hero/shutterstock_1753030058.webp"
-          alt="Заваряване на банцигова лента по размер в цеха на ТЕХНОЛЕС"
+          alt={t("imageAlt")}
           fill
           priority
           sizes="100vw"
@@ -68,30 +71,29 @@ function HeroCustom() {
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-20 pb-12 md:pt-[124px] md:pb-16">
         <div className="max-w-[860px]">
-          <SectionNumber n="№ 01" label="Режещи инструменти по поръчка" tone="light" />
+          <SectionNumber n="№ 01" label={t("eyebrow")} tone="light" />
           <h1 className="font-display text-5xl md:text-7xl lg:text-[92px] font-extrabold leading-[0.94] tracking-[-0.045em] mt-8 mb-7">
-            Всяка лента<br />точно по<br />
-            <span className={`${accent} text-orange-light`}>вашата машина.</span>
+            {t("title1")}<br />{t("title2")}<br />
+            <span className={`${accent} text-orange-light`}>{t("title3")}</span>
           </h1>
           <p className="font-sans text-lg leading-relaxed text-white/75 max-w-[560px] mb-10">
-            Произвеждаме и заваряваме банцигови ленти по индивидуални размери за дърво, метал и
-            хранителна промишленост — от 1&nbsp;650 до 12&nbsp;000&nbsp;мм.
+            {t("lede")}
           </p>
           <div className="flex gap-3 items-center flex-wrap">
             <Link href="/configurator">
-              <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Конфигурирай лента</Btn>
+              <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("ctaConfigure")}</Btn>
             </Link>
-            <Link href="/shop"><Btn variant="ghostLight" size="lg">Разгледай каталог</Btn></Link>
+            <Link href="/shop"><Btn variant="ghostLight" size="lg">{t("ctaCatalogue")}</Btn></Link>
           </div>
         </div>
 
         {/* Proof rail */}
         <div className="mt-16 md:mt-24 grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-white/20">
           {[
-            ["30+", "години"],
-            ["12 000", "активни клиенти"],
-            ["6-100", "мм широчина"],
-            ["±0.01", "мм точност"],
+            ["30+", tf("years")],
+            ["12 000", tf("clients")],
+            ["6-100", tf("width")],
+            ["±0.01", tf("precision")],
           ].map(([v, l], i) => (
             <div key={l} className={`pt-5 pb-1 pr-4 ${i > 0 ? "md:border-l md:border-white/20 md:pl-5" : ""}`}>
               <div className="font-display text-3xl md:text-4xl font-bold tracking-tight tabular-nums">{v}</div>
@@ -106,7 +108,8 @@ function HeroCustom() {
 
 // ========== TICKER ==========
 function TickerStrip() {
-  const items = ["● Над 8 000 размера на склад", "● Безплатна доставка над 200 €", "● Заваряване за 4 часа", "● Техническа консултация", "● Доставка до 48ч", "● Гаранция на заварката"];
+  const t = useTranslations("home.ticker");
+  const items = ["sizes", "freeShipping", "welding", "consult", "delivery", "guarantee"].map((k) => t(k));
   return (
     <div className="bg-navy text-white overflow-hidden border-t-4 border-orange">
       <div className="flex gap-12 py-4 whitespace-nowrap font-mono text-xs tracking-[0.1em] uppercase" style={{ animation: "tl-marquee 45s linear infinite" }}>
@@ -123,15 +126,16 @@ function TickerStrip() {
 // recognises their own shop floor faster than they parse an icon, and the
 // licensed photography was already sitting unused in the repo.
 const industriesBase = [
-  { name: "Дърво", Icon: IconWood, desc: "Банцигови ленти, циркулярни триони, абрихт ножове за всякаква дървообработка.", href: "/category/dyrvo", img: "/images/hero/craftsman-using-bandsaw-for-splitting-wood-plank-i-2023-11-27-05-19-15-utc-2.avif" },
-  { name: "Метал", Icon: IconMetal, desc: "Биметални M42/M51 и въглеродни CS ленти за професионална металообработка.", href: "/category/metal", img: "/images/hero/metal-cutting-2023-11-27-04-59-56-utc-2.avif" },
-  { name: "Храни", Icon: IconFood, desc: "Ленти и ножове за месо, риба, хляб. Резервни части за слайсъри.", href: "/category/hrani", img: "/images/hero/shutterstock_1313584316.avif" },
-  { name: "Хоби банциг", Icon: IconHobby, desc: "Ленти за Einhell, Parkside, Scheppach и домашни работилници.", href: "/category/hobi-bantsig", img: "/images/hero/hardworking-man-doing-his-job-woodshop-2.avif" },
-  { name: "Машини", Icon: IconMachine, desc: "Заточни машини, лентови триони, консумативи и резервни части.", href: "/category/mashini", img: "/images/hero/man_working_bandsaw_blades.avif" },
-  { name: "Абразиви", Icon: IconAbrasive, desc: "Диамантени и CBN заточни дискове, камъни, полиращи състави.", href: "/category/abrazivi", img: "/images/hero/punching.webp" },
+  { name: "wood", Icon: IconWood, desc: "woodDesc", href: "/category/dyrvo", img: "/images/hero/craftsman-using-bandsaw-for-splitting-wood-plank-i-2023-11-27-05-19-15-utc-2.avif" },
+  { name: "metal", Icon: IconMetal, desc: "metalDesc", href: "/category/metal", img: "/images/hero/metal-cutting-2023-11-27-04-59-56-utc-2.avif" },
+  { name: "food", Icon: IconFood, desc: "foodDesc", href: "/category/hrani", img: "/images/hero/shutterstock_1313584316.avif" },
+  { name: "hobby", Icon: IconHobby, desc: "hobbyDesc", href: "/category/hobi-bantsig", img: "/images/hero/hardworking-man-doing-his-job-woodshop-2.avif" },
+  { name: "machines", Icon: IconMachine, desc: "machinesDesc", href: "/category/mashini", img: "/images/hero/man_working_bandsaw_blades.avif" },
+  { name: "abrasives", Icon: IconAbrasive, desc: "abrasivesDesc", href: "/category/abrazivi", img: "/images/hero/punching.webp" },
 ];
 
 function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
+  const t = useTranslations("home.industries");
   // Counts come from the catalogue itself. They used to be hardcoded marketing
   // numbers ("1 240 артикула") that overstated the real range by tenfold.
   const industries = industriesBase.map((c) => ({
@@ -144,13 +148,13 @@ function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-end mb-14 md:mb-[72px]">
           <Reveal>
-            <SectionNumber n="№ 02" label="Шест индустрии · един доставчик" />
+            <SectionNumber n="№ 02" label={t("eyebrow")} />
             <h2 className="font-display text-4xl md:text-5xl lg:text-[64px] leading-none tracking-[-0.035em] font-bold mt-7 text-ink">
-              Каталог, организиран<br />по това с което <span className={`${accent} text-orange`}>работите</span>.
+              {t("title1")}<br />{t("title2")} <span className={`${accent} text-orange`}>{t("title3")}</span>.
             </h2>
           </Reveal>
           <Reveal as="p" delay={120} className="font-sans text-base leading-relaxed text-ink-70 max-w-[480px] lg:justify-self-end">
-            Не се налага да знаете стандарти и обозначения — изберете вашата индустрия и филтрирайте по машина, материал или размер.
+            {t("lede")}
           </Reveal>
         </div>
 
@@ -253,6 +257,7 @@ function pick<T>(options: readonly T[], current: T | null): T | undefined {
 }
 
 function CustomOrderBlock() {
+  const t = useTranslations("home.quote");
   const [typeKey, setTypeKey] = useState<(typeof QUOTE_TYPES)[number]["key"]>("wood-h");
   const [selWidth, setSelWidth] = useState<number | null>(null);
   const [selThickness, setSelThickness] = useState<number | null>(null);
@@ -342,14 +347,14 @@ function CustomOrderBlock() {
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 relative">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-20">
           <Reveal>
-            <SectionNumber n="№ 03" label="Изчисли цена" tone="light" />
+            <SectionNumber n="№ 03" label={t("title1")} tone="light" />
             <h2 className="font-display text-4xl md:text-5xl lg:text-7xl leading-none tracking-[-0.04em] font-bold mt-7 mb-6">
               Кажи ни размера.<br />
               <span className={`${accent} text-orange-light`}>Заваряваме го.</span>
             </h2>
             <p className="font-sans text-[17px] leading-relaxed text-white/70 max-w-[480px] mb-10">
-              Режем лентата на вашата дължина и я заваряваме на контур — от единичен брой до серия.
-              Цената отдясно е по актуалния ценоразпис, не приблизителна оценка.
+              {t("lede1")}
+              {t("lede2")}
             </p>
             {/* Four facts, each derived from the price tables rather than
                 asserted. The previous list claimed an induction + shot-blasting
@@ -376,7 +381,7 @@ function CustomOrderBlock() {
           {/* Quote card */}
           <div className="bg-white text-ink p-6 md:p-9 relative">
             <div className="flex justify-between items-center mb-6">
-              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50">Бърза оферта</div>
+              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50">{t("eyebrow")}</div>
               <Tag tone="ok">По поръчка</Tag>
             </div>
 
@@ -405,7 +410,7 @@ function CustomOrderBlock() {
 
             <div className="grid grid-cols-2 gap-4">
               <label className="block">
-                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">Широчина · мм</span>
+                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">{t("width")}</span>
                 <select
                   className={selectClass}
                   value={width}
@@ -416,7 +421,7 @@ function CustomOrderBlock() {
               </label>
 
               <label className="block">
-                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">Дебелина · мм</span>
+                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">{t("thickness")}</span>
                 <select
                   className={selectClass}
                   value={thickness}
@@ -427,7 +432,7 @@ function CustomOrderBlock() {
               </label>
 
               <label className="block">
-                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">Марка</span>
+                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">{t("brand")}</span>
                 <select
                   className={selectClass}
                   value={brand}
@@ -438,7 +443,7 @@ function CustomOrderBlock() {
               </label>
 
               <label className="block">
-                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">Стъпка / зъб</span>
+                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">{t("pitch")}</span>
                 <select className={selectClass} value={pitch ?? ""} onChange={(e) => setSelPitch(e.target.value)}>
                   {pitches.map((p) => <option key={p} value={p}>{pitchLabel(p)}</option>)}
                 </select>
@@ -448,7 +453,7 @@ function CustomOrderBlock() {
             {/* Length is typed, not dragged — buyers know their exact length. */}
             <label className="block mt-4">
               <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">
-                Обща дължина · мм
+                {t("totalLength")}
               </span>
               <input
                 type="number"
@@ -493,7 +498,7 @@ function CustomOrderBlock() {
                   </div>
                   <div className="flex justify-between items-end">
                     <div>
-                      <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">Цена без ДДС</div>
+                      <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">{t("priceExVat")}</div>
                       <div className="font-display text-4xl font-extrabold tracking-tight text-ink tabular-nums leading-none mt-1">
                         {quote.totalWithoutVat.toFixed(2)} <span className="text-sm text-ink-50 font-normal">€</span>
                       </div>
@@ -509,7 +514,7 @@ function CustomOrderBlock() {
               ) : (
                 <div className="font-sans text-sm text-ink-70">
                   Тази комбинация не е в ценоразписа.{" "}
-                  <Link href="/contact" className="text-orange underline">Запитайте ни</Link> — правим и нестандартни.
+                  <Link href="/contact" className="text-orange underline">{t("ask")}</Link> — правим и нестандартни.
                 </div>
               )}
             </div>
@@ -518,7 +523,7 @@ function CustomOrderBlock() {
               <span className="tabular-nums">
                 {lengthValid ? length : "—"} × {width} × {thickness.toFixed(2)} мм · {brand}
               </span>
-              <Link href="/configurator" className="text-orange underline">Още 5 типа →</Link>
+              <Link href="/configurator" className="text-orange underline">{t("moreTypes")}</Link>
             </div>
           </div>
         </div>
@@ -666,6 +671,7 @@ const SERVICES = [
 ];
 
 function ServicesBlock() {
+  const tSvc = useTranslations("home.services");
   return (
     <section className="bg-blue-deep text-white py-20 md:py-[120px] relative overflow-hidden">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
@@ -674,7 +680,7 @@ function ServicesBlock() {
           <Reveal className="relative min-h-[320px] lg:min-h-full">
             <Image
               src="/images/hero/punching.webp"
-              alt="Заточване на циркулярен диск в цеха"
+              alt={tSvc("imageAlt")}
               fill
               sizes="(max-width: 1024px) 100vw, 40vw"
               className="object-cover"
@@ -683,7 +689,7 @@ function ServicesBlock() {
             <div className="absolute inset-0 bg-gradient-to-t from-blue-deep/85 via-blue-deep/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-7">
               <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/60 mb-2">
-                Цех · Габрово
+                {tSvc("workshop")}
               </div>
               <div className="font-display text-2xl font-bold tracking-tight">
                 Носите лентата. Връщате я в работа.
@@ -740,7 +746,7 @@ function ServicesBlock() {
             <div className="mt-8 flex gap-3 flex-wrap">
               <Link href="/contact">
                 <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>
-                  Заяви обработка
+                  {tSvc("cta")}
                 </Btn>
               </Link>
               <a href={COMPANY.phone.office.href}>
@@ -808,6 +814,7 @@ function BlogTeaser() {
  * as the workshop rather than as a coloured rectangle.
  */
 function ContactCTA() {
+  const tSup = useTranslations("home.support");
   return (
     <section className="relative isolate bg-orange text-white overflow-hidden">
       <div className="absolute inset-0 -z-10">
@@ -826,14 +833,13 @@ function ContactCTA() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-12 lg:gap-20 items-end">
           <Reveal>
             <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-white/75 mb-4">
-              № 08 — Техническа поддръжка
+              {tSup("eyebrow")}
             </div>
             <h2 className="font-display text-3xl md:text-4xl lg:text-[52px] leading-[1.02] tracking-[-0.035em] font-bold m-0 max-w-[16ch]">
-              Търсите размер, който не е в каталога?
+              {tSup("title")}
             </h2>
             <p className="font-sans text-[16px] leading-relaxed text-white/80 max-w-[440px] mt-5">
-              Инженер вдига телефона и оразмерява лентата с вас. Безплатно, включително ако
-              машината е стара и няма маркировка.
+              {tSup("lede")}
             </p>
           </Reveal>
 
@@ -841,7 +847,7 @@ function ContactCTA() {
           <Reveal delay={120} className="w-full lg:w-auto">
             <div className="bg-ink text-white p-7 md:p-8 lg:min-w-[380px]">
               <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-3">
-                Пряка линия · Пн–Пт 8:00–17:30
+                {tSup("directLine")}
               </div>
               <a
                 href={COMPANY.phone.office.href}
@@ -861,7 +867,7 @@ function ContactCTA() {
               <div className="mt-6 pt-6 border-t border-white/15">
                 <Link href="/contact" className="block">
                   <Btn variant="ghostLight" size="md" fullWidth iconRight={<IconArrowRight size={14} />}>
-                    Или изпратете запитване
+                    {tSup("orSend")}
                   </Btn>
                 </Link>
               </div>
