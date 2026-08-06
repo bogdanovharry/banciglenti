@@ -8,7 +8,7 @@ export const Products: CollectionConfig = {
     // Scalar and relationship fields only — a group field like `specs` renders
     // unpredictably as a column. Dimensions can still be added per-user from
     // the Columns picker in the list header.
-    defaultColumns: ['name', 'brand', 'basePrice', 'stock', 'status'],
+    defaultColumns: ['name', 'series', 'basePrice', 'stock', 'status'],
     listSearchableFields: ['name', 'slug'],
     description: 'Каталогът. Търсенето работи по име и SKU.',
     pagination: { defaultLimit: 50 },
@@ -56,6 +56,23 @@ export const Products: CollectionConfig = {
       type: 'relationship',
       relationTo: 'brands',
       label: 'Марка',
+    },
+    {
+      name: 'series',
+      type: 'select',
+      label: 'Серия Saw-Meister',
+      admin: {
+        description:
+          'Продуктовата линия. Определя коя снимка и кое описание се показват в каталога. ' +
+          'Оставете празно за артикули извън обхвата на сериите (биметал, циркуляри, ножове, абразиви).',
+      },
+      options: [
+        { label: 'SoftCut — хоризонтален, меко дърво', value: 'softcut' },
+        { label: 'HardCut — хоризонтален, твърдо дърво', value: 'hardcut' },
+        { label: 'Vector — вертикален, Wood-Mizer тип', value: 'vector' },
+        { label: 'FlexCut — въглеродна Flexback, метал / общо', value: 'flexcut' },
+        { label: 'FineCut — хранителна, месо и храни', value: 'finecut' },
+      ],
     },
     {
       name: 'categories',

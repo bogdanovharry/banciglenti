@@ -54,6 +54,7 @@ export default async function ShopPage() {
           categorySlugs: p.categorySlugs,
           specs: p.specs,
           brandName: p.brandName,
+          series: p.series,
           machines: p.machines,
           stockCount: p.stockCount,
         }))}

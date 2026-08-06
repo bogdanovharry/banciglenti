@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 
 import type { ProductCardData } from '@/components/product/ProductCard'
+import { isSeriesKey, type SeriesKey } from '@/lib/series'
 
 /**
  * Read side of the catalogue. Everything the storefront renders comes through
@@ -36,6 +37,8 @@ export type CatalogProduct = ProductCardData & {
   stockCount: number
   categorySlugs: string[]
   brandName: string | null
+  /** Saw-Meister product line; null for bimetal, circulars, knives, abrasives. */
+  series: SeriesKey | null
   shortDescription?: string
   specs: { width?: number; thickness?: number; length?: number; material?: string }
   /** Machines this size fits — "Holzmann BS128HDR". Drives the machine filter. */
@@ -85,13 +88,30 @@ const BLADE_CATEGORIES = new Set([
   'slicers',
 ])
 
+/**
+ * The series now decides the photo. It used to key off the steel brand, but
+ * the blades carry the house brand since the Saw-Meister rebrand, so brand no
+ * longer distinguishes one blade from another — the series does.
+ */
+const SERIES_IMAGE: Record<SeriesKey, string> = {
+  softcut: '/images/products/kodiak.png',
+  hardcut: '/images/products/mastergold.png',
+  vector: '/images/products/kodiak.png',
+  flexcut: '/images/products/hardback_fixed.png',
+  finecut: '/images/products/hardback_fixed.png',
+}
+
 function fallbackImage(
   categorySlugs: string[],
   brandName: string | null,
+  series: SeriesKey | null,
   material?: string,
 ): string | undefined {
   if (!categorySlugs.some((s) => BLADE_CATEGORIES.has(s))) return undefined
 
+  if (series) return SERIES_IMAGE[series]
+
+  // Products outside the five series — bimetal above all — keep the old rules.
   if (brandName === 'Kodiak') return '/images/products/kodiak.png'
   if (brandName === 'MasterGold') return '/images/products/mastergold.png'
 
@@ -183,6 +203,7 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
     .filter((s): s is string => s !== null)
 
   const brandName = relationName(doc.brand)
+  const series = isSeriesKey(doc.series) ? doc.series : null
 
   // An image uploaded in /admin takes precedence; the mapping is only a stand-in
   // until per-SKU photography exists.
@@ -201,10 +222,11 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
     industry,
     stock: stockLabel(stockCount),
     badge: doc.topProduct ? 'TOP' : null,
-    image: uploadedUrl ?? fallbackImage(categorySlugs, brandName, specs.material),
+    image: uploadedUrl ?? fallbackImage(categorySlugs, brandName, series, specs.material),
     stockCount,
     categorySlugs,
     brandName,
+    series,
     shortDescription: typeof doc.shortDescription === 'string' ? doc.shortDescription : undefined,
     specs,
     machines,

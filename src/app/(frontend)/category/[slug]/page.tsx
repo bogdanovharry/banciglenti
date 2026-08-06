@@ -79,6 +79,7 @@ export default async function CategoryPage({ params }: PageProps) {
         image: p.image,
         specs: p.specs,
         brandName: p.brandName,
+        series: p.series,
         machines: p.machines,
         stockCount: p.stockCount,
       }))}

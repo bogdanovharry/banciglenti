@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Placeholder, Tag, Btn } from "@/components/ui/primitives";
 import { IconArrowRight, IconHeart, IconMinus, IconPlus, IconTruck, IconShield, IconWrench } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
+import { SAW_MEISTER, SERIES, type SeriesKey } from "@/lib/series";
 
 export type ProductView = {
   slug: string;
@@ -16,6 +17,7 @@ export type ProductView = {
   stockCount: number;
   topProduct: boolean;
   specs: { width?: number; thickness?: number; material?: string };
+  series: SeriesKey | null;
   breadcrumb: { slug: string; name: string } | null;
 };
 
@@ -63,9 +65,12 @@ export function ProductClient({ product }: { product: ProductView }) {
     ...(product.specs.thickness ? ([["Дебелина", `${product.specs.thickness} мм`]] as [string, string][]) : []),
   ];
 
+  const series = product.series ? SERIES[product.series] : null;
+
   const materialRows: [string, string][] = [
     ...(product.specs.material ? ([["Материал", product.specs.material]] as [string, string][]) : []),
-    ...(product.brand ? ([["Марка", product.brand]] as [string, string][]) : []),
+    ...(series ? ([["Серия", `${SAW_MEISTER} ${series.name}`], ["Тип", series.type]] as [string, string][]) : []),
+    ...(product.brand && !series ? ([["Марка", product.brand]] as [string, string][]) : []),
     ["Наличност", inStock ? `${product.stockCount} бр.` : "Изчерпан"],
   ];
 
@@ -131,6 +136,21 @@ export function ProductClient({ product }: { product: ProductView }) {
               <p className="font-sans text-[15px] leading-relaxed text-ink-70 m-0 mb-8">
                 {product.shortDescription}
               </p>
+            )}
+
+            {/* What the series is for — the question behind "is this the right blade?" */}
+            {series && (
+              <div className="mb-8 border-l-2 border-orange pl-5">
+                <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-1.5">
+                  Серия · {series.type} · {series.application}
+                </div>
+                <div className="font-display text-xl font-bold text-ink mb-2 tracking-tight">
+                  {SAW_MEISTER} {series.name}
+                </div>
+                <p className="font-sans text-[14px] leading-relaxed text-ink-70 m-0">
+                  {series.description}
+                </p>
+              </div>
             )}
 
             {/* Key specs */}

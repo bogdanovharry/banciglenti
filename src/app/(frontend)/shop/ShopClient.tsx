@@ -8,15 +8,22 @@ import { ProductCard, type ProductCardData } from "@/components/product/ProductC
 import { IconClose, IconRuler, IconArrowRight } from "@/components/ui/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ConfiguratorPanel } from "@/components/configurator/ConfiguratorPanel";
+import { SERIES, isSeriesKey, type SeriesKey } from "@/lib/series";
 
 export type ShopFilter = { slug: string; label: string; count: number };
 
 export type ShopProduct = ProductCardData & {
   categorySlugs: string[];
   machines?: string[];
+  series?: SeriesKey | null;
 };
 
-type Facet = { value: string; count: number };
+/**
+ * `label`/`sublabel` let a facet show something other than its filter value —
+ * the series facets filter on "softcut" but have to read "SoftCut / Меко дърво",
+ * because the series name alone tells a first-time buyer nothing.
+ */
+type Facet = { value: string; count: number; label?: string; sublabel?: string };
 
 /** Multi-select facet list with live counts. */
 function FacetGroup({
@@ -54,7 +61,18 @@ function FacetGroup({
                     aria-hidden
                     className={`w-3 h-3 shrink-0 border ${on ? "bg-orange border-orange" : "border-ink-30"}`}
                   />
-                  <span className="truncate">{f.value}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate">{f.label ?? f.value}</span>
+                    {f.sublabel && (
+                      <span
+                        className={`block truncate font-mono text-[10px] tracking-[0.04em] ${
+                          on ? "text-white/60" : "text-ink-50"
+                        }`}
+                      >
+                        {f.sublabel}
+                      </span>
+                    )}
+                  </span>
                 </span>
                 <span
                   className={`font-mono text-[11px] tabular-nums shrink-0 ${on ? "text-white/60" : "text-ink-50"}`}
@@ -94,6 +112,7 @@ export function ShopClient({
   const [activeCategory, setActiveCategory] = useState(() => params.get("category") ?? "");
   const [materials, setMaterials] = useState<string[]>(() => params.getAll("material"));
   const [brands, setBrands] = useState<string[]>(() => params.getAll("brand"));
+  const [series, setSeries] = useState<string[]>(() => params.getAll("series").filter(isSeriesKey));
   const [inStockOnly, setInStockOnly] = useState(false);
   const [machines, setMachines] = useState<string[]>(() => params.getAll("machine"));
   // Width and loop length are how buyers actually search — they know what their
@@ -122,6 +141,26 @@ export function ShopClient({
     return [...counts.entries()]
       .map(([value, count]) => ({ value, count }))
       .sort((a, b) => b.count - a.count);
+  }, [inCategory]);
+
+  /**
+   * "SoftCut · Меко дърво" — the series alone means nothing to a first-time
+   * buyer, so the facet carries what it cuts. Ordered as the range sheet is,
+   * not by count, because the five lines read as a range.
+   */
+  const seriesFacets = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of inCategory) {
+      if (p.series) counts.set(p.series, (counts.get(p.series) ?? 0) + 1);
+    }
+    return Object.keys(SERIES)
+      .filter((k) => counts.has(k))
+      .map((k) => ({
+        value: k,
+        count: counts.get(k)!,
+        label: SERIES[k as SeriesKey].name,
+        sublabel: SERIES[k as SeriesKey].application,
+      }));
   }, [inCategory]);
 
   const brandFacets = useMemo(() => {
@@ -174,13 +213,14 @@ export function ShopClient({
       }
       if (materials.length && !(p.specs?.material && materials.includes(p.specs.material))) return false;
       if (brands.length && !(p.brandName && brands.includes(p.brandName))) return false;
+      if (series.length && !(p.series && series.includes(p.series))) return false;
       if (machines.length && !(p.machines ?? []).some((m) => machines.includes(m))) return false;
       if (inStockOnly && p.stock === "Изчерпан") return false;
       if (!inRange(p.specs?.width, wMin, wMax)) return false;
       if (!inRange(p.specs?.length, lMin, lMax)) return false;
       return true;
     });
-  }, [inCategory, query, materials, brands, machines, inStockOnly, widthMin, widthMax, lengthMin, lengthMax]);
+  }, [inCategory, query, materials, brands, series, machines, inStockOnly, widthMin, widthMax, lengthMin, lengthMax]);
 
   const sorted = useMemo(() => {
     const list = [...filtered];
@@ -195,6 +235,9 @@ export function ShopClient({
     ...(activeCategory ? [{ label: filters.find((f) => f.slug === activeCategory)?.label ?? activeCategory, clear: () => setActiveCategory("") }] : []),
     ...materials.map((m) => ({ label: m, clear: () => toggle(materials, setMaterials, m) })),
     ...brands.map((b) => ({ label: b, clear: () => toggle(brands, setBrands, b) })),
+    ...series
+      .filter(isSeriesKey)
+      .map((s) => ({ label: SERIES[s].name, clear: () => toggle(series, setSeries, s) })),
     ...machines.map((m) => ({ label: m, clear: () => toggle(machines, setMachines, m) })),
     ...(inStockOnly ? [{ label: "Само налични", clear: () => setInStockOnly(false) }] : []),
     ...(widthMin || widthMax
@@ -427,6 +470,12 @@ export function ShopClient({
             </ul>
           </div>
 
+          <FacetGroup
+            title="Серия"
+            facets={seriesFacets}
+            selected={series}
+            onToggle={(v) => toggle(series, setSeries, v)}
+          />
           <FacetGroup
             title="Материал"
             facets={materialFacets}

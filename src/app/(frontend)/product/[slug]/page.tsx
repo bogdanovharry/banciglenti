@@ -42,6 +42,7 @@ export default async function ProductPage({ params }: PageProps) {
     stockCount: product.stockCount,
     topProduct: product.badge === "TOP",
     specs: product.specs,
+    series: product.series,
     breadcrumb: leaf ? { slug: leaf.slug, name: leaf.name } : null,
   };
 
