@@ -1,0 +1,41 @@
+{
+  "_note": "DRAFT — written here, not yet reviewed by a native Romanian speaker. Blade terminology in particular needs checking before launch: mistranslating a tooth profile sells the wrong product.",
+  "common": {
+    "brand": "Saw-Meister",
+    "tagline": "Innovation sharpened to perfection.",
+    "home": "Acasă",
+    "catalogue": "Catalog",
+    "configurator": "Configurator",
+    "cart": "Coș",
+    "contact": "Contact",
+    "search": "Căutare",
+    "exVat": "fără TVA",
+    "incVat": "cu TVA",
+    "vat": "TVA {rate}",
+    "free": "Gratuit"
+  },
+  "stock": {
+    "in": "În stoc",
+    "low": "Stoc limitat",
+    "out": "Stoc epuizat"
+  },
+  "sort": {
+    "popularity": "Popularitate",
+    "priceAsc": "Preț ↑",
+    "priceDesc": "Preț ↓",
+    "width": "Lățime"
+  },
+  "shop": {
+    "products": "{count, plural, one {# produs} few {# produse} other {# de produse}}",
+    "series": "Serie",
+    "material": "Material",
+    "brand": "Marcă",
+    "machine": "Utilaj",
+    "inStockOnly": "Doar în stoc",
+    "noResults": "Nu s-au găsit produse"
+  },
+  "header": {
+    "workshop": "Gabrovo · atelier propriu",
+    "customWelding": "Sudare la dimensiune"
+  }
+}

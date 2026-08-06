@@ -1,5 +1,11 @@
 import type { NextConfig } from "next";
 import { withPayload } from "@payloadcms/next/withPayload";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// Locale comes from the domain, not a path segment — see src/i18n/locale.ts.
+// That is why the /bg/... redirects below are safe: they are old PHP URLs, not
+// a locale prefix, and nothing routes on /bg.
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   images: {
@@ -28,4 +34,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPayload(nextConfig);
+export default withNextIntl(withPayload(nextConfig));

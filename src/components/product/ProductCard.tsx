@@ -5,7 +5,8 @@ import { Placeholder, Tag } from "@/components/ui/primitives";
 import { IconPlus } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { currencySymbol, formatAmount } from "@/lib/market";
-import { STOCK_LABELS, type StockState } from "@/lib/catalog-ui";
+import { type StockState } from "@/lib/catalog-ui";
+import { useTranslations } from "next-intl";
 
 
 export interface ProductCardData {
@@ -104,6 +105,7 @@ function SpecBlock({
 
 export function ProductCard({ p, compact }: { p: ProductCardData; compact?: boolean }) {
   const { addItem } = useCart();
+  const tStock = useTranslations("stock");
 
   const stockColor =
     p.stock === "in" ? "text-ok" : p.stock === "low" ? "text-orange" : "text-ink-50";
@@ -142,7 +144,7 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
         <div className={`${compact ? "p-4" : "p-5"} flex flex-col gap-2 flex-1`}>
           <div className="flex justify-between items-center font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 gap-2">
             <span className="truncate">{p.brandName || p.industry}</span>
-            <span className={`${stockColor} shrink-0`}>● {STOCK_LABELS[p.stock]}</span>
+            <span className={`${stockColor} shrink-0`}>● {tStock(p.stock)}</span>
           </div>
 
           <h3 className="font-sans text-[14px] leading-snug tracking-[-0.01em] font-semibold text-ink m-0 line-clamp-2">

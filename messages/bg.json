@@ -1,0 +1,40 @@
+{
+  "common": {
+    "brand": "ТЕХНОЛЕС",
+    "tagline": "Innovation sharpened to perfection.",
+    "home": "Начало",
+    "catalogue": "Каталог",
+    "configurator": "Конфигуратор",
+    "cart": "Количка",
+    "contact": "Контакти",
+    "search": "Търсене",
+    "exVat": "без ДДС",
+    "incVat": "с ДДС",
+    "vat": "ДДС {rate}",
+    "free": "Безплатно"
+  },
+  "stock": {
+    "in": "На склад",
+    "low": "Ниска наличност",
+    "out": "Изчерпан"
+  },
+  "sort": {
+    "popularity": "Популярност",
+    "priceAsc": "Цена ↑",
+    "priceDesc": "Цена ↓",
+    "width": "Широчина"
+  },
+  "shop": {
+    "products": "{count, plural, one {# продукт} other {# продукта}}",
+    "series": "Серия",
+    "material": "Материал",
+    "brand": "Марка",
+    "machine": "Машина",
+    "inStockOnly": "Само налични",
+    "noResults": "Няма намерени продукти"
+  },
+  "header": {
+    "workshop": "Габрово · собствен цех",
+    "customWelding": "Заваряване по размер"
+  }
+}

@@ -4,6 +4,8 @@ import "../globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CartProvider } from "@/lib/cart";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 
 const inter = localFont({
   src: [{ path: "../../fonts/inter-latin-cyrillic.woff2", weight: "300 800" }],
@@ -26,14 +28,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function FrontendLayout({
+export default async function FrontendLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Resolved from the request's domain, so a Romanian host serves ro-RO without
+  // any change to the URL structure — see src/i18n/locale.ts.
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="bg" className={inter.variable}>
+    <html lang={locale.split("-")[0]} className={inter.variable}>
       <body className="tl-grain font-sans antialiased text-ink bg-white">
+        <NextIntlClientProvider locale={locale} messages={messages}>
         <CartProvider>
           <a
             href="#main-content"
@@ -45,6 +53,7 @@ export default function FrontendLayout({
           <main id="main-content">{children}</main>
           <Footer />
         </CartProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
