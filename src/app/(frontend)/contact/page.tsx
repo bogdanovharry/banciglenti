@@ -94,7 +94,7 @@ export default function ContactPage() {
                   <IconCheck size={32} className="text-ok" />
                 </div>
                 <h3 className="font-display text-2xl font-bold text-ink mb-3">Запитването е изпратено!</h3>
-                <p className="font-sans text-ink-50">Ще се свържем с вас до 24 часа. Благодарим!</p>
+                <p className="font-sans text-ink-50">Ще се свържем с вас възможно най-скоро. Благодарим!</p>
               </div>
             ) : (
               <>

@@ -73,7 +73,7 @@ function HeroCustom() {
           </h1>
           <p className="font-sans text-lg leading-relaxed text-white/75 max-w-[560px] mb-10">
             Произвеждаме и заваряваме банцигови ленти по индивидуални размери за дърво, метал и
-            хранителна промишленост — от 1&nbsp;650 до 12&nbsp;000&nbsp;мм, за 24&nbsp;часа.
+            хранителна промишленост — от 1&nbsp;650 до 12&nbsp;000&nbsp;мм.
           </p>
           <div className="flex gap-3 items-center flex-wrap">
             <Link href="/configurator">
@@ -88,7 +88,7 @@ function HeroCustom() {
           {[
             ["30+", "години"],
             ["12 000", "активни клиенти"],
-            ["24ч", "изработка"],
+            ["6-100", "мм широчина"],
             ["±0.01", "мм точност"],
           ].map(([v, l], i) => (
             <div key={l} className={`pt-5 pb-1 pr-4 ${i > 0 ? "md:border-l md:border-white/20 md:pl-5" : ""}`}>
@@ -104,7 +104,7 @@ function HeroCustom() {
 
 // ========== TICKER ==========
 function TickerStrip() {
-  const items = ["● Над 8 000 размера на склад", "● Безплатна доставка над 200 €", "● Заваряване за 4 часа", "● Техническа консултация", "● Доставка до 48ч", "● Гаранция 12 месеца"];
+  const items = ["● Над 8 000 размера на склад", "● Безплатна доставка над 200 €", "● Заваряване за 4 часа", "● Техническа консултация", "● Доставка до 48ч", "● Гаранция на заварката"];
   return (
     <div className="bg-navy text-white overflow-hidden border-t-4 border-orange">
       <div className="flex gap-12 py-4 whitespace-nowrap font-mono text-xs tracking-[0.1em] uppercase" style={{ animation: "tl-marquee 45s linear infinite" }}>
@@ -373,7 +373,7 @@ function CustomOrderBlock() {
           <div className="bg-white text-ink p-6 md:p-9 relative">
             <div className="flex justify-between items-center mb-6">
               <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50">Бърза оферта</div>
-              <Tag tone="ok">Готово за 24ч</Tag>
+              <Tag tone="ok">По поръчка</Tag>
             </div>
 
             {/* Type */}
@@ -636,7 +636,7 @@ const SERVICES = [
     detail: "Режем на вашата дължина и заваряваме лентата на контур. Цената е на брой шев.",
     unit: "на брой",
     rate: minRate("welding"),
-    tag: "24ч",
+    tag: null,
   },
   {
     name: "Заточване",

@@ -223,8 +223,8 @@ export function ProductClient({ product }: { product: ProductView }) {
             {/* Trust */}
             <div className="grid grid-cols-3 gap-0 border-t border-b border-ink-15">
               {[
-                { Icon: IconTruck, title: "Доставка 24–48ч", desc: "безплатно над 200 €" },
-                { Icon: IconShield, title: "Гаранция 12м", desc: "или връщане" },
+                { Icon: IconTruck, title: "Доставка с куриер", desc: "безплатно над 200 €" },
+                { Icon: IconShield, title: "Гаранция на заварката", desc: "скъсване на шева — подменяме" },
                 { Icon: IconWrench, title: "Технически съвет", desc: "обадете се" },
               ].map((item, i) => (
                 <div key={item.title} className={`p-4 flex gap-3 items-start ${i < 2 ? "border-r border-ink-15" : ""}`}>

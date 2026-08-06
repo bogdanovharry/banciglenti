@@ -17,7 +17,7 @@ export default function CartPage() {
           eyebrowLabel="Количка"
           crumbs={[{ label: "Начало", href: "/" }, { label: "Количка" }]}
           title="Количката е празна."
-          description="Добавете артикул от каталога, или задайте размер в конфигуратора и го изработваме за 24 часа."
+          description="Добавете артикул от каталога, или задайте размер в конфигуратора и го изработваме по поръчка."
         />
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 pb-[120px]">
           <div className="flex gap-3 flex-wrap">
@@ -106,7 +106,7 @@ export default function CartPage() {
             </div>
             <div className="mt-6 font-mono text-[10px] text-white/55 tracking-[0.05em] flex flex-col gap-2">
               <span>● Безплатна доставка над 200 €</span>
-              <span>● Гаранция за всеки артикул</span>
+              <span>● Гаранция на заваръчния шев</span>
               <span>● Защитено плащане SSL</span>
             </div>
           </aside>

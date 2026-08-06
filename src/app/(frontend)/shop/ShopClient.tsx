@@ -231,7 +231,7 @@ export function ShopClient({
             Всички <span className="text-orange-light">продукти</span>
           </>
         }
-        description="Филтрирайте по широчина, материал или марка. Не намирате размера си — конфигураторът изработва лента по поръчка за 24 часа."
+        description="Филтрирайте по широчина, материал или марка. Не намирате размера си — конфигураторът изработва лента по поръчка."
       />
 
       {/* Mode switch */}
@@ -239,7 +239,7 @@ export function ShopClient({
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 flex gap-0">
           {([
             ["stock", "Готови продукти", `${products.length} размера на склад`],
-            ["custom", "По твой размер", "Заваряваме за 24 часа"],
+            ["custom", "По твой размер", "Заваряваме на вашата дължина"],
           ] as const).map(([key, label, hint]) => (
             <button
               key={key}
@@ -476,7 +476,7 @@ export function ShopClient({
                 Този размер не е в каталога — но можем да го изработим.
               </h2>
               <p className="font-sans text-[15px] text-ink-70 max-w-[440px] mx-auto mb-7">
-                Заваряваме банцигови ленти по индивидуален размер от 1&nbsp;650 до 12&nbsp;000&nbsp;мм, готови за 24 часа.
+                Заваряваме банцигови ленти по индивидуален размер от 1&nbsp;650 до 12&nbsp;000&nbsp;мм.
               </p>
               <div className="flex gap-3 justify-center flex-wrap">
                 <Link href="/configurator">
@@ -496,7 +496,7 @@ export function ShopClient({
                     <div>
                       <div className="font-display text-base font-bold text-ink">Поръчай лента по твоя размер</div>
                       <div className="font-mono text-[11px] text-ink-50 mt-0.5 tracking-[0.04em]">
-                        8 типа ленти · Дължина от 1650 до 12000 мм · Изработка за 24ч
+                        8 типа ленти · Дължина от 1650 до 12000 мм
                       </div>
                     </div>
                   </div>

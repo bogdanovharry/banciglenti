@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: product.name,
     description:
       product.shortDescription ??
-      `${product.name} — ${product.price.toFixed(2)} € без ДДС. Доставка за 24–48 часа.`,
+      `${product.name} — ${product.price.toFixed(2)} € без ДДС. Доставка с куриер до адрес или офис.`,
   };
 }
 

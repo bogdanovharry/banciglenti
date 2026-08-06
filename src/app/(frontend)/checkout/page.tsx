@@ -146,7 +146,7 @@ export default function CheckoutPage() {
           eyebrowNumber="Step 03"
           eyebrowLabel="Потвърждение"
           title="Поръчката е приета."
-          description="Наш инженер ще се свърже с вас до 24 часа, за да потвърди размерите и срока."
+          description="Наш инженер ще се свърже с вас, за да потвърди размерите и срока за изработка."
         >
           <div className="flex gap-3 font-mono text-[11px] tracking-[0.1em] uppercase text-white/50">
             <span>✓ Количка</span>
