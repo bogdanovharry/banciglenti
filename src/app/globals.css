@@ -126,6 +126,61 @@ html {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/* Continuous prose — legal pages, articles. The rest of the site is cards and
+   figures and does not need this. */
+.tl-prose p,
+.tl-prose li {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--color-ink-70);
+  margin: 0 0 1rem;
+}
+.tl-prose strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.tl-prose ul,
+.tl-prose ol {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+.tl-prose li {
+  margin-bottom: 0.4rem;
+}
+.tl-prose h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 1.75rem 0 0.6rem;
+  letter-spacing: -0.01em;
+}
+.tl-prose a {
+  color: var(--color-blue);
+  text-underline-offset: 3px;
+}
+.tl-prose dl {
+  margin: 0 0 1rem;
+  border-top: 1px solid var(--color-ink-15);
+}
+.tl-prose dt {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-50);
+  padding-top: 0.9rem;
+}
+.tl-prose dd {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--color-ink);
+  margin: 0.15rem 0 0.9rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--color-ink-15);
+}
+
 /* Selection */
 ::selection {
   background: #004FC6;
