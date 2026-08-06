@@ -11,7 +11,13 @@
     "exVat": "без ДДС",
     "incVat": "с ДДС",
     "vat": "ДДС {rate}",
-    "free": "Безплатно"
+    "free": "Безплатно",
+    "searchPlaceholder": "Търси в каталога",
+    "mainNav": "Основна навигация",
+    "mobileNav": "Мобилна навигация",
+    "openMenu": "Отвори менюто",
+    "closeMenu": "Затвори менюто",
+    "blog": "Блог"
   },
   "stock": {
     "in": "На склад",
@@ -36,5 +42,35 @@
   "header": {
     "workshop": "Габрово · собствен цех",
     "customWelding": "Заваряване по размер"
+  },
+  "nav": {
+    "wood": "Дърво",
+    "metal": "Метал",
+    "hobby": "Хоби банциг",
+    "food": "Храни",
+    "machines": "Машини",
+    "bandsawBlades": "Банцигови ленти",
+    "circular": "Циркулярни",
+    "abrasives": "Абразиви",
+    "bimetal": "Биметални ленти",
+    "carbonSteel": "Въглеродна стомана",
+    "meatFish": "Месо и риба",
+    "bakery": "Хлебни изделия",
+    "slicers": "Слайсъри",
+    "equipment": "Оборудване",
+    "consumables": "Консумативи",
+    "horizontal": "Хоризонтални банцизи",
+    "vertical": "Вертикални банцизи",
+    "custom": "Ленти по поръчка",
+    "circularSaws": "Циркулярни триони",
+    "planerKnives": "Ножове за абрихт",
+    "diamondCbn": "Диаманти и CBN",
+    "sharpeningStones": "Заточни камъни",
+    "meatBlades": "Ленти за месо",
+    "fishBlades": "Ленти за риба",
+    "breadBlades": "Ленти за хляб",
+    "sharpeningMachines": "Заточни машини",
+    "spareParts": "Резервни части",
+    "camsGauges": "Гърбици и измервателни уреди"
   }
 }

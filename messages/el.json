@@ -1,0 +1,77 @@
+{
+  "_note": "DRAFT — not reviewed by a native Greek speaker, and Greece is not launching until Romania has proved out. Note also that src/fonts/inter-latin-cyrillic.woff2 carries no Greek glyphs, so this text currently falls back to a system font. A Greek subset is needed before launch.",
+  "common": {
+    "brand": "Saw-Meister",
+    "tagline": "Innovation sharpened to perfection.",
+    "home": "Αρχική",
+    "catalogue": "Κατάλογος",
+    "configurator": "Διαμορφωτής",
+    "cart": "Καλάθι",
+    "contact": "Επικοινωνία",
+    "search": "Αναζήτηση",
+    "exVat": "χωρίς ΦΠΑ",
+    "incVat": "με ΦΠΑ",
+    "vat": "ΦΠΑ {rate}",
+    "free": "Δωρεάν",
+    "searchPlaceholder": "Αναζήτηση στον κατάλογο",
+    "mainNav": "Κύρια πλοήγηση",
+    "mobileNav": "Πλοήγηση κινητού",
+    "openMenu": "Άνοιγμα μενού",
+    "closeMenu": "Κλείσιμο μενού",
+    "blog": "Ιστολόγιο"
+  },
+  "stock": {
+    "in": "Σε απόθεμα",
+    "low": "Περιορισμένο απόθεμα",
+    "out": "Εξαντλήθηκε"
+  },
+  "sort": {
+    "popularity": "Δημοτικότητα",
+    "priceAsc": "Τιμή ↑",
+    "priceDesc": "Τιμή ↓",
+    "width": "Πλάτος"
+  },
+  "shop": {
+    "products": "{count, plural, one {# προϊόν} other {# προϊόντα}}",
+    "series": "Σειρά",
+    "material": "Υλικό",
+    "brand": "Μάρκα",
+    "machine": "Μηχάνημα",
+    "inStockOnly": "Μόνο διαθέσιμα",
+    "noResults": "Δεν βρέθηκαν προϊόντα"
+  },
+  "header": {
+    "workshop": "Γκάμπροβο · ιδιόκτητο εργαστήριο",
+    "customWelding": "Συγκόλληση κατά παραγγελία"
+  },
+  "nav": {
+    "wood": "Ξύλο",
+    "metal": "Μέταλλο",
+    "hobby": "Πριόνι hobby",
+    "food": "Τρόφιμα",
+    "machines": "Μηχανήματα",
+    "bandsawBlades": "Πριονοκορδέλες",
+    "circular": "Δισκοπρίονα",
+    "abrasives": "Λειαντικά",
+    "bimetal": "Διμεταλλικές λάμες",
+    "carbonSteel": "Ανθρακούχος χάλυβας",
+    "meatFish": "Κρέας και ψάρι",
+    "bakery": "Αρτοποιία",
+    "slicers": "Ζαμπονομηχανές",
+    "equipment": "Εξοπλισμός",
+    "consumables": "Αναλώσιμα",
+    "horizontal": "Οριζόντιες πριονοκορδέλες",
+    "vertical": "Κάθετες πριονοκορδέλες",
+    "custom": "Λάμες κατά παραγγελία",
+    "circularSaws": "Δισκοπρίονα",
+    "planerKnives": "Μαχαίρια πλάνης",
+    "diamondCbn": "Διαμάντι και CBN",
+    "sharpeningStones": "Πέτρες ακονίσματος",
+    "meatBlades": "Λάμες για κρέας",
+    "fishBlades": "Λάμες για ψάρι",
+    "breadBlades": "Λάμες για ψωμί",
+    "sharpeningMachines": "Μηχανές ακονίσματος",
+    "spareParts": "Ανταλλακτικά",
+    "camsGauges": "Έκκεντρα και όργανα μέτρησης"
+  }
+}

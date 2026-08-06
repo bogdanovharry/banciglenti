@@ -10,74 +10,86 @@ import {
 } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { COMPANY } from "@/lib/company";
+import { SawMeisterLogo } from "@/components/layout/SawMeisterLogo";
+import { SAW_MEISTER } from "@/lib/series";
+import { useLocale, useTranslations } from "next-intl";
 
 type NavItem = { label: string; href: string };
 type NavGroup = { group: string; items: NavItem[] };
 type NavCat = { name: string; href: string; Icon: typeof IconWood; children: NavGroup[] | null };
 
+/**
+ * Navigation carries translation keys, not words. Brand names (Bizerba, Berkel)
+ * and steel grades (M42 HSS, CS Flexback) are deliberately literal — they are
+ * the same in every market and translating them would be wrong.
+ */
 const NAV_CATS: NavCat[] = [
   {
-    name: "Дърво", href: "/category/dyrvo", Icon: IconWood,
+    name: "wood", href: "/category/dyrvo", Icon: IconWood,
     children: [
-      { group: "Банцигови ленти", items: [
-        { label: "Хоризонтални банцизи", href: "/category/horizontalni-bantsizi" },
-        { label: "Вертикални банцизи", href: "/category/vertikalni-bantsizi" },
-        { label: "Ленти по поръчка", href: "/configurator" },
+      { group: "bandsawBlades", items: [
+        { label: "horizontal", href: "/category/horizontalni-bantsizi" },
+        { label: "vertical", href: "/category/vertikalni-bantsizi" },
+        { label: "custom", href: "/configurator" },
       ]},
-      { group: "Циркулярни", items: [
-        { label: "Циркулярни триони", href: "/category/tsirkulyarni-trioni" },
-        { label: "Ножове за абрихт", href: "/category/nozhove-za-abriht" },
+      { group: "circular", items: [
+        { label: "circularSaws", href: "/category/tsirkulyarni-trioni" },
+        { label: "planerKnives", href: "/category/nozhove-za-abriht" },
       ]},
-      { group: "Абразиви", items: [
-        { label: "Диаманти и CBN", href: "/category/abrazivi" },
-        { label: "Заточни камъни", href: "/category/abrazivi" },
+      { group: "abrasives", items: [
+        { label: "diamondCbn", href: "/category/abrazivi" },
+        { label: "sharpeningStones", href: "/category/abrazivi" },
       ]},
     ],
   },
   {
-    name: "Метал", href: "/category/metal", Icon: IconMetal,
+    name: "metal", href: "/category/metal", Icon: IconMetal,
     children: [
-      { group: "Биметални ленти", items: [
-        { label: "M42 HSS", href: "/category/bimetalni-lenti" },
-        { label: "M51 / M90", href: "/category/bimetalni-lenti" },
-        { label: "По поръчка", href: "/configurator" },
+      { group: "bimetal", items: [
+        { label: "!M42 HSS", href: "/category/bimetalni-lenti" },
+        { label: "!M51 / M90", href: "/category/bimetalni-lenti" },
+        { label: "custom", href: "/configurator" },
       ]},
-      { group: "Въглеродна стомана", items: [
-        { label: "CS Flexback", href: "/category/vyglerodna-lenti-cs" },
-        { label: "CS Hardback", href: "/category/vyglerodna-lenti-cs" },
+      { group: "carbonSteel", items: [
+        { label: "!CS Flexback", href: "/category/vyglerodna-lenti-cs" },
+        { label: "!CS Hardback", href: "/category/vyglerodna-lenti-cs" },
       ]},
     ],
   },
-  { name: "Хоби банциг", href: "/category/hobi-bantsig", Icon: IconHobby, children: null },
+  { name: "hobby", href: "/category/hobi-bantsig", Icon: IconHobby, children: null },
   {
-    name: "Храни", href: "/category/hrani", Icon: IconFood,
+    name: "food", href: "/category/hrani", Icon: IconFood,
     children: [
-      { group: "Месо и риба", items: [
-        { label: "Ленти за месо", href: "/category/meso-i-riba" },
-        { label: "Ленти за риба", href: "/category/meso-i-riba" },
+      { group: "meatFish", items: [
+        { label: "meatBlades", href: "/category/meso-i-riba" },
+        { label: "fishBlades", href: "/category/meso-i-riba" },
       ]},
-      { group: "Хлебни изделия", items: [
-        { label: "Ленти за хляб", href: "/category/hlebni-izdeliya" },
+      { group: "bakery", items: [
+        { label: "breadBlades", href: "/category/hlebni-izdeliya" },
       ]},
-      { group: "Слайсъри", items: [
-        { label: "Bizerba", href: "/category/slicers" },
-        { label: "Berkel", href: "/category/slicers" },
+      { group: "slicers", items: [
+        { label: "!Bizerba", href: "/category/slicers" },
+        { label: "!Berkel", href: "/category/slicers" },
       ]},
     ],
   },
   {
-    name: "Машини", href: "/category/mashini", Icon: IconMachine,
+    name: "machines", href: "/category/mashini", Icon: IconMachine,
     children: [
-      { group: "Оборудване", items: [
-        { label: "Заточни машини", href: "/category/mashini" },
+      { group: "equipment", items: [
+        { label: "sharpeningMachines", href: "/category/mashini" },
       ]},
-      { group: "Консумативи", items: [
-        { label: "Резервни части", href: "/category/konsumativi" },
-        { label: "Гърбици и измервателни уреди", href: "/category/konsumativi" },
+      { group: "consumables", items: [
+        { label: "spareParts", href: "/category/konsumativi" },
+        { label: "camsGauges", href: "/category/konsumativi" },
       ]},
     ],
   },
 ];
+
+/** A leading "!" marks a literal that must not be translated. */
+const navText = (t: (k: string) => string, key: string) =>
+  key.startsWith("!") ? key.slice(1) : t(key);
 
 function HeaderIconBtn({ icon, label, badge, href }: { icon: React.ReactNode; label: string; badge?: number; href?: string }) {
   const inner = (
@@ -100,6 +112,11 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
   const router = useRouter();
+  const locale = useLocale();
+  const isBulgaria = locale.startsWith("bg");
+  const tCommon = useTranslations("common");
+  const tHeader = useTranslations("header");
+  const tNav = useTranslations("nav");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,8 +142,8 @@ export function Header() {
       <div className="bg-ink text-white/80">
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 h-9 flex items-center justify-between font-mono text-[11px] tracking-[0.08em] uppercase">
           <div className="hidden md:flex gap-6">
-            <span className="text-white">● Габрово · собствен цех</span>
-            <span className="opacity-60">Заваряване по размер</span>
+            <span className="text-white">● {tHeader("workshop")}</span>
+            <span className="opacity-60">{tHeader("customWelding")}</span>
           </div>
           <div className="flex gap-5 items-center ml-auto">
             <a href={COMPANY.phone.office.href} className="flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
@@ -147,21 +164,28 @@ export function Header() {
         {/* Logo. items-start matters — in a column flex box the image would
             otherwise stretch to the width of the strapline beneath it, which is
             what was squashing the mark. */}
+        {/* Bulgaria keeps the ТЕХНОЛЕС mark it has carried since 1993 — the name
+            is worth something there. Outside Bulgaria it is unreadable Cyrillic
+            for an unknown company, so those markets lead with Saw-Meister. */}
         <Link
           href="/"
           className="flex flex-col items-start justify-center no-underline text-ink shrink-0"
-          aria-label="ТЕХНОЛЕС — начало"
+          aria-label={`${isBulgaria ? "ТЕХНОЛЕС" : SAW_MEISTER} — ${tCommon("home")}`}
         >
-          <Image
-            src="/images/hero/tehnoles-logo.png"
-            alt="ТЕХНОЛЕС"
-            width={1177}
-            height={210}
-            preload
-            className="h-8 w-auto md:h-9"
-          />
+          {isBulgaria ? (
+            <Image
+              src="/images/hero/tehnoles-logo.png"
+              alt="ТЕХНОЛЕС"
+              width={1177}
+              height={210}
+              preload
+              className="h-8 w-auto md:h-9"
+            />
+          ) : (
+            <SawMeisterLogo size={34} tone="brand" />
+          )}
           <div className="font-mono text-[9px] md:text-[10px] tracking-[0.14em] text-ink-50 mt-1.5 uppercase whitespace-nowrap">
-            Innovation sharpened to perfection.
+            {tCommon("tagline")}
           </div>
         </Link>
 
@@ -178,7 +202,7 @@ export function Header() {
               name="q"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label="Търси в каталога"
+              aria-label={tCommon("searchPlaceholder")}
               placeholder="2360 · Kodiak · Holzmann BS128"
               className="w-full h-12 pl-10 pr-3 bg-transparent font-mono text-[13px] text-ink outline-none placeholder:text-ink-30"
             />
@@ -194,11 +218,11 @@ export function Header() {
         {/* Actions. The wishlist carried a hardcoded badge of 3 and the profile
             linked to /account, which does not exist — both removed. */}
         <div className="flex items-center gap-1 ml-auto">
-          <HeaderIconBtn icon={<IconCart size={18} />} label="Количка" badge={itemCount || undefined} href="/cart" />
+          <HeaderIconBtn icon={<IconCart size={18} />} label={tCommon("cart")} badge={itemCount || undefined} href="/cart" />
           <button
             className="md:hidden p-2 ml-2"
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label={mobileOpen ? "Затвори менюто" : "Отвори менюто"}
+            aria-label={mobileOpen ? tCommon("closeMenu") : tCommon("openMenu")}
           >
             {mobileOpen ? <IconClose size={24} /> : <IconMenu size={24} />}
           </button>
@@ -206,7 +230,7 @@ export function Header() {
       </div>
 
       {/* Category nav — desktop */}
-      <nav className="hidden md:block border-t border-b border-ink-05" aria-label="Основна навигация" onMouseLeave={() => setOpen(null)}>
+      <nav className="hidden md:block border-t border-b border-ink-05" aria-label={tCommon("mainNav")} onMouseLeave={() => setOpen(null)}>
         <div className="max-w-[1440px] mx-auto px-10 flex items-stretch gap-0">
           <Link
             href="/shop"
@@ -224,7 +248,7 @@ export function Header() {
                   href={cat.href}
                   className={`flex items-center gap-2 px-[18px] h-12 font-sans text-[13px] font-medium text-ink no-underline transition-colors hover:text-blue ${isOpen ? "border-b-2 border-orange" : "border-b-2 border-transparent"}`}
                 >
-                  <CatIcon size={16} /> {cat.name}
+                  <CatIcon size={16} /> {tNav(cat.name)}
                   {cat.children && <IconChevron size={12} className="opacity-50" />}
                 </Link>
                 {isOpen && cat.children && (
@@ -235,13 +259,13 @@ export function Header() {
                     {cat.children.map((grp) => (
                       <div key={grp.group}>
                         <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mb-3 pb-2 border-b border-ink-05">
-                          {grp.group}
+                          {tNav(grp.group)}
                         </div>
                         <ul className="list-none p-0 m-0 flex flex-col gap-2">
                           {grp.items.map((it) => (
                             <li key={it.label}>
                               <Link href={it.href} className="font-sans text-[13px] text-ink-70 no-underline hover:text-ink transition-colors">
-                                {it.label}
+                                {navText(tNav, it.label)}
                               </Link>
                             </li>
                           ))}
@@ -271,7 +295,7 @@ export function Header() {
 
       {/* Mobile nav */}
       {mobileOpen && (
-        <nav className="md:hidden bg-white border-t border-ink-05 shadow-lg max-h-[80vh] overflow-y-auto" aria-label="Мобилна навигация">
+        <nav className="md:hidden bg-white border-t border-ink-05 shadow-lg max-h-[80vh] overflow-y-auto" aria-label={tCommon("mobileNav")}>
           {/* Same handler as the desktop field — this used to be an inert box. */}
           <form onSubmit={handleSearch} role="search" className="p-4 border-b border-ink-05 flex items-stretch gap-2">
             <div className="relative flex-1">
@@ -280,7 +304,7 @@ export function Header() {
                 name="q"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                aria-label="Търси в каталога"
+                aria-label={tCommon("searchPlaceholder")}
                 placeholder="2360 · Kodiak · Holzmann"
                 className="w-full h-11 pl-10 pr-4 bg-ink-05 border border-ink-05 font-mono text-[13px] outline-none focus:bg-white focus:border-ink-15 transition-colors"
               />
@@ -300,16 +324,16 @@ export function Header() {
             return (
               <div key={cat.name}>
                 <Link href={cat.href} className="flex items-center gap-3 px-4 py-3 text-ink font-medium no-underline border-b border-ink-05" onClick={() => setMobileOpen(false)}>
-                  <CatIcon size={16} /> {cat.name}
+                  <CatIcon size={16} /> {tNav(cat.name)}
                 </Link>
                 {cat.children && (
                   <div className="bg-ink-05 px-4 py-2">
                     {cat.children.map((grp) => (
                       <div key={grp.group} className="mb-2">
-                        <div className="font-mono text-[9px] tracking-[0.12em] uppercase text-ink-50 mb-1">{grp.group}</div>
+                        <div className="font-mono text-[9px] tracking-[0.12em] uppercase text-ink-50 mb-1">{tNav(grp.group)}</div>
                         {grp.items.map((it) => (
                           <Link key={it.label} href={it.href} className="block py-1 pl-4 text-[13px] text-ink-70 no-underline" onClick={() => setMobileOpen(false)}>
-                            {it.label}
+                            {navText(tNav, it.label)}
                           </Link>
                         ))}
                       </div>
@@ -319,8 +343,8 @@ export function Header() {
               </div>
             );
           })}
-          <Link href="/blog" className="block px-4 py-3 text-ink-70 no-underline border-t border-ink-05" onClick={() => setMobileOpen(false)}>Блог</Link>
-          <Link href="/contact" className="block px-4 py-3 text-ink-70 no-underline border-b border-ink-05" onClick={() => setMobileOpen(false)}>Контакти</Link>
+          <Link href="/blog" className="block px-4 py-3 text-ink-70 no-underline border-t border-ink-05" onClick={() => setMobileOpen(false)}>{tCommon("blog")}</Link>
+          <Link href="/contact" className="block px-4 py-3 text-ink-70 no-underline border-b border-ink-05" onClick={() => setMobileOpen(false)}>{tCommon("contact")}</Link>
         </nav>
       )}
     </header>

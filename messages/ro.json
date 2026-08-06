@@ -12,7 +12,13 @@
     "exVat": "fără TVA",
     "incVat": "cu TVA",
     "vat": "TVA {rate}",
-    "free": "Gratuit"
+    "free": "Gratuit",
+    "searchPlaceholder": "Caută în catalog",
+    "mainNav": "Navigare principală",
+    "mobileNav": "Navigare mobilă",
+    "openMenu": "Deschide meniul",
+    "closeMenu": "Închide meniul",
+    "blog": "Blog"
   },
   "stock": {
     "in": "În stoc",
@@ -37,5 +43,35 @@
   "header": {
     "workshop": "Gabrovo · atelier propriu",
     "customWelding": "Sudare la dimensiune"
+  },
+  "nav": {
+    "wood": "Lemn",
+    "metal": "Metal",
+    "hobby": "Ferăstrău hobby",
+    "food": "Alimente",
+    "machines": "Utilaje",
+    "bandsawBlades": "Pânze de panglică",
+    "circular": "Circulare",
+    "abrasives": "Abrazivi",
+    "bimetal": "Pânze bimetalice",
+    "carbonSteel": "Oțel carbon",
+    "meatFish": "Carne și pește",
+    "bakery": "Panificație",
+    "slicers": "Feliatoare",
+    "equipment": "Echipamente",
+    "consumables": "Consumabile",
+    "horizontal": "Ferăstraie orizontale",
+    "vertical": "Ferăstraie verticale",
+    "custom": "Pânze la comandă",
+    "circularSaws": "Pânze circulare",
+    "planerKnives": "Cuțite de rindea",
+    "diamondCbn": "Diamant și CBN",
+    "sharpeningStones": "Pietre de ascuțit",
+    "meatBlades": "Pânze pentru carne",
+    "fishBlades": "Pânze pentru pește",
+    "breadBlades": "Pânze pentru pâine",
+    "sharpeningMachines": "Mașini de ascuțit",
+    "spareParts": "Piese de schimb",
+    "camsGauges": "Came și instrumente de măsură"
   }
 }
