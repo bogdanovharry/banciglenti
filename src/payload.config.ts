@@ -11,6 +11,7 @@ import { ProductVariants } from './payload/collections/ProductVariants'
 import { Categories } from './payload/collections/Categories'
 import { Brands } from './payload/collections/Brands'
 import { Orders } from './payload/collections/Orders'
+import { Enquiries } from './payload/collections/Enquiries'
 import { Customers } from './payload/collections/Customers'
 import { Articles } from './payload/collections/Articles'
 import { Pages } from './payload/collections/Pages'
@@ -101,6 +102,7 @@ export default buildConfig({
     Categories,
     Brands,
     Orders,
+    Enquiries,
     Customers,
     Articles,
     Pages,

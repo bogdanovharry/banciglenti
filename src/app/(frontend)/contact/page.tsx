@@ -33,16 +33,37 @@ export default function ContactPage() {
   const [company, setCompany] = useState("");
   const [industry, setIndustry] = useState("Метал");
   const [message, setMessage] = useState("");
+  const [website, setWebsite] = useState(""); // honeypot — see /api/enquiries
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
-    // In production this would call an API route
-    await new Promise((r) => setTimeout(r, 1000));
-    setSent(true);
-    setSending(false);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/enquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone, company, industry, message, website }),
+      });
+
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+
+      if (!res.ok) {
+        // Only claim it was sent when the server says it stored it — the form
+        // used to show a tick unconditionally and drop the enquiry.
+        setError(data.error ?? "Възникна грешка при изпращането.");
+        return;
+      }
+      setSent(true);
+    } catch {
+      setError("Няма връзка със сървъра. Проверете интернет връзката или се обадете.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -135,7 +156,38 @@ export default function ContactPage() {
                     />
                   </label>
 
-                  <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} type="submit">
+                  {/* Honeypot — hidden from people, filled in by bots. */}
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    className="absolute -left-[9999px] w-px h-px opacity-0"
+                  />
+
+                  {error && (
+                    <div
+                      role="alert"
+                      className="border border-danger bg-danger/5 px-4 py-3 font-sans text-[13px] text-ink"
+                    >
+                      {error}{" "}
+                      <a href="tel:066800822" className="text-danger underline">
+                        066 800 822
+                      </a>
+                    </div>
+                  )}
+
+                  <Btn
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    iconRight={<IconArrowRight size={16} />}
+                    type="submit"
+                    disabled={sending}
+                  >
                     {sending ? "Изпращане..." : "Изпрати запитване"}
                   </Btn>
                 </form>
