@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { IconArrowRight } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { DEFAULT_MARKET, currencySymbol, formatAmount, formatPrice, vatLabel, vatRateFor } from "@/lib/market";
+import { COMPANY } from "@/lib/company";
 
 function Input({
   label,
@@ -231,8 +232,8 @@ export default function CheckoutPage() {
             <CheckoutCard num="02" title="Доставка">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
                 {([
-                  ["courier", "Куриер", "Еконт или Спиди"],
-                  ["pickup", "Лично вземане", "Цех Габрово · безплатно"],
+                  ["courier", "Куриер", DEFAULT_MARKET.couriers.join(" или ")],
+                  ["pickup", "Лично вземане", `Цех ${COMPANY.address.city} · безплатно`],
                 ] as const).map(([k, t, d]) => (
                   <button
                     key={k}
@@ -289,7 +290,7 @@ export default function CheckoutPage() {
               {method === "bank_transfer" && (
                 <div className="p-4 bg-paper font-sans text-sm text-ink-70">
                   <p className="font-semibold text-ink mb-2 mt-0">Банков превод:</p>
-                  <p className="m-0">IBAN: BG80 UNCR 7000 1522 5765 37<br />BIC: UNCRBGSF<br />Основание: номерът на поръчката</p>
+                  <p className="m-0">IBAN: {COMPANY.bank.iban}<br />BIC: {COMPANY.bank.bic}<br />Основание: номерът на поръчката</p>
                 </div>
               )}
               {method === "cod" && (

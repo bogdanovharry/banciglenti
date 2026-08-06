@@ -28,6 +28,7 @@ import {
   IconHobby, IconMachine, IconAbrasive,
 } from "@/components/ui/icons";
 import { DEFAULT_MARKET, formatPrice, vatRateFor } from "@/lib/market";
+import { COMPANY } from "@/lib/company";
 
 // Industrial accent for highlighted words — heavy upright sans, brand orange
 const accent = "font-extrabold";
@@ -742,8 +743,8 @@ function ServicesBlock() {
                   Заяви обработка
                 </Btn>
               </Link>
-              <a href="tel:066800822">
-                <Btn variant="ghostLight" size="lg" icon={<IconPhone size={16} />}>066 800 822</Btn>
+              <a href={COMPANY.phone.office.href}>
+                <Btn variant="ghostLight" size="lg" icon={<IconPhone size={16} />}>{COMPANY.phone.office.display}</Btn>
               </a>
             </div>
           </div>
@@ -843,7 +844,7 @@ function ContactCTA() {
                 Пряка линия · Пн–Пт 8:00–17:30
               </div>
               <a
-                href="tel:066800822"
+                href={COMPANY.phone.office.href}
                 className="group flex items-center gap-3 no-underline text-white"
               >
                 <IconPhone size={26} className="text-orange shrink-0 transition-transform duration-300 group-hover:-rotate-12" />

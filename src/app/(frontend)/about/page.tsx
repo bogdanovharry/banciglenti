@@ -7,7 +7,7 @@ import { COMPANY, TERMS } from "@/lib/company";
 export const metadata: Metadata = {
   title: "За нас",
   description:
-    "ТЕХНОЛЕС ООД — производство и заваряване на банцигови ленти по размер от 1993 г. Цех в Габрово.",
+    `${COMPANY.legalName} — производство и заваряване на банцигови ленти по размер от ${COMPANY.foundedYear} г. Цех в ${COMPANY.address.city}.`,
 };
 
 /**

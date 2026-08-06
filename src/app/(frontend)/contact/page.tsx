@@ -5,6 +5,7 @@ import { Btn } from "@/components/ui/primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { IconPhone, IconMail, IconFactory, IconArrowRight, IconCheck } from "@/components/ui/icons";
 import { INDUSTRY_OPTIONS, type IndustryCode } from "@/lib/catalog-ui";
+import { COMPANY } from "@/lib/company";
 
 function Input({ label, placeholder = "", type = "text", required, value, onChange }: {
   label: string; placeholder?: string; type?: string; required?: boolean;
@@ -90,10 +91,10 @@ export default function ContactPage() {
           <div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border border-ink-15 bg-white">
               {[
-                { Icon: IconPhone, title: "066 800 822", desc: "Главен офис · Габрово", href: "tel:066800822" },
-                { Icon: IconPhone, title: "0878 800 162", desc: "Мобилен · 24/7", href: "tel:0878800162" },
-                { Icon: IconMail, title: "tehnoles@tehnoles.com", desc: "Технически въпроси", href: "mailto:tehnoles@tehnoles.com" },
-                { Icon: IconFactory, title: "ул. Негенска 2", desc: "5300 Габрово, България", href: undefined },
+                { Icon: IconPhone, title: COMPANY.phone.office.display, desc: `Главен офис · ${COMPANY.address.city}`, href: COMPANY.phone.office.href },
+                { Icon: IconPhone, title: COMPANY.phone.mobile.display, desc: "Мобилен", href: COMPANY.phone.mobile.href },
+                { Icon: IconMail, title: COMPANY.email, desc: "Технически въпроси", href: `mailto:${COMPANY.email}` },
+                { Icon: IconFactory, title: COMPANY.address.street, desc: `${COMPANY.address.postalCode} ${COMPANY.address.city}, ${COMPANY.address.country}`, href: undefined },
               ].map((item, i) => (
                 <a
                   key={i}
@@ -176,8 +177,8 @@ export default function ContactPage() {
                       className="border border-danger bg-danger/5 px-4 py-3 font-sans text-[13px] text-ink"
                     >
                       {error}{" "}
-                      <a href="tel:066800822" className="text-danger underline">
-                        066 800 822
+                      <a href={COMPANY.phone.office.href} className="text-danger underline">
+                        {COMPANY.phone.office.display}
                       </a>
                     </div>
                   )}

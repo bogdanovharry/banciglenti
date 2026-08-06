@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Btn } from "@/components/ui/primitives";
 import { IconArrowRight } from "@/components/ui/icons";
+import { COMPANY, COMPANY_LATIN } from "@/lib/company";
 
 const columns = [
   { title: "Продукти", links: [
@@ -94,16 +95,18 @@ export function Footer() {
           {/* Office column */}
           <div className="col-span-2 md:col-span-1 lg:col-span-1">
             <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-4">Централен офис</div>
-            <div className="font-display text-lg font-semibold mb-1">ТЕХНОЛЕС ООД</div>
+            <div className="font-display text-lg font-semibold mb-1">{COMPANY.legalName}</div>
             <div className="font-sans text-sm text-white/70 leading-relaxed">
-              гр. Габрово 5300<br />
-              ул. „Негенска“ 2<br />
-              България
+              гр. {COMPANY.address.city} {COMPANY.address.postalCode}<br />
+              {COMPANY.address.street}<br />
+              {COMPANY.address.country}
             </div>
+            {/* The footer states numbers in full international form: it is the
+                formal identity block, and it is read from outside Bulgaria. */}
             <div className="mt-5 flex flex-col gap-1.5 font-mono text-xs">
-              <a href="tel:066800822" className="text-white no-underline hover:text-orange-light transition-colors">+359 66 800 822</a>
-              <a href="tel:0878800162" className="text-white no-underline hover:text-orange-light transition-colors">+359 878 800 162</a>
-              <a href="mailto:tehnoles@tehnoles.com" className="text-orange-light no-underline hover:text-white transition-colors">tehnoles@tehnoles.com</a>
+              <a href={COMPANY.phone.office.href} className="text-white no-underline hover:text-orange-light transition-colors">{COMPANY_LATIN.phone.office.display}</a>
+              <a href={COMPANY.phone.mobile.href} className="text-white no-underline hover:text-orange-light transition-colors">{COMPANY_LATIN.phone.mobile.display}</a>
+              <a href={`mailto:${COMPANY.email}`} className="text-orange-light no-underline hover:text-white transition-colors">{COMPANY.email}</a>
             </div>
           </div>
 
@@ -136,7 +139,7 @@ export function Footer() {
 
         {/* Bottom */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t border-white/10 font-mono text-[11px] text-white/50 tracking-[0.04em]">
-          <div>© 1993–{new Date().getFullYear()} ТЕХНОЛЕС ООД · www.banciglenti.com · ДДС BG817088234</div>
+          <div>© {COMPANY.foundedYear}–{new Date().getFullYear()} {COMPANY.legalName} · www.banciglenti.com · ДДС {COMPANY.vatNumber}</div>
           <div className="flex gap-5">
             <a href="https://www.facebook.com/tehnoles" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white no-underline transition-colors">Facebook</a>
             <a href="https://www.youtube.com/@Tehnolesltd" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white no-underline transition-colors">YouTube</a>

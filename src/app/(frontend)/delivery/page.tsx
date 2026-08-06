@@ -3,11 +3,12 @@ import Link from "next/link";
 
 import { LegalPage, LegalSection } from "@/components/layout/LegalPage";
 import { COMPANY, TERMS, formattedAddress } from "@/lib/company";
+import { DEFAULT_MARKET } from "@/lib/market";
 
 export const metadata: Metadata = {
   title: "Доставка и плащане",
   description:
-    "Начини на доставка и плащане, срокове и цени при поръчка на банцигови ленти и режещи инструменти от ТЕХНОЛЕС.",
+    `Начини на доставка и плащане, срокове и цени при поръчка на банцигови ленти и режещи инструменти от ${COMPANY.tradeName}.`,
 };
 
 /**
@@ -28,8 +29,8 @@ export default function DeliveryPage() {
       <LegalSection n="01" title="Начини на доставка">
         <p>
           Доставяме с куриер до адрес или до офис на куриерската фирма на територията на
-          {" "}{COMPANY.address.country}. Работим с Еконт и Спиди — куриерът се избира при
-          обработката на поръчката според вашия адрес.
+          {" "}{COMPANY.address.country}. Работим с {DEFAULT_MARKET.couriers.join(" и ")} —
+          куриерът се избира при обработката на поръчката според вашия адрес.
         </p>
         <p>
           Можете и да вземете поръчката лично от цеха ни: {formattedAddress()}. Обаждаме се,

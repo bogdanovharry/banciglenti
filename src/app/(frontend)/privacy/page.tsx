@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 
 import { LegalPage, LegalSection } from "@/components/layout/LegalPage";
 import { COMPANY, formattedAddress } from "@/lib/company";
+import { DEFAULT_MARKET } from "@/lib/market";
 
 export const metadata: Metadata = {
   title: "Политика за поверителност",
   description:
-    "Какви лични данни събира ТЕХНОЛЕС ООД през този сайт, на какво основание, кой ги получава и какви права имате.",
+    `Какви лични данни събира ${COMPANY.legalName} през този сайт, на какво основание, кой ги получава и какви права имате.`,
 };
 
 /**
@@ -86,7 +87,7 @@ export default function PrivacyPage() {
         <p>Предаваме само необходимия минимум и само на:</p>
         <ul>
           <li>
-            <strong>Куриерската фирма</strong> (Еконт или Спиди) — име, адрес и телефон, за
+            <strong>Куриерската фирма</strong> ({DEFAULT_MARKET.couriers.join(" или ")}) — име, адрес и телефон, за
             да достави пратката.
           </li>
           <li>

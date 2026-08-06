@@ -9,6 +9,7 @@ import {
   IconChevron, IconWood, IconMetal, IconHobby, IconFood, IconMachine, IconRuler, IconClose,
 } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
+import { COMPANY } from "@/lib/company";
 
 type NavItem = { label: string; href: string };
 type NavGroup = { group: string; items: NavItem[] };
@@ -128,11 +129,11 @@ export function Header() {
             <span className="opacity-60">Заваряване по размер</span>
           </div>
           <div className="flex gap-5 items-center ml-auto">
-            <a href="tel:066800822" className="flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
-              <IconPhone size={12} /> <span className="hidden sm:inline tabular-nums">066 800 822</span>
+            <a href={COMPANY.phone.office.href} className="flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
+              <IconPhone size={12} /> <span className="hidden sm:inline tabular-nums">{COMPANY.phone.office.display}</span>
             </a>
-            <a href="mailto:tehnoles@tehnoles.com" className="hidden md:flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
-              <IconMail size={12} /> tehnoles@tehnoles.com
+            <a href={`mailto:${COMPANY.email}`} className="hidden md:flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
+              <IconMail size={12} /> {COMPANY.email}
             </a>
           </div>
         </div>

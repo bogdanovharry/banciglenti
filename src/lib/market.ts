@@ -30,6 +30,11 @@ export type Market = {
   /** Both in EUR, the authored currency — never in the display currency. */
   freeShippingThreshold: number
   shippingCost: number
+  /**
+   * Carriers offered at checkout. Proper nouns, so they are never translated —
+   * but they are entirely per-market: a Romanian buyer has never heard of Еконт.
+   */
+  couriers: string[]
 }
 
 export const MARKETS: Record<MarketCode, Market> = {
@@ -41,6 +46,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     vatRate: 0.2,
     freeShippingThreshold: 200,
     shippingCost: 6,
+    couriers: ['Еконт', 'Спиди'],
   },
   ro: {
     code: 'ro',
@@ -55,6 +61,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     // Carrying the Bulgarian figures until real ones are quoted.
     freeShippingThreshold: 200,
     shippingCost: 6,
+    couriers: ['Fan Courier', 'Cargus', 'Sameday'],
   },
   gr: {
     code: 'gr',
@@ -65,6 +72,8 @@ export const MARKETS: Record<MarketCode, Market> = {
     vatRate: 0.24,
     freeShippingThreshold: 200,
     shippingCost: 6,
+    // TODO: confirm Greek carriers before launch.
+    couriers: [],
   },
 }
 
