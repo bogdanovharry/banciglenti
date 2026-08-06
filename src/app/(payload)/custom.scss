@@ -1,1 +1,110 @@
-// Custom admin styles - intentionally empty for now
+/**
+ * ТЕХНОЛЕС admin theme.
+ *
+ * Payload's greys are carefully tuned for long working sessions, so this does
+ * not repaint the panel — it adds brand identity and, more usefully, visual
+ * anchors so the eye can find things. Colour is used to mean something (active
+ * item, primary action, section) rather than for decoration.
+ *
+ * Brand palette matches the storefront: blue #004FC6, orange #D97706.
+ */
+
+:root {
+  --tl-blue: #004fc6;
+  --tl-blue-deep: #001f5c;
+  --tl-orange: #d97706;
+  --tl-orange-light: #f59e0b;
+}
+
+/* ---- Primary actions -------------------------------------------------- */
+/* Save, Create — the button you actually want to hit. Payload defaults it to
+   near-black, which reads the same as every secondary control. */
+.btn--style-primary {
+  --bg-color: var(--tl-blue);
+  --hover-bg: var(--tl-blue-deep);
+  --color: #fff;
+  --hover-color: #fff;
+}
+
+/* ---- Sidebar ---------------------------------------------------------- */
+/* Group headings were the same weight and colour as the links beneath them, so
+   Каталог / Поръчки / Съдържание / Система did not read as separate sections. */
+.nav-group__toggle {
+  color: var(--theme-elevation-500);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.nav__link {
+  border-left: 2px solid transparent;
+  padding-left: 10px;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover {
+    background: var(--theme-elevation-50);
+    border-left-color: var(--theme-elevation-300);
+  }
+
+  /* Where am I? Payload marks the active item only by weight. */
+  &[aria-current='page'],
+  &.active {
+    background: var(--theme-elevation-50);
+    border-left-color: var(--tl-orange);
+    font-weight: 600;
+  }
+}
+
+/* ---- Dashboard cards -------------------------------------------------- */
+/* The dashboard was a flat list of identical white rectangles. A left rule in
+   the brand blue gives each card an edge to scan down. */
+.card {
+  border-left: 3px solid var(--theme-elevation-150);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-left-color: var(--tl-blue);
+    box-shadow: 0 4px 16px -6px rgb(0 31 92 / 0.25);
+  }
+}
+
+.card__title {
+  font-weight: 600;
+}
+
+/* ---- Status pills ----------------------------------------------------- */
+/* Order status is the thing scanned most often in a shop. */
+.pill {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ---- Tables ----------------------------------------------------------- */
+/* Numeric columns — price, stock, dimensions — line up only with tabular
+   figures. Without this a 122-row product list is hard to compare down. */
+.table {
+  td,
+  th {
+    font-variant-numeric: tabular-nums;
+  }
+
+  thead th {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--theme-elevation-500);
+  }
+}
+
+/* ---- Login ------------------------------------------------------------ */
+.template-minimal {
+  .form-submit .btn {
+    --bg-color: var(--tl-blue);
+    --hover-bg: var(--tl-blue-deep);
+  }
+}

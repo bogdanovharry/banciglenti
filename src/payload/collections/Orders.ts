@@ -4,7 +4,9 @@ export const Orders: CollectionConfig = {
   slug: 'orders',
   admin: {
     useAsTitle: 'orderNumber',
-    defaultColumns: ['orderNumber', 'customer', 'status', 'total', 'createdAt'],
+    defaultColumns: ['orderNumber', 'createdAt', 'customer', 'total', 'status'],
+    description: 'Нови поръчки са със статус „Чакаща“.',
+    pagination: { defaultLimit: 50 },
     group: 'Поръчки',
   },
   fields: [

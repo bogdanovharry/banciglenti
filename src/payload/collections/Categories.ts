@@ -4,6 +4,8 @@ export const Categories: CollectionConfig = {
   slug: 'categories',
   admin: {
     useAsTitle: 'name',
+    defaultColumns: ['name', 'parent', 'slug', 'sortOrder'],
+    description: 'Дървовидна структура. Родителската категория показва всичко под нея.',
     group: 'Каталог',
   },
   fields: [

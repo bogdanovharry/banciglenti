@@ -4,6 +4,9 @@ export const Media: CollectionConfig = {
   slug: 'media',
   admin: {
     group: 'Съдържание',
+    useAsTitle: 'filename',
+    defaultColumns: ['filename', 'alt', 'filesize', 'createdAt'],
+    description: 'Снимките се качват в Cloudflare R2 и се прикачат към продукт от полето Изображения.',
   },
   /**
    * Media is the one collection that must be readable without logging in —

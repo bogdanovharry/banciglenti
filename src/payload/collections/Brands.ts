@@ -4,6 +4,7 @@ export const Brands: CollectionConfig = {
   slug: 'brands',
   admin: {
     useAsTitle: 'name',
+    defaultColumns: ['name', 'slug', 'website'],
     group: 'Каталог',
   },
   fields: [

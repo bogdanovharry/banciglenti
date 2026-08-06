@@ -2,6 +2,8 @@ import { buildConfig, type Plugin } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
+import { bg } from '@payloadcms/translations/languages/bg'
+import { en } from '@payloadcms/translations/languages/en'
 import sharp from 'sharp'
 
 import { Products } from './payload/collections/Products'
@@ -73,8 +75,21 @@ export default buildConfig({
   admin: {
     user: Users.slug,
     meta: {
-      titleSuffix: ' | ТЕХНОЛЕС Admin',
+      titleSuffix: ' | ТЕХНОЛЕС',
     },
+  },
+  /**
+   * The panel's own chrome — Dashboard, Create New, Save, every validation
+   * message — shipped in English while the field labels were Bulgarian, which
+   * read as half-translated. Payload carries a complete Bulgarian translation.
+   *
+   * English stays available so a non-Bulgarian speaker can switch in their
+   * account settings rather than being locked out. Romanian is also bundled in
+   * @payloadcms/translations for when that market opens.
+   */
+  i18n: {
+    supportedLanguages: { bg, en },
+    fallbackLanguage: 'bg',
   },
   collections: [
     Products,

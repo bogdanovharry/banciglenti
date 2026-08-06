@@ -4,7 +4,13 @@ export const Products: CollectionConfig = {
   slug: 'products',
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'brand', 'status', 'updatedAt'],
+    // Scalar and relationship fields only — a group field like `specs` renders
+    // unpredictably as a column. Dimensions can still be added per-user from
+    // the Columns picker in the list header.
+    defaultColumns: ['name', 'brand', 'basePrice', 'stock', 'status'],
+    listSearchableFields: ['name', 'slug'],
+    description: 'Каталогът. Търсенето работи по име и SKU.',
+    pagination: { defaultLimit: 50 },
     group: 'Каталог',
   },
   fields: [
