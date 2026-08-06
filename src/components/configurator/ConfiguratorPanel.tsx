@@ -21,6 +21,7 @@ import {
   BGN_RATE,
   type BladeConfig,
 } from "@/lib/pricing";
+import type { BladeTableKey } from "@/lib/order-pricing";
 
 // ===== Configurator types =====
 type ConfigType = "wood-h" | "wood-v" | "metal-bi" | "metal-cs" | "hobby" | "meat" | "bread" | "slicer";
@@ -197,7 +198,18 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
       dim: `${length} × ${width} × ${thickness} мм · ${pitch} · ${brand}`,
       price: unitPrice,
       quantity: qty,
-      customSpecs: { type: type === "h" ? "wood-horizontal" : "wood-vertical", length, width, thickness, pitch, brand, welding, setting, sharpening, heatTreatment: heatTreat },
+      customSpecs: {
+        table: type === "h" ? "wood-h" : "wood-v",
+        length,
+        width: widthNum,
+        thickness: thicknessNum,
+        pitch,
+        brand,
+        welding,
+        setting,
+        sharpening,
+        heatTreatment: heatTreat,
+      },
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -248,7 +260,19 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   );
 }
 
-function RealDataConfigurator({ blades, label, hasProcessing = false }: { blades: BladeConfig[]; label: string; hasProcessing?: boolean }) {
+function RealDataConfigurator({
+  blades,
+  label,
+  tableKey,
+  hasProcessing = false,
+}: {
+  blades: BladeConfig[];
+  label: string;
+  // Names the price table this form quotes from, so the order route can find
+  // the same row again and verify the price.
+  tableKey: BladeTableKey;
+  hasProcessing?: boolean;
+}) {
   const { widths } = getUniqueValues(blades);
   const [width, setWidth] = useState("");
   const [thickness, setThickness] = useState("");
@@ -292,6 +316,15 @@ function RealDataConfigurator({ blades, label, hasProcessing = false }: { blades
       dim: `${length} × ${width} × ${thickness} мм · ${pitch} · ${effectiveBrand}`,
       price: unitPrice,
       quantity: qty,
+      customSpecs: {
+        table: tableKey,
+        length,
+        width: widthNum,
+        thickness: thicknessNum,
+        pitch,
+        brand: effectiveBrand,
+        welding: selectedBlade.welding > 0,
+      },
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -483,12 +516,12 @@ export function ConfiguratorPanel() {
         {/* Form */}
         {(activeTab === "wood-h") && <WoodConfigurator type="h" />}
         {(activeTab === "wood-v") && <WoodConfigurator type="v" />}
-        {(activeTab === "metal-bi") && <RealDataConfigurator blades={METAL_BIMETAL_BLADES} label="Биметална отрезна лента" hasProcessing={false} />}
-        {(activeTab === "metal-cs") && <RealDataConfigurator blades={METAL_CARBON_BLADES} label="Лента въглеродна стомана" hasProcessing={false} />}
+        {(activeTab === "metal-bi") && <RealDataConfigurator blades={METAL_BIMETAL_BLADES} label="Биметална отрезна лента" tableKey="metal-bi" hasProcessing={false} />}
+        {(activeTab === "metal-cs") && <RealDataConfigurator blades={METAL_CARBON_BLADES} label="Лента въглеродна стомана" tableKey="metal-cs" hasProcessing={false} />}
         {(activeTab === "hobby") && <HobbyConfigurator />}
-        {(activeTab === "meat") && <RealDataConfigurator blades={MEAT_BLADES} label="Лентов нож за месо/риба" hasProcessing={false} />}
-        {(activeTab === "bread") && <RealDataConfigurator blades={BREAD_BLADES} label="Лентов нож за хляб" hasProcessing={false} />}
-        {(activeTab === "slicer") && <RealDataConfigurator blades={TEXTILE_BLADES} label="Лента за текстил/хартия" hasProcessing={false} />}
+        {(activeTab === "meat") && <RealDataConfigurator blades={MEAT_BLADES} label="Лентов нож за месо/риба" tableKey="meat" hasProcessing={false} />}
+        {(activeTab === "bread") && <RealDataConfigurator blades={BREAD_BLADES} label="Лентов нож за хляб" tableKey="bread" hasProcessing={false} />}
+        {(activeTab === "slicer") && <RealDataConfigurator blades={TEXTILE_BLADES} label="Лента за текстил/хартия" tableKey="textile" hasProcessing={false} />}
 
         {/* Trust section */}
         <div className="mt-14 pt-10 border-t border-ink-15 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

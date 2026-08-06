@@ -22,6 +22,7 @@ import {
   findBlade,
   BGN_RATE,
 } from "@/lib/pricing";
+import type { BladeTableKey } from "@/lib/order-pricing";
 import {
   IconArrowRight, IconCheck, IconPhone, IconWood, IconMetal, IconFood,
   IconHobby, IconMachine, IconAbrasive,
@@ -232,11 +233,13 @@ function minRate(key: "welding" | "sharpening" | "setting" | "heatTreatment") {
 const PRICED_SPEC_COUNT = SERVICE_TABLES.length;
 const MIN_WELDING = minRate("welding");
 
+// `table` names the price list each tab quotes from, so a line added here can
+// be re-priced by the order route instead of being taken on trust.
 const QUOTE_TYPES = [
-  { key: "wood-h", label: "Дърво · хоризонтален", blades: HORIZONTAL_WOOD_BLADES },
-  { key: "wood-v", label: "Дърво · вертикален", blades: VERTICAL_WOOD_BLADES },
-  { key: "metal", label: "Метал · биметал", blades: METAL_BIMETAL_BLADES },
-] as const;
+  { key: "wood-h", label: "Дърво · хоризонтален", blades: HORIZONTAL_WOOD_BLADES, table: "wood-h" },
+  { key: "wood-v", label: "Дърво · вертикален", blades: VERTICAL_WOOD_BLADES, table: "wood-v" },
+  { key: "metal", label: "Метал · биметал", blades: METAL_BIMETAL_BLADES, table: "metal-bi" },
+] as const satisfies readonly { key: string; label: string; blades: unknown; table: BladeTableKey }[];
 
 const MIN_LEN = 1650;
 const MAX_LEN = 12000;
@@ -260,23 +263,26 @@ function CustomOrderBlock() {
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
 
-  const blades = QUOTE_TYPES.find((t) => t.key === typeKey)!.blades;
+  const activeType = useMemo(() => QUOTE_TYPES.find((t) => t.key === typeKey)!, [typeKey]);
+  const blades = activeType.blades;
 
   // Each level is derived from the one above, so an impossible combination
-  // cannot be selected in the first place.
-  const widths = useMemo(() => getUniqueValues(blades).widths, [blades]);
+  // cannot be selected in the first place. Keyed on typeKey rather than the
+  // blades array — the table is a module constant reached through it, and the
+  // compiler can prove the dependency from the key.
+  const widths = useMemo(() => getUniqueValues(activeType.blades).widths, [activeType]);
   const width = pick(widths, selWidth)!;
 
   const { thicknesses, brands } = useMemo(
-    () => getOptionsForWidth(blades, width),
-    [blades, width],
+    () => getOptionsForWidth(activeType.blades, width),
+    [activeType, width],
   );
   const thickness = pick(thicknesses, selThickness)!;
   const brand = pick(brands, selBrand)!;
 
   const pitches = useMemo(
-    () => getAvailablePitches(blades, width, thickness, brand),
-    [blades, width, thickness, brand],
+    () => getAvailablePitches(activeType.blades, width, thickness, brand),
+    [activeType, width, thickness, brand],
   );
   const pitch = pick(pitches, selPitch);
 
@@ -298,6 +304,17 @@ function CustomOrderBlock() {
       dim: `${length} × ${width} × ${thickness} мм`,
       price: quote.totalWithoutVat,
       quantity: 1,
+      customSpecs: {
+        table: activeType.table,
+        length,
+        width,
+        thickness,
+        pitch: pitch!,
+        brand,
+        welding,
+        setting,
+        sharpening,
+      },
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2200);

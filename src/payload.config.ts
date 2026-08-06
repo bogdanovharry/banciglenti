@@ -14,8 +14,19 @@ import { Pages } from './payload/collections/Pages'
 import { Media } from './payload/collections/Media'
 import { Users } from './payload/collections/Users'
 
+/**
+ * Fail loudly rather than booting a second market with a publicly-known secret
+ * or an empty connection string. Both used to fall back silently — a deployment
+ * that forgot the env var came up looking healthy.
+ */
+function required(name: 'PAYLOAD_SECRET' | 'DATABASE_URL'): string {
+  const value = process.env[name]
+  if (!value) throw new Error(`${name} is not set. Refusing to start.`)
+  return value
+}
+
 export default buildConfig({
-  secret: process.env.PAYLOAD_SECRET || 'dev-secret-min-32-chars-long-for-payload',
+  secret: required('PAYLOAD_SECRET'),
   admin: {
     user: Users.slug,
     meta: {
@@ -37,7 +48,7 @@ export default buildConfig({
   editor: lexicalEditor(),
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URL || '',
+      connectionString: required('DATABASE_URL'),
     },
     push: true,
   }),

@@ -101,10 +101,51 @@ export const Orders: CollectionConfig = {
       label: 'Междинна сума (EUR)',
     },
     {
+      name: 'tax',
+      type: 'number',
+      label: 'ДДС (EUR)',
+      defaultValue: 0,
+    },
+    {
       name: 'total',
       type: 'number',
       required: true,
       label: 'Обща сума (EUR)',
+    },
+    {
+      name: 'vatRate',
+      type: 'number',
+      label: 'ДДС ставка',
+      defaultValue: 0.2,
+      admin: {
+        position: 'sidebar',
+        description: 'Ставката към момента на поръчката. Пази се, защото се променя.',
+      },
+    },
+    // Every money field above is EUR — the authored currency. These two record
+    // what the buyer actually saw, so an order stays reconcilable after the
+    // display rate is revised.
+    {
+      name: 'currency',
+      type: 'select',
+      required: true,
+      defaultValue: 'EUR',
+      label: 'Валута на клиента',
+      options: [
+        { label: 'EUR', value: 'EUR' },
+        { label: 'RON', value: 'RON' },
+      ],
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'exchangeRate',
+      type: 'number',
+      defaultValue: 1,
+      label: 'Курс към EUR',
+      admin: {
+        position: 'sidebar',
+        description: 'Курсът, показан на клиента при поръчката. 1 за EUR.',
+      },
     },
     {
       name: 'notes',

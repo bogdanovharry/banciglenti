@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 
+import type { CustomSpecs } from "./order-pricing";
+
 export interface CartItem {
   id: string; // unique key: sku + custom specs hash
   sku: string;
@@ -10,19 +12,12 @@ export interface CartItem {
   price: number; // EUR per unit
   quantity: number;
   image?: string;
-  customSpecs?: {
-    type?: string;
-    length?: number;
-    width?: string;
-    thickness?: string;
-    pitch?: string;
-    brand?: string;
-    material?: string;
-    welding?: boolean;
-    setting?: boolean;
-    sharpening?: boolean;
-    heatTreatment?: boolean;
-  };
+  /**
+   * Present only on made-to-order lines. Must be complete enough for the server
+   * to re-derive the price from the same table — see priceCustomItem. A custom
+   * line without these is rejected at checkout rather than trusted.
+   */
+  customSpecs?: CustomSpecs;
 }
 
 interface CartContextType {
