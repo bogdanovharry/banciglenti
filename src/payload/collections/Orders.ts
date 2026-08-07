@@ -5,8 +5,10 @@ export const Orders: CollectionConfig = {
   labels: { singular: 'Поръчка', plural: 'Поръчки' },
   admin: {
     useAsTitle: 'orderNumber',
-    defaultColumns: ['orderNumber', 'createdAt', 'customer', 'total', 'status'],
-    description: 'Нови поръчки са със статус „Чакаща“.',
+    defaultColumns: ['orderNumber', 'status', 'total', 'customer', 'createdAt'],
+    description:
+      'Нови поръчки са със статус „Чакаща“. Сумите и артикулите са изчислени и проверени от сървъра при поръчката и не се редактират — променят се само статусът, плащането и товарителницата.',
+    listSearchableFields: ['orderNumber'],
     pagination: { defaultLimit: 50 },
     group: 'Поръчки',
   },
@@ -17,6 +19,7 @@ export const Orders: CollectionConfig = {
       required: true,
       unique: true,
       label: 'Номер на поръчка',
+      admin: { readOnly: true },
     },
     {
       name: 'customer',
@@ -24,19 +27,57 @@ export const Orders: CollectionConfig = {
       relationTo: 'customers',
       required: true,
       label: 'Клиент',
+      admin: { readOnly: true },
     },
     {
       name: 'items',
       type: 'array',
       label: 'Продукти',
       fields: [
-        { name: 'product', type: 'relationship', relationTo: 'products', label: 'Продукт' },
-        { name: 'variant', type: 'relationship', relationTo: 'product-variants', label: 'Вариант' },
-        { name: 'name', type: 'text', label: 'Име' },
-        { name: 'sku', type: 'text', label: 'SKU' },
-        { name: 'quantity', type: 'number', required: true, label: 'Количество' },
-        { name: 'price', type: 'number', required: true, label: 'Цена (EUR)' },
-        { name: 'customSpecs', type: 'json', label: 'Custom размери (ако има)' },
+        // Name first: it is what the row is. The two relationships come after,
+        // and only appear for catalogue lines — a made-to-measure blade has no
+        // product record to point at, so showing empty pickers on every custom
+        // line was pure noise.
+        { name: 'name', type: 'text', label: 'Артикул', admin: { readOnly: true } },
+        {
+          type: 'row',
+          fields: [
+            { name: 'quantity', type: 'number', required: true, label: 'Количество', admin: { readOnly: true } },
+            { name: 'price', type: 'number', required: true, label: 'Ед. цена (EUR)', admin: { readOnly: true } },
+            { name: 'sku', type: 'text', label: 'SKU', admin: { readOnly: true } },
+          ],
+        },
+        {
+          name: 'product',
+          type: 'relationship',
+          relationTo: 'products',
+          label: 'Продукт от каталога',
+          admin: {
+            readOnly: true,
+            condition: (_data, sibling) => Boolean(sibling?.product),
+          },
+        },
+        {
+          name: 'variant',
+          type: 'relationship',
+          relationTo: 'product-variants',
+          label: 'Вариант',
+          admin: {
+            readOnly: true,
+            condition: (_data, sibling) => Boolean(sibling?.variant),
+          },
+        },
+        {
+          name: 'customSpecs',
+          type: 'json',
+          label: 'Размери по поръчка',
+          admin: {
+            readOnly: true,
+            condition: (_data, sibling) => Boolean(sibling?.customSpecs),
+            description:
+              'Точните размери, по които цехът изработва лентата. Записани при поръчката и проверени от сървъра — затова не се редактират.',
+          },
+        },
       ],
     },
     {
@@ -98,22 +139,33 @@ export const Orders: CollectionConfig = {
         { name: 'trackingNumber', type: 'text', label: 'Tracking номер' },
       ],
     },
+    // The three money fields sit in the sidebar, read-only, because /api/orders
+    // computed them from the price tables and re-verified every line. Editing
+    // one here would silently disagree with what the customer was charged and
+    // with what the accountant reconciles against.
     {
       name: 'subtotal',
       type: 'number',
       label: 'Междинна сума (EUR)',
+      admin: { position: 'sidebar', readOnly: true },
     },
     {
       name: 'tax',
       type: 'number',
       label: 'ДДС (EUR)',
       defaultValue: 0,
+      admin: { position: 'sidebar', readOnly: true },
     },
     {
       name: 'total',
       type: 'number',
       required: true,
-      label: 'Обща сума (EUR)',
+      label: 'ОБЩА СУМА (EUR)',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'Изчислено от сървъра при поръчката. Не се редактира.',
+      },
     },
     {
       name: 'vatRate',
@@ -122,7 +174,8 @@ export const Orders: CollectionConfig = {
       defaultValue: 0.2,
       admin: {
         position: 'sidebar',
-        description: 'Ставката към момента на поръчката. Пази се, защото се променя.',
+        readOnly: true,
+        description: '0.2 = 20%. Ставката към момента на поръчката — пази се, защото се променя.',
       },
     },
     // Every money field above is EUR — the authored currency. These two record
