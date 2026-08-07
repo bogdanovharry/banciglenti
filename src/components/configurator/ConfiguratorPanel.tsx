@@ -70,13 +70,13 @@ function Select({ label, options, required, value, onChange, format }: {
 }) {
   return (
     <div>
-      <label className="block font-sans text-sm font-semibold text-ink mb-1.5">
-        {label} {required && <span className="text-danger">*</span>}
+      <label className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">
+        {label} {required && <span className="text-orange">*</span>}
       </label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-11 px-3 border border-ink-15 bg-white font-sans text-sm outline-none focus:border-blue transition-colors cursor-pointer"
+        className="w-full h-12 px-3.5 border border-ink-15 bg-white font-sans text-[15px] text-ink outline-none focus:border-blue hover:border-ink-30 transition-colors cursor-pointer"
       >
         <option value="">— избери —</option>
         {options.map((o) => (
@@ -93,8 +93,8 @@ function NumberInput({ label, unit, value, onChange, required, highlight }: {
 }) {
   return (
     <div>
-      <label className={`block font-sans text-sm font-semibold mb-1.5 ${highlight ? "text-danger" : "text-ink"}`}>
-        {label} {required && <span className="text-danger">*</span>}
+      <label className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">
+        {label} {required && <span className="text-orange">*</span>}
       </label>
       <div className="flex items-center gap-2">
         <input
@@ -102,7 +102,7 @@ function NumberInput({ label, unit, value, onChange, required, highlight }: {
           value={value || ""}
           onChange={(e) => onChange(+e.target.value)}
           min={0}
-          className="w-full h-11 px-3 border border-ink-15 bg-white font-mono text-sm outline-none focus:border-blue transition-colors"
+          className="w-full h-12 px-3.5 border border-ink-15 bg-white font-mono text-[15px] tabular-nums text-ink outline-none focus:border-blue hover:border-ink-30 transition-colors"
           placeholder="0"
         />
         <span className="font-mono text-sm text-ink-50 shrink-0">{unit}</span>
@@ -115,14 +115,18 @@ function Checkbox({ label, checked, onChange }: {
   label: string; checked: boolean; onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-center gap-2.5 cursor-pointer font-sans text-sm text-ink">
+    <label className="flex items-center gap-3 cursor-pointer font-sans text-sm text-ink group select-none">
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="w-4 h-4 accent-blue cursor-pointer"
+        className="sr-only peer"
       />
-      {label}
+      <span
+        aria-hidden
+        className={`w-4 h-4 shrink-0 border transition-colors ${checked ? "bg-orange border-orange" : "border-ink-30 group-hover:border-ink"}`}
+      />
+      <span className={checked ? "text-ink" : "text-ink-70"}>{label}</span>
     </label>
   );
 }
@@ -130,11 +134,11 @@ function Checkbox({ label, checked, onChange }: {
 function QuantityStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
     <div>
-      <label className="block font-sans text-sm font-semibold text-ink mb-1.5">Количество</label>
+      <label className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">Количество</label>
       <div className="inline-flex items-center border border-ink-15 bg-white">
         <button
           onClick={() => onChange(Math.max(1, value - 1))}
-          className="w-11 h-11 flex items-center justify-center bg-blue text-white border-none cursor-pointer text-lg font-bold hover:brightness-110"
+          className="w-12 h-12 flex items-center justify-center bg-ink text-white border-none cursor-pointer text-lg font-bold hover:bg-orange transition-colors"
         >
           −
         </button>
@@ -142,12 +146,12 @@ function QuantityStepper({ value, onChange }: { value: number; onChange: (v: num
           type="number"
           value={value}
           onChange={(e) => onChange(Math.max(1, +e.target.value || 1))}
-          className="w-14 h-11 text-center border-none font-mono text-base font-semibold outline-none"
+          className="w-14 h-12 text-center border-none font-mono text-base font-semibold tabular-nums outline-none"
           min={1}
         />
         <button
           onClick={() => onChange(value + 1)}
-          className="w-11 h-11 flex items-center justify-center bg-blue text-white border-none cursor-pointer text-lg font-bold hover:brightness-110"
+          className="w-12 h-12 flex items-center justify-center bg-ink text-white border-none cursor-pointer text-lg font-bold hover:bg-orange transition-colors"
         >
           +
         </button>
@@ -258,10 +262,20 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           </div>
         )}
 
-        <div className="mt-auto">
-          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: <span className="text-ink font-semibold">{formatPrice(unitPrice)}</span></div>
-          <div className="font-sans text-lg mb-4">
-            цена с ДДС: <span className="text-danger text-2xl font-bold">{formatPrice(unitPriceVat)}</span>
+        {/* The figure a buyer acts on, given the weight it deserves: ex-VAT
+            large because that is what a trade customer budgets against, with
+            VAT stated beneath rather than shouted in red. */}
+        <div className="mt-auto border-t-2 border-ink pt-4">
+          <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">
+            Цена без ДДС
+          </div>
+          <div className="flex items-baseline gap-2 mt-1 mb-1">
+            <span className="font-display text-[40px] leading-none font-extrabold tracking-[-0.03em] text-ink tabular-nums">
+              {formatPrice(unitPrice)}
+            </span>
+          </div>
+          <div className="font-mono text-[11px] text-ink-50 tabular-nums mb-5">
+            с ДДС {formatPrice(unitPriceVat)}
           </div>
           <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAdd}>
             {added ? "✓ Добавено в количката!" : "Добави в количката"}
@@ -361,9 +375,10 @@ function RealDataConfigurator({
             {selectedBlade.welding > 0 && <> · Заварка: {selectedBlade.welding.toFixed(2)} €/бр</>}
           </div>
         )}
-        <div className="mt-auto">
-          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: <span className="text-ink font-semibold">{formatPrice(unitPrice)}</span></div>
-          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{formatPrice(unitPriceVat)}</span></div>
+        <div className="mt-auto border-t-2 border-ink pt-4">
+          <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">Цена без ДДС</div>
+          <div className="font-display text-[40px] leading-none font-extrabold tracking-[-0.03em] text-ink tabular-nums mt-1 mb-1">{formatPrice(unitPrice)}</div>
+          <div className="font-mono text-[11px] text-ink-50 tabular-nums mb-5">с ДДС {formatPrice(unitPriceVat)}</div>
           <Btn variant="primary" size="lg" fullWidth onClick={handleAdd}>
             {added ? "✓ Добавено!" : "Добави в количката"}
           </Btn>
@@ -397,9 +412,10 @@ function MetalBiConfigurator() {
       <div className="flex flex-col gap-5">
         <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
         <QuantityStepper value={qty} onChange={setQty} />
-        <div className="mt-auto">
-          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: {formatPrice(unitPrice)}</div>
-          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{formatPrice(unitPrice * (1 + VAT_RATE))}</span></div>
+        <div className="mt-auto border-t-2 border-ink pt-4">
+          <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">Цена без ДДС</div>
+          <div className="font-display text-[40px] leading-none font-extrabold tracking-[-0.03em] text-ink tabular-nums mt-1 mb-1">{formatPrice(unitPrice)}</div>
+          <div className="font-mono text-[11px] text-ink-50 tabular-nums mb-5">с ДДС {formatPrice(unitPrice * (1 + VAT_RATE))}</div>
           <Btn variant="primary" size="lg" fullWidth>Добави в количката</Btn>
         </div>
       </div>
@@ -437,9 +453,10 @@ function SimpleConfigurator({ widths, pitchLabel, pitchOptions }: {
       <div className="flex flex-col gap-5">
         <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
         <QuantityStepper value={qty} onChange={setQty} />
-        <div className="mt-auto">
-          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: {formatPrice(unitPrice)}</div>
-          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{formatPrice(unitPrice * (1 + VAT_RATE))}</span></div>
+        <div className="mt-auto border-t-2 border-ink pt-4">
+          <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">Цена без ДДС</div>
+          <div className="font-display text-[40px] leading-none font-extrabold tracking-[-0.03em] text-ink tabular-nums mt-1 mb-1">{formatPrice(unitPrice)}</div>
+          <div className="font-mono text-[11px] text-ink-50 tabular-nums mb-5">с ДДС {formatPrice(unitPrice * (1 + VAT_RATE))}</div>
           <Btn variant="primary" size="lg" fullWidth>Добави в количката</Btn>
         </div>
       </div>
@@ -478,9 +495,10 @@ function HobbyConfigurator() {
           <Checkbox label="Заточване" checked={sharpening} onChange={setSharpening} />
           <Checkbox label="Термообработка" checked={heatTreat} onChange={setHeatTreat} />
         </div>
-        <div className="mt-auto">
-          <div className="font-sans text-sm text-ink-50 mb-1">цена без ДДС: {formatPrice(unitPrice)}</div>
-          <div className="font-sans text-lg mb-4">цена с ДДС: <span className="text-danger text-2xl font-bold">{formatPrice(unitPrice * (1 + VAT_RATE))}</span></div>
+        <div className="mt-auto border-t-2 border-ink pt-4">
+          <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">Цена без ДДС</div>
+          <div className="font-display text-[40px] leading-none font-extrabold tracking-[-0.03em] text-ink tabular-nums mt-1 mb-1">{formatPrice(unitPrice)}</div>
+          <div className="font-mono text-[11px] text-ink-50 tabular-nums mb-5">с ДДС {formatPrice(unitPrice * (1 + VAT_RATE))}</div>
           <Btn variant="primary" size="lg" fullWidth>Добави в количката</Btn>
         </div>
       </div>
@@ -535,20 +553,23 @@ export function ConfiguratorPanel() {
         {(activeTab === "bread") && <RealDataConfigurator blades={BREAD_BLADES} label="Лентов нож за хляб" tableKey="bread" hasProcessing={false} />}
         {(activeTab === "slicer") && <RealDataConfigurator blades={TEXTILE_BLADES} label="Лента за текстил/хартия" tableKey="textile" hasProcessing={false} />}
 
-        {/* Trust section */}
-        <div className="mt-14 pt-10 border-t border-ink-15 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Set as data, in the site's own idiom. The green ticks came from the
+            old shop and read as a template; a numbered rail with hairline rules
+            matches how every other section here presents facts. The precision
+            claim is gone — it has never been substantiated. */}
+        <div className="mt-14 pt-10 border-t border-ink-15 grid grid-cols-2 lg:grid-cols-4 gap-px bg-ink-15">
           {[
-            ["Изработка по поръчка", "Срокът се потвърждава при поръчката"],
-            ["Безплатна доставка", `При поръчка над ${DEFAULT_MARKET.freeShippingThreshold} €`],
-            ["±0.01 мм точност", "Прецизно заваряване"],
-            ["Гаранция на заварката", "Скъсване на шева — подменяме лентата"],
-          ].map(([title, desc]) => (
-            <div key={title} className="flex gap-3">
-              <IconCheck size={20} className="text-ok shrink-0 mt-0.5" />
-              <div>
-                <div className="font-display text-sm font-semibold text-ink">{title}</div>
-                <div className="font-mono text-[10px] text-ink-50 mt-0.5 tracking-[0.05em]">{desc}</div>
+            ["Изработка", "по поръчка", "Срокът се потвърждава при поръчката"],
+            ["Доставка", "безплатна", `При поръчка над ${DEFAULT_MARKET.freeShippingThreshold} €`],
+            ["1 650–12 000", "мм контур", "Заваряваме на вашата дължина"],
+            ["Гаранция", "на заварката", "Скъсване на шева — подменяме лентата"],
+          ].map(([figure, unit, desc]) => (
+            <div key={desc} className="bg-white p-5">
+              <div className="font-display text-lg font-bold tracking-tight text-ink tabular-nums leading-none">
+                {figure}
               </div>
+              <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-orange mt-1.5">{unit}</div>
+              <div className="font-sans text-[12px] leading-snug text-ink-50 mt-2.5">{desc}</div>
             </div>
           ))}
         </div>

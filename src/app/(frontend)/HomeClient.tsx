@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/icons";
 import { DEFAULT_MARKET, formatPrice, vatRateFor } from "@/lib/market";
 import { COMPANY } from "@/lib/company";
+import { ConfiguratorPanel } from "@/components/configurator/ConfiguratorPanel";
 import { useTranslations } from "next-intl";
 
 // Industrial accent for highlighted words — heavy upright sans, brand orange
@@ -268,7 +269,62 @@ function pick<T>(options: readonly T[], current: T | null): T | undefined {
   return options[0];
 }
 
-function CustomOrderBlock() {
+/**
+ * The homepage used to carry its own cut-down quote widget: three blade types,
+ * its own copies of the dropdowns, its own price maths. The real configurator
+ * covers eight types and is the thing that actually gets maintained, so the
+ * duplicate is gone and this is the intro to it.
+ *
+ * The dark ground stays — it is the one full-bleed dark band on the page and it
+ * marks where the site stops selling and starts quoting.
+ */
+function ConfiguratorSection() {
+  const t = useTranslations("home.quote");
+
+  return (
+    <section id="custom" className="relative">
+      <div className="bg-ink text-white pt-20 md:pt-[104px] pb-14 relative overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            maskImage: "linear-gradient(180deg, transparent, #000 25%, #000 100%)",
+          }}
+        />
+        <div className="max-w-[1440px] mx-auto px-4 md:px-10 relative">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-10 lg:gap-20 items-end">
+            <Reveal>
+              <SectionNumber n="№ 03" label={t("eyebrow")} tone="light" />
+              <h2 className="font-display text-4xl md:text-5xl lg:text-[64px] leading-[0.98] tracking-[-0.04em] font-bold mt-7 mb-0">
+                {t("title1")}<br />
+                <span className={`${accent} text-orange-light`}>{t("title2")}</span>
+              </h2>
+            </Reveal>
+            <Reveal delay={120}>
+              <p className="font-sans text-[17px] leading-relaxed text-white/70 max-w-[460px] mb-6">
+                {t("lede1")} {t("lede2")}
+              </p>
+              <div className="flex flex-wrap gap-x-8 gap-y-3 font-mono text-[10px] tracking-[0.12em] uppercase text-white/50">
+                <span>133 {"спецификации"}</span>
+                <span>1 650–12 000 мм</span>
+                <span className="text-orange-light">{t("priceFromList")}</span>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </div>
+
+      {/* The real thing — eight blade types, priced from the same tables the
+          order route re-checks against. */}
+      <ConfiguratorPanel />
+    </section>
+  );
+}
+
+function CustomOrderBlockLegacy() {
   const t = useTranslations("home.quote");
   const [typeKey, setTypeKey] = useState<(typeof QUOTE_TYPES)[number]["key"]>("wood-h");
   const [selWidth, setSelWidth] = useState<number | null>(null);
@@ -906,7 +962,7 @@ export function HomeClient({
       <HeroCustom />
       <TickerStrip />
       <IndustriesBlock counts={categoryCounts} />
-      <CustomOrderBlock />
+      <ConfiguratorSection />
       <BestsellersBlock products={bestsellers} />
       <ExpertiseBlock />
       <ServicesBlock />
