@@ -13,6 +13,17 @@ export const Orders: CollectionConfig = {
     group: 'Поръчки',
   },
   fields: [
+    // The order as a document, above the fields that edit it. See
+    // src/payload/components/OrderSummary.tsx.
+    {
+      name: 'summary',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '@/payload/components/OrderSummary#OrderSummary',
+        },
+      },
+    },
     {
       name: 'orderNumber',
       type: 'text',
