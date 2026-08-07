@@ -180,6 +180,15 @@ export const Orders: CollectionConfig = {
             { name: 'trackingNumber', type: 'text', label: 'Товарителница' },
           ],
         },
+        /**
+         * The courier office, which the old platform had and this did not.
+         *
+         * Most orders in this trade go to an Еконт or Спиди office rather than
+         * to a street address — a blade is collected on the way past, not
+         * waited in for. Without a field for it the office was being typed into
+         * the address box, where the courier's own label printer cannot find it.
+         */
+        { name: 'office', type: 'text', label: 'Офис на куриера' },
         // Full width: it is an address, and it is also in the summary card, so
         // it is here only for correcting a typo before dispatch.
         { name: 'address', type: 'textarea', label: 'Адрес за доставка' },

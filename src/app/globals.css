@@ -205,6 +205,53 @@ html {
   }
 }
 
+/* --- The printed work order ------------------------------------------------
+   What leaves the office on paper and goes to the bench. The screen version is
+   two columns — the order on the left, the controls on the right — and only the
+   left half is a work order. Everything the workshop cannot act on is dropped:
+   the nav, the status select, the add-a-line form, the comment box.
+
+   `.tl-print-only` is the mirror: the company's own name and address, obvious
+   on screen and necessary on a sheet that ends up in someone else's hands. */
+.tl-print-only {
+  display: none;
+}
+
+@media print {
+  .tl-no-print,
+  nav[aria-label="Управление"] {
+    display: none !important;
+  }
+
+  .tl-print-only {
+    display: block;
+  }
+
+  /* The order column carries the whole width once the controls are gone. */
+  .tl-order .xl\:grid-cols-\[minmax\(0\,1fr\)_360px\] {
+    display: block;
+  }
+
+  .tl-order {
+    font-size: 11pt;
+  }
+
+  /* Backgrounds default to unprinted, which turns the totals block and the
+     table head into floating text. Borders carry the structure instead. */
+  .tl-order .bg-paper {
+    background: transparent;
+    border-top: 1px solid #111;
+  }
+
+  a[href]::after {
+    content: "";
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}
+
 /* Selection */
 ::selection {
   background: #004FC6;
