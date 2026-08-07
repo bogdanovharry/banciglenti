@@ -27,6 +27,6 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   { href: '/manage/orders', label: 'Поръчки', n: '01' },
-  { href: '/manage/customers', label: 'Клиенти', n: '02', soon: true },
+  { href: '/manage/customers', label: 'Клиенти', n: '02' },
   { href: '/manage/products', label: 'Продукти', n: '03', soon: true },
 ]
