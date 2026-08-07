@@ -42,10 +42,15 @@ export const Orders: CollectionConfig = {
       required: true,
       admin: { hidden: true },
     },
+    // Hidden from the form: every line, its sizes and its totals are in the
+    // summary card. Keeping the array here as well is what forced the screen
+    // to scroll — the old platform fitted the whole order in one view and that
+    // is the point of it.
     {
       name: 'items',
       type: 'array',
       label: 'Продукти',
+      admin: { hidden: true },
       fields: [
         // Name first: it is what the row is. The two relationships come after,
         // and only appear for catalogue lines — a made-to-measure blade has no
@@ -211,11 +216,7 @@ export const Orders: CollectionConfig = {
     {
       name: 'notes',
       type: 'textarea',
-      label: 'Коментар от клиента',
-      admin: {
-        readOnly: true,
-        description: 'Каквото клиентът е написал при поръчката.',
-      },
+      admin: { hidden: true }, // shown in the summary card
     },
     /**
      * Internal history, which the old platform had and this did not.
