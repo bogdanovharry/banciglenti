@@ -199,8 +199,8 @@ function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
                 </div>
 
                 <div>
-                  <div className="font-display text-3xl lg:text-[34px] font-bold tracking-tight mb-2">{c.name}</div>
-                  <p className="font-sans text-sm leading-snug text-white/70 m-0 max-w-[34ch]">{c.desc}</p>
+                  <div className="font-display text-3xl lg:text-[34px] font-bold tracking-tight mb-2">{t(c.name)}</div>
+                  <p className="font-sans text-sm leading-snug text-white/70 m-0 max-w-[34ch]">{t(c.desc)}</p>
                   <div className="mt-4 pt-4 border-t border-white/20 flex justify-between items-center font-mono text-[11px] text-white/60 tracking-[0.04em]">
                     {/* Категории без наличен склад се предлагат по заявка —
                         показването на „0 артикула“ убива интереса без причина. */}
