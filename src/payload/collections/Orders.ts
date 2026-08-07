@@ -24,21 +24,23 @@ export const Orders: CollectionConfig = {
         },
       },
     },
+    // Both are in the summary card above — the number is also the page title,
+    // and the customer's name, phone and email are on one line there. Repeating
+    // them as locked inputs added nothing, and the relationship rendered as
+    // "Неозаглавен - ID: 5" instead of the name it holds.
     {
       name: 'orderNumber',
       type: 'text',
       required: true,
       unique: true,
-      label: 'Номер на поръчка',
-      admin: { readOnly: true },
+      admin: { hidden: true },
     },
     {
       name: 'customer',
       type: 'relationship',
       relationTo: 'customers',
       required: true,
-      label: 'Клиент',
-      admin: { readOnly: true },
+      admin: { hidden: true },
     },
     {
       name: 'items',
@@ -162,44 +164,22 @@ export const Orders: CollectionConfig = {
     // computed them from the price tables and re-verified every line. Editing
     // one here would silently disagree with what the customer was charged and
     // with what the accountant reconciles against.
-    {
-      name: 'subtotal',
-      type: 'number',
-      label: 'Междинна сума (EUR)',
-      admin: { position: 'sidebar', readOnly: true },
-    },
-    {
-      name: 'tax',
-      type: 'number',
-      label: 'ДДС (EUR)',
-      defaultValue: 0,
-      admin: { position: 'sidebar', readOnly: true },
-    },
-    {
-      name: 'total',
-      type: 'number',
-      required: true,
-      label: 'ОБЩА СУМА (EUR)',
-      admin: {
-        position: 'sidebar',
-        readOnly: true,
-        description: 'Изчислено от сървъра при поръчката. Не се редактира.',
-      },
-    },
-    {
-      name: 'vatRate',
-      type: 'number',
-      label: 'ДДС ставка',
-      defaultValue: 0.2,
-      admin: {
-        position: 'sidebar',
-        readOnly: true,
-        description: '0.2 = 20%. Ставката към момента на поръчката — пази се, защото се променя.',
-      },
-    },
-    // Every money field above is EUR — the authored currency. These two record
-    // what the buyer actually saw, so an order stays reconcilable after the
-    // display rate is revised.
+    // Hidden from the form, not removed. The summary card at the top already
+    // shows every one of these, formatted and adding up — repeating them in the
+    // sidebar as locked inputs gave the reader nothing and cost them the space.
+    // The values still exist on the document, and the API still returns them.
+    { name: 'subtotal', type: 'number', admin: { hidden: true } },
+    { name: 'tax', type: 'number', defaultValue: 0, admin: { hidden: true } },
+    { name: 'total', type: 'number', required: true, admin: { hidden: true } },
+    { name: 'vatRate', type: 'number', defaultValue: 0.2, admin: { hidden: true } },
+    /**
+     * Currency and rate appear only when they say something.
+     *
+     * With one market, "EUR" and "1" are noise on every order — they are the
+     * only values they can hold. They become visible the moment an order
+     * arrives in another currency, which is exactly when someone needs to see
+     * at what rate it was taken.
+     */
     {
       name: 'currency',
       type: 'select',
@@ -210,7 +190,11 @@ export const Orders: CollectionConfig = {
         { label: 'EUR', value: 'EUR' },
         { label: 'RON', value: 'RON' },
       ],
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        condition: (data) => data?.currency !== 'EUR',
+      },
     },
     {
       name: 'exchangeRate',
@@ -219,7 +203,9 @@ export const Orders: CollectionConfig = {
       label: 'Курс към EUR',
       admin: {
         position: 'sidebar',
-        description: 'Курсът, показан на клиента при поръчката. 1 за EUR.',
+        readOnly: true,
+        condition: (data) => data?.currency !== 'EUR',
+        description: 'Курсът, показан на клиента при поръчката.',
       },
     },
     {

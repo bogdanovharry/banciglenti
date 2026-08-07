@@ -110,6 +110,32 @@ export function OrderSummary() {
   const status = String(get('status') ?? 'pending')
   const badge = STATUS[status] ?? { label: status, bg: '#F3F4F6', fg: '#374151' }
 
+  const created = get('createdAt')
+  const placedAt =
+    typeof created === 'string'
+      ? new Date(created).toLocaleString('bg-BG', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : ''
+
+  const customerNote = String(get('notes') ?? '').trim()
+
+  // Internal history, newest first — the question is always "what happened last".
+  const log: { note: string; at: string }[] = []
+  for (let i = 0; ; i++) {
+    if (fields?.[`log.${i}.note`] === undefined) break
+    log.push({
+      note: String(get(`log.${i}.note`) ?? ''),
+      at: String(get(`log.${i}.at`) ?? ''),
+    })
+    if (i > 200) break
+  }
+  log.reverse()
+
   // Array rows arrive as flattened paths: items.0.name, items.0.quantity, …
   const rows: Row[] = []
   for (let i = 0; ; i++) {
@@ -163,6 +189,7 @@ export function OrderSummary() {
         <strong style={{ fontSize: 18, letterSpacing: '-0.01em' }}>
           {String(get('orderNumber') ?? '')}
         </strong>
+        <span style={{ fontSize: 13, color: 'var(--theme-elevation-600)' }}>{placedAt}</span>
         <span
           style={{
             background: badge.bg,
@@ -332,6 +359,54 @@ export function OrderSummary() {
           </tbody>
         </table>
       </div>
+
+      {/* What the customer wrote at checkout. Set apart because it is theirs,
+          not ours, and it is the one thing on the order nobody can re-derive. */}
+      {customerNote && (
+        <div
+          style={{
+            padding: '12px 16px',
+            borderTop: '1px solid var(--theme-elevation-150)',
+            borderLeft: '3px solid #D97706',
+          }}
+        >
+          <div style={{ ...head, padding: 0, marginBottom: 4 }}>Коментар от клиента</div>
+          <div style={{ fontSize: 13.5, whiteSpace: 'pre-line' }}>{customerNote}</div>
+        </div>
+      )}
+
+      {/* Internal history. Newest first, because the question is always what
+          happened last — who rang, why it was refused, when the size was
+          confirmed. Added from the "Коментари по поръчката" field below. */}
+      {log.length > 0 && (
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--theme-elevation-150)' }}>
+          <div style={{ ...head, padding: 0, marginBottom: 8 }}>История</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {log.map((entry, i) => (
+              <div key={i} style={{ display: 'flex', gap: 12, fontSize: 13 }}>
+                <span
+                  style={{
+                    color: 'var(--theme-elevation-500)',
+                    whiteSpace: 'nowrap',
+                    fontVariantNumeric: 'tabular-nums',
+                    minWidth: 108,
+                  }}
+                >
+                  {entry.at
+                    ? new Date(entry.at).toLocaleString('bg-BG', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : '—'}
+                </span>
+                <span style={{ whiteSpace: 'pre-line' }}>{entry.note}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
