@@ -25,15 +25,6 @@ export const Orders: CollectionConfig = {
       },
     },
     {
-      type: 'collapsible',
-      label: 'Данни по поръчката (справка)',
-      admin: {
-        initCollapsed: true,
-        description:
-          'Всичко тук се вижда в резюмето отгоре. Разгънете само ако трябва да проверите нещо ред по ред.',
-      },
-      fields: [
-    {
       name: 'orderNumber',
       type: 'text',
       required: true,
@@ -115,8 +106,6 @@ export const Orders: CollectionConfig = {
         { label: 'Отказана', value: 'cancelled' },
       ],
       admin: { position: 'sidebar' },
-    },
-      ],
     },
     {
       name: 'payment',
