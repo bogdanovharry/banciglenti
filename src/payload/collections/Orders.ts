@@ -123,27 +123,40 @@ export const Orders: CollectionConfig = {
       admin: { position: 'sidebar' },
     },
     {
+      // Every control on one line. Stacked full-width fields are what made this
+      // three screens tall — the old platform put the whole order in one view
+      // and that is the only thing that makes it quick to work.
       name: 'payment',
       type: 'group',
       label: 'Плащане',
       fields: [
         {
-          name: 'method',
-          type: 'select',
-          label: 'Метод',
-          options: [
-            { label: 'myPOS (карта)', value: 'mypos' },
-            { label: 'Наложен платеж', value: 'cod' },
-            { label: 'Банков превод', value: 'bank_transfer' },
+          type: 'row',
+          fields: [
+            {
+              name: 'method',
+              type: 'select',
+              label: 'Метод',
+              options: [
+                { label: 'myPOS (карта)', value: 'mypos' },
+                { label: 'Наложен платеж', value: 'cod' },
+                { label: 'Банков превод', value: 'bank_transfer' },
+              ],
+            },
+            {
+              name: 'status',
+              type: 'select',
+              label: 'Статус на плащане',
+              options: [
+                { label: 'Очаква плащане', value: 'pending' },
+                { label: 'Платена', value: 'paid' },
+                { label: 'Неуспешна', value: 'failed' },
+                { label: 'Възстановена', value: 'refunded' },
+              ],
+            },
+            { name: 'transactionId', type: 'text', label: 'Transaction ID' },
           ],
         },
-        { name: 'status', type: 'select', label: 'Статус на плащане', options: [
-          { label: 'Очаква плащане', value: 'pending' },
-          { label: 'Платена', value: 'paid' },
-          { label: 'Неуспешна', value: 'failed' },
-          { label: 'Възстановена', value: 'refunded' },
-        ]},
-        { name: 'transactionId', type: 'text', label: 'Transaction ID' },
       ],
     },
     {
@@ -152,17 +165,24 @@ export const Orders: CollectionConfig = {
       label: 'Доставка',
       fields: [
         {
-          name: 'method',
-          type: 'select',
-          label: 'Метод',
-          options: [
-            { label: 'Куриер', value: 'courier' },
-            { label: 'Лично вземане', value: 'pickup' },
+          type: 'row',
+          fields: [
+            {
+              name: 'method',
+              type: 'select',
+              label: 'Метод',
+              options: [
+                { label: 'Куриер', value: 'courier' },
+                { label: 'Лично вземане', value: 'pickup' },
+              ],
+            },
+            { name: 'cost', type: 'number', label: 'Цена доставка (EUR)', defaultValue: 0 },
+            { name: 'trackingNumber', type: 'text', label: 'Товарителница' },
           ],
         },
+        // Full width: it is an address, and it is also in the summary card, so
+        // it is here only for correcting a typo before dispatch.
         { name: 'address', type: 'textarea', label: 'Адрес за доставка' },
-        { name: 'cost', type: 'number', label: 'Цена доставка (EUR)', defaultValue: 0 },
-        { name: 'trackingNumber', type: 'text', label: 'Tracking номер' },
       ],
     },
     // The three money fields sit in the sidebar, read-only, because /api/orders

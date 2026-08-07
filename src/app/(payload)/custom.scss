@@ -387,3 +387,35 @@ textarea:read-only {
     break-inside: avoid;
   }
 }
+
+/* ======================================================================
+   Order screen: two columns, one view
+   ----------------------------------------------------------------------
+   Payment and shipping stack full-width by default, which put the whole
+   order at three screens tall even at 50% zoom. Side by side they land in
+   one view, as the old platform's order screen did.
+
+   Scoped to groups so no other collection is affected, and dropped below
+   1100px where two columns would squeeze the selects.
+   ====================================================================== */
+@media (min-width: 1100px) {
+  .collection-edit .render-fields > .group-field {
+    display: inline-block;
+    width: calc(50% - 8px);
+    vertical-align: top;
+  }
+
+  .collection-edit .render-fields > .group-field:nth-of-type(odd) {
+    margin-right: 16px;
+  }
+}
+
+/* The group's own heading was the same size as its field labels, so
+   "Плащане" and "Доставка" did not read as sections. */
+.group-field > .group-field__wrap > .group-field__header h3 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-600);
+}
