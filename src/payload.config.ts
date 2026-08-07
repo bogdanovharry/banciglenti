@@ -78,6 +78,10 @@ export default buildConfig({
     meta: {
       titleSuffix: ' | ТЕХНОЛЕС',
     },
+    components: {
+      // Stat cards and action panels above Payload's own collection cards.
+      beforeDashboard: ['@/payload/components/Dashboard#Dashboard'],
+    },
   },
   /**
    * Bulgarian only, on purpose.
