@@ -92,7 +92,7 @@ function HeroCustom() {
           {[
             ["30+", tf("years")],
             ["12 000", tf("clients")],
-            ["6-100", tf("width")],
+            ["6-200", tf("width")],
             ["±0.01", tf("precision")],
           ].map(([v, l], i) => (
             <div key={l} className={`pt-5 pb-1 pr-4 ${i > 0 ? "md:border-l md:border-white/20 md:pl-5" : ""}`}>
@@ -109,7 +109,19 @@ function HeroCustom() {
 // ========== TICKER ==========
 function TickerStrip() {
   const t = useTranslations("home.ticker");
-  const items = ["sizes", "freeShipping", "welding", "consult", "delivery", "guarantee"].map((k) => t(k));
+  // Every entry has to be defensible. "Над 8 000 размера на склад", "Заваряване
+  // за 4 часа" and "Доставка до 48ч" were removed: the first described
+  // made-to-order combinations as stock, and the other two promised times the
+  // workshop does not commit to. What replaced them is countable — see the
+  // figures in messages/*.json, derived from the price tables themselves.
+  const items = [
+    "specs",
+    "widths",
+    "freeShipping",
+    "consult",
+    "lengthRange",
+    "guarantee",
+  ].map((k) => t(k));
   return (
     <div className="bg-navy text-white overflow-hidden border-t-4 border-orange">
       <div className="flex gap-12 py-4 whitespace-nowrap font-mono text-xs tracking-[0.1em] uppercase" style={{ animation: "tl-marquee 45s linear infinite" }}>
@@ -609,10 +621,12 @@ function ExpertiseBlock() {
           </p>
           <div className="grid grid-cols-2 gap-px bg-white/10 border border-white/10">
             {[
-              ["2 400м²", "складова площ"],
-              ["8 000+", "размера на склад"],
-              ["156", "партньори в ЕС"],
-              ["99.2%", "поръчки в срок"],
+              // Counted from the price tables in src/lib/pricing.ts, so these
+              // cannot drift away from what the configurator will quote.
+              ["133", "спецификации ленти"],
+              ["23", "широчини от 6 до 200 мм"],
+              ["33", "профила и стъпки"],
+              ["8", "вида стомана"],
             ].map(([v, l]) => (
               <div key={l} className="p-7 bg-navy">
                 <div className="font-display text-3xl md:text-5xl font-extrabold tracking-tight leading-none tl-figures">{v}</div>

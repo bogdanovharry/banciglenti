@@ -96,11 +96,11 @@
       "onTime": "comenzi la termen"
     },
     "ticker": {
-      "sizes": "● Peste 8 000 de dimensiuni în stoc",
+      "specs": "● 133 de specificații de pânze",
+      "widths": "● 23 de lățimi · 33 de profile și pași",
       "freeShipping": "● Livrare gratuită peste 200 €",
-      "welding": "● Sudare în 4 ore",
       "consult": "● Consultanță tehnică",
-      "delivery": "● Livrare în 48h",
+      "lengthRange": "● Sudăm de la 1 650 la 12 000 mm",
       "guarantee": "● Garanție pentru sudură"
     },
     "industries": {
