@@ -184,3 +184,166 @@ $sw: "stroke='black' stroke-width='1.7' fill='none' stroke-linecap='round' strok
     --hover-bg: var(--tl-blue-deep);
   }
 }
+
+/* ======================================================================
+   Surface system
+   ----------------------------------------------------------------------
+   Adapted from the Flatlogic e-commerce admin: a light page ground with
+   content sitting on white cards, rather than Payload's default of forms
+   floating directly on the page.
+
+   The point is not decoration. Payload renders a list, its filter bar and its
+   pagination as three unbounded blocks on one surface, so nothing tells the
+   eye where a thing starts and ends. Giving each its own card is what makes a
+   dense screen scannable — the same reason the dashboard reads better than
+   the collection views it sits above.
+
+   Only structure and edges are touched. Payload's greys are tuned for long
+   sessions and are left alone.
+   ====================================================================== */
+
+:root {
+  --tl-radius: 4px;
+  --tl-card-border: 1px solid var(--theme-elevation-150);
+  --tl-shadow: 0 1px 2px rgb(0 0 0 / 4%);
+}
+
+/* Page ground, so white cards have something to sit on. */
+.template-default__wrap,
+.collection-list,
+.collection-edit {
+  background: var(--theme-elevation-50);
+}
+
+/* ---- Cards ------------------------------------------------------------ */
+.collection-list__wrap,
+.list-controls,
+.collection-edit .document-fields,
+.doc-header,
+.login__form,
+.card {
+  background: var(--theme-elevation-0);
+  border: var(--tl-card-border);
+  border-radius: var(--tl-radius);
+  box-shadow: var(--tl-shadow);
+}
+
+.list-controls {
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.collection-list__wrap {
+  overflow: hidden; /* keeps the table's corners inside the card */
+}
+
+/* ---- Tables ----------------------------------------------------------- */
+/* Column headings read as data until they are set apart from it. */
+.table thead th {
+  background: var(--theme-elevation-50);
+  border-bottom: 1px solid var(--theme-elevation-150);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-600);
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  transition: background 0.12s ease;
+}
+
+.table tbody tr:hover {
+  background: var(--theme-elevation-50);
+}
+
+.table td,
+.table th {
+  padding: 10px 14px;
+}
+
+/* Figures line up only when they are tabular and right-aligned. */
+.table td:has(.cell-total),
+.table td:has(.cell-basePrice),
+.table td:has(.cell-stock),
+.table td:has(.cell-subtotal) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Form controls ---------------------------------------------------- */
+/* One height and one radius everywhere, so a row of mixed field types stops
+   looking assembled from parts. */
+.field-type input[type='text'],
+.field-type input[type='email'],
+.field-type input[type='number'],
+.field-type input[type='password'],
+.field-type textarea,
+.rs__control {
+  border-radius: var(--tl-radius);
+  border-color: var(--theme-elevation-200);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.field-type input:focus,
+.field-type textarea:focus,
+.rs__control--is-focused {
+  border-color: var(--tl-blue) !important;
+  box-shadow: 0 0 0 3px rgb(0 79 198 / 12%) !important;
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-600);
+}
+
+/* Read-only fields should look read-only. Several order fields are computed by
+   the server and locked; without this they look like inputs someone forgot. */
+.field-type--read-only input,
+.field-type--read-only textarea,
+input:read-only,
+textarea:read-only {
+  background: var(--theme-elevation-50);
+  color: var(--theme-elevation-700);
+  cursor: default;
+}
+
+/* ---- Buttons ---------------------------------------------------------- */
+.btn {
+  border-radius: var(--tl-radius);
+  font-weight: 600;
+}
+
+/* ---- Array rows ------------------------------------------------------- */
+/* Order lines and image lists are collapsible rows; they were flush with the
+   form and read as one undifferentiated block. */
+.array-field__draggable-rows > * {
+  border: var(--tl-card-border);
+  border-radius: var(--tl-radius);
+  margin-bottom: 8px;
+  background: var(--theme-elevation-0);
+}
+
+.collapsible__toggle-wrap {
+  background: var(--theme-elevation-50);
+  border-radius: var(--tl-radius) var(--tl-radius) 0 0;
+}
+
+/* ---- Document header -------------------------------------------------- */
+.doc-header {
+  padding: 14px 18px;
+  margin-bottom: 14px;
+}
+
+/* ---- Status pills ----------------------------------------------------- */
+/* Payload renders select values as plain text in list cells. A status is the
+   one column people scan for, so it gets a shape. */
+.pill {
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+}
