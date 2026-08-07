@@ -78,15 +78,23 @@ export const Orders: CollectionConfig = {
             condition: (_data, sibling) => Boolean(sibling?.variant),
           },
         },
+        // Written by /api/orders. It stays on the document because the order
+        // route and the workshop both read it — but a JSON editor with line
+        // numbers is a request to a programmer, not a work order. Hidden here
+        // and rendered as fields by the panel below.
         {
           name: 'customSpecs',
           type: 'json',
-          label: 'Размери по поръчка',
+          admin: { hidden: true },
+        },
+        {
+          name: 'specsSummary',
+          type: 'ui',
           admin: {
-            readOnly: true,
             condition: (_data, sibling) => Boolean(sibling?.customSpecs),
-            description:
-              'Точните размери, по които цехът изработва лентата. Записани при поръчката и проверени от сървъра — затова не се редактират.',
+            components: {
+              Field: '@/payload/components/SpecsSummary#SpecsSummary',
+            },
           },
         },
       ],
