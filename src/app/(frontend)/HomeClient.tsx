@@ -94,7 +94,7 @@ function HeroCustom() {
             ["30+", tf("years")],
             ["12 000", tf("clients")],
             ["6-200", tf("width")],
-            ["±0.01", tf("precision")],
+            ["133", tf("specs")],
           ].map(([v, l], i) => (
             <div key={l} className={`pt-5 pb-1 pr-4 ${i > 0 ? "md:border-l md:border-white/20 md:pl-5" : ""}`}>
               <div className="font-display text-3xl md:text-4xl font-bold tracking-tight tabular-nums">{v}</div>
@@ -260,8 +260,8 @@ const QUOTE_TYPES = [
   { key: "metal", label: "Метал · биметал", blades: METAL_BIMETAL_BLADES, table: "metal-bi" },
 ] as const satisfies readonly { key: string; label: string; blades: unknown; table: BladeTableKey }[];
 
-const MIN_LEN = 1650;
-const MAX_LEN = 12000;
+const MIN_LEN = 1000;
+const MAX_LEN = 50000;
 
 /** Keeps a selection valid as its parent selection changes, without effects. */
 function pick<T>(options: readonly T[], current: T | null): T | undefined {

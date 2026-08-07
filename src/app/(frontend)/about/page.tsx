@@ -37,8 +37,8 @@ export default function AboutPage() {
         <p>
           Основната ни работа е <strong>изработка по размер</strong>: режем лентата на
           заявената от вас дължина и я заваряваме на контур, така че да пасне точно на
-          вашата машина. Заваряваме контури от {TERMS.customLengthMin.toLocaleString("bg-BG")} до{" "}
-          {TERMS.customLengthMax.toLocaleString("bg-BG")} мм.
+          вашата машина. Заваряваме контури от {TERMS.customLengthMin.toLocaleString("bg-BG")} мм
+          нагоре, без горна граница.
         </p>
         <p>
           В цеха предлагаме и обработка на вече закупени ленти — заточване, чапраз,

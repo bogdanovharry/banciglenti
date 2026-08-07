@@ -54,8 +54,14 @@ export type CustomSpecs = {
 }
 
 /** Loop lengths we will actually weld. Mirrors the configurator's own limits. */
-export const MIN_CUSTOM_LENGTH = 1650
-export const MAX_CUSTOM_LENGTH = 12000
+export const MIN_CUSTOM_LENGTH = 1000
+/**
+ * Not a capability limit — the workshop welds any length above the minimum.
+ * This is a typo guard: it stops a slipped keystroke turning 4000 into 40000
+ * and booking a 40-metre loop. Raise it freely; anything genuinely longer is a
+ * phone call, not a rejected order.
+ */
+export const MAX_CUSTOM_LENGTH = 50000
 
 export function parseCustomSpecs(value: unknown): CustomSpecs | null {
   if (!value || typeof value !== 'object') return null

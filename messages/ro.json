@@ -80,7 +80,7 @@
       "title1": "Fiecare pânză",
       "title2": "exact pentru",
       "title3": "utilajul dumneavoastră.",
-      "lede": "Producem și sudăm pânze de panglică la dimensiuni individuale pentru lemn, metal și industria alimentară — de la 1 650 la 12 000 mm.",
+      "lede": "Producem și sudăm pânze de panglică la dimensiuni individuale pentru lemn, metal și industria alimentară — de la 1 000 mm în sus, fără limită superioară.",
       "ctaConfigure": "Configurează pânza",
       "ctaCatalogue": "Vezi catalogul",
       "imageAlt": "Sudarea unei pânze de panglică la dimensiune în atelierul propriu"
@@ -89,18 +89,18 @@
       "years": "ani",
       "clients": "clienți activi",
       "width": "mm lățime",
-      "precision": "mm precizie",
       "storage": "suprafață de depozitare",
       "sizesInStock": "dimensiuni în stoc",
       "partners": "parteneri în UE",
-      "onTime": "comenzi la termen"
+      "onTime": "comenzi la termen",
+      "specs": "specificații de pânze"
     },
     "ticker": {
       "specs": "● 133 de specificații de pânze",
       "widths": "● 23 de lățimi · 33 de profile și pași",
       "freeShipping": "● Livrare gratuită peste 200 €",
       "consult": "● Consultanță tehnică",
-      "lengthRange": "● Sudăm de la 1 650 la 12 000 mm",
+      "lengthRange": "● Sudăm de la 1 000 mm la ∞",
       "guarantee": "● Garanție pentru sudură"
     },
     "industries": {

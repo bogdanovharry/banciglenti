@@ -104,7 +104,6 @@ export const TERMS = {
   freeShippingThreshold: MARKETS.bg.freeShippingThreshold,
   shippingCost: MARKETS.bg.shippingCost,
   currency: MARKETS.bg.displayCurrency,
-  /** Loop lengths we weld, mirroring the configurator's limits. */
-  customLengthMin: 1650,
-  customLengthMax: 12000,
+  /** Below this we do not weld; above it there is no upper limit. */
+  customLengthMin: 1000,
 } as const

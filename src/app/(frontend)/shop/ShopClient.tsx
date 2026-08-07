@@ -545,7 +545,7 @@ export function ShopClient({
                     <div>
                       <div className="font-display text-base font-bold text-ink">Поръчай лента по твоя размер</div>
                       <div className="font-mono text-[11px] text-ink-50 mt-0.5 tracking-[0.04em]">
-                        8 типа ленти · Дължина от 1650 до 12000 мм
+                        8 типа ленти · Дължина от 1 000 мм нагоре
                       </div>
                     </div>
                   </div>
