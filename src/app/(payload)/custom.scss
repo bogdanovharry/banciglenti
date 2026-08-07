@@ -347,3 +347,43 @@ textarea:read-only {
   font-size: 11.5px;
   letter-spacing: 0.01em;
 }
+
+/* ======================================================================
+   Print — the order as a work order
+   ----------------------------------------------------------------------
+   "Разпечатай" on an order should put the blade sizes in the workshop's hand,
+   not forty pages of admin chrome. Everything but the summary card is dropped,
+   which is also what the old platform's print link did.
+   ====================================================================== */
+@media print {
+  .nav,
+  .app-header,
+  .doc-header,
+  .doc-controls,
+  .document-fields,
+  .step-nav,
+  .tl-no-print,
+  .payload-toast-container {
+    display: none !important;
+  }
+
+  body,
+  .template-default,
+  .template-default__wrap,
+  .collection-edit {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Links print as their text; a bare URL after every phone number is noise. */
+  a[href]::after {
+    content: none !important;
+  }
+
+  /* Keep a line item and its sizes on one page. */
+  table tr,
+  section {
+    break-inside: avoid;
+  }
+}

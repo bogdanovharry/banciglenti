@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useFormFields } from '@payloadcms/ui'
 
 /**
@@ -70,10 +71,41 @@ function describeSpecs(specs: unknown): string | null {
 }
 
 type Row = { name: string; sku: string; qty: number; price: number; specs: string | null }
+type Contact = { name?: string; email?: string; phone?: string; company?: string }
+
+/**
+ * The form holds only the customer's id, but the person opening an order wants
+ * to ring them — the old platform put name, email and phone on one line and
+ * that was right. One fetch, and only when the id changes.
+ */
+function useCustomer(id: unknown): Contact | null {
+  const [contact, setContact] = useState<Contact | null>(null)
+
+  useEffect(() => {
+    const value = typeof id === 'object' && id ? (id as { id?: unknown }).id : id
+    if (typeof value !== 'number' && typeof value !== 'string') return
+
+    let cancelled = false
+    fetch(`/api/customers/${value}?depth=0`, { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((doc) => {
+        if (!cancelled && doc) setContact(doc as Contact)
+      })
+      .catch(() => {
+        /* the summary is still useful without it */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [id])
+
+  return contact
+}
 
 export function OrderSummary() {
   const fields = useFormFields(([f]) => f)
   const get = (path: string) => fields?.[path]?.value
+  const customer = useCustomer(get('customer'))
 
   const status = String(get('status') ?? 'pending')
   const badge = STATUS[status] ?? { label: status, bg: '#F3F4F6', fg: '#374151' }
@@ -151,7 +183,55 @@ export function OrderSummary() {
         <strong style={{ marginLeft: 'auto', fontSize: 22, letterSpacing: '-0.02em' }}>
           {money(get('total'))}
         </strong>
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="tl-no-print"
+          style={{
+            border: '1px solid var(--theme-elevation-200)',
+            background: 'var(--theme-elevation-0)',
+            borderRadius: 4,
+            padding: '5px 12px',
+            fontSize: 12.5,
+            fontWeight: 600,
+            cursor: 'pointer',
+            color: 'inherit',
+          }}
+        >
+          Разпечатай
+        </button>
       </div>
+
+      {/* Who to ring. The old platform put this on one line and it was right —
+          an order you cannot act on without opening a second record is a
+          half-finished screen. */}
+      {customer && (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '4px 18px',
+            padding: '10px 16px',
+            borderBottom: '1px solid var(--theme-elevation-150)',
+            fontSize: 13.5,
+          }}
+        >
+          <strong>{customer.name ?? '—'}</strong>
+          {customer.company && (
+            <span style={{ color: 'var(--theme-elevation-600)' }}>{customer.company}</span>
+          )}
+          {customer.phone && (
+            <a href={`tel:${customer.phone.replace(/\s/g, '')}`} style={{ color: 'var(--tl-blue, #004FC6)' }}>
+              {customer.phone}
+            </a>
+          )}
+          {customer.email && (
+            <a href={`mailto:${customer.email}`} style={{ color: 'var(--tl-blue, #004FC6)' }}>
+              {customer.email}
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Items */}
       <div style={{ overflowX: 'auto' }}>
