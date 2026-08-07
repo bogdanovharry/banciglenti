@@ -1,3 +1,4 @@
+import { DEFAULT_MARKET } from './market'
 import {
   VERTICAL_WOOD_BLADES,
   HORIZONTAL_WOOD_BLADES,
@@ -110,4 +111,49 @@ export function priceCustomItem(specs: CustomSpecs): number | null {
     heatTreatment: specs.heatTreatment ?? false,
     setting: specs.setting ?? false,
   }).totalWithoutVat
+}
+
+// --- Totals -----------------------------------------------------------------
+
+export const round2 = (n: number) => Math.round(n * 100) / 100
+
+export type OrderTotals = {
+  subtotal: number
+  shippingCost: number
+  tax: number
+  total: number
+}
+
+/**
+ * What an order comes to, given its lines.
+ *
+ * Lives here rather than in the checkout route because it is now asked twice:
+ * once when the customer places the order, and again when someone adds a line
+ * to it from the admin. Two copies of this arithmetic is two answers to "what
+ * does the customer owe", and the one the accountant reconciles against would
+ * eventually be the wrong one.
+ *
+ * `vatRate` is passed in, not read from the market, so re-pricing an existing
+ * order uses the rate that order was taken under. VAT is charged on goods only,
+ * not on the carriage — which is how the checkout has always computed it.
+ */
+export function computeOrderTotals({
+  lines,
+  shippingMethod,
+  vatRate,
+  freeShippingThreshold = DEFAULT_MARKET.freeShippingThreshold,
+  shippingCost = DEFAULT_MARKET.shippingCost,
+}: {
+  lines: { price: number; quantity: number }[]
+  shippingMethod: 'courier' | 'pickup'
+  vatRate: number
+  freeShippingThreshold?: number
+  shippingCost?: number
+}): OrderTotals {
+  const subtotal = round2(lines.reduce((sum, l) => sum + l.price * l.quantity, 0))
+  const carriage =
+    shippingMethod === 'pickup' || subtotal >= freeShippingThreshold ? 0 : shippingCost
+  const tax = round2(subtotal * vatRate)
+
+  return { subtotal, shippingCost: carriage, tax, total: round2(subtotal + carriage + tax) }
 }

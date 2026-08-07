@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import { parseCustomSpecs, priceCustomItem, type CustomSpecs } from '@/lib/order-pricing'
+import {
+  computeOrderTotals,
+  parseCustomSpecs,
+  priceCustomItem,
+  round2,
+  type CustomSpecs,
+} from '@/lib/order-pricing'
 import { DEFAULT_MARKET, vatRateFor } from '@/lib/market'
 
 export const dynamic = 'force-dynamic'
@@ -13,8 +19,6 @@ export const maxDuration = 30
 // authoritative copy: the browser's figures are a preview, and everything is
 // recomputed here before an order is written.
 const VAT_RATE = vatRateFor(DEFAULT_MARKET)
-const { freeShippingThreshold: FREE_SHIPPING_THRESHOLD, shippingCost: SHIPPING_COST } =
-  DEFAULT_MARKET
 
 const PAYMENT_METHODS = ['bank_transfer', 'cod'] as const
 const SHIPPING_METHODS = ['courier', 'pickup'] as const
@@ -32,8 +36,6 @@ type PricedLine = {
   price: number
   customSpecs?: CustomSpecs
 }
-
-const round2 = (n: number) => Math.round(n * 100) / 100
 
 /**
  * TL-260806-4F2A — sortable by eye, short enough to read down a phone line.
@@ -159,11 +161,13 @@ export async function POST(request: Request) {
       })
     }
 
-    const subtotal = round2(priced.reduce((sum, l) => sum + l.price * l.quantity, 0))
-    const shippingCost =
-      shippingMethod === 'pickup' || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
-    const tax = round2(subtotal * VAT_RATE)
-    const total = round2(subtotal + shippingCost + tax)
+    // Same function the admin re-prices through when a line is added later, so
+    // an amended order is costed exactly as the original was.
+    const { subtotal, shippingCost, tax, total } = computeOrderTotals({
+      lines: priced,
+      shippingMethod,
+      vatRate: VAT_RATE,
+    })
 
     // --- Customer: reuse the record if this email has ordered before --------
     const email = String(contact.email).trim().toLowerCase()
