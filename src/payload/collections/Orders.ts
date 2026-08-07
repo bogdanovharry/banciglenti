@@ -225,7 +225,66 @@ export const Orders: CollectionConfig = {
     {
       name: 'notes',
       type: 'textarea',
-      label: 'Бележки',
+      label: 'Коментар от клиента',
+      admin: {
+        readOnly: true,
+        description: 'Каквото клиентът е написал при поръчката.',
+      },
+    },
+    /**
+     * Internal history, which the old platform had and this did not.
+     *
+     * A single "Бележки" box loses everything but the last edit — who called
+     * the customer, why an order was refused, when the workshop confirmed the
+     * size. Those are the questions asked weeks later, and a textarea cannot
+     * answer them. Each entry keeps its author and time.
+     */
+    {
+      name: 'log',
+      type: 'array',
+      label: 'Коментари по поръчката',
+      labels: { singular: 'Коментар', plural: 'Коментари' },
+      admin: {
+        description:
+          'Вътрешни бележки — клиентът не ги вижда. При отказ на поръчка тук се записва причината.',
+        initCollapsed: true,
+      },
+      fields: [
+        {
+          name: 'note',
+          type: 'textarea',
+          required: true,
+          label: 'Коментар',
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'author',
+              type: 'relationship',
+              relationTo: 'users',
+              label: 'Автор',
+              admin: { readOnly: true },
+              // Stamped on create so an entry cannot be attributed to someone else.
+              hooks: {
+                beforeChange: [({ value, req }) => value ?? req.user?.id ?? null],
+              },
+            },
+            {
+              name: 'at',
+              type: 'date',
+              label: 'Дата',
+              admin: {
+                readOnly: true,
+                date: { pickerAppearance: 'dayAndTime' },
+              },
+              hooks: {
+                beforeChange: [({ value }) => value ?? new Date().toISOString()],
+              },
+            },
+          ],
+        },
+      ],
     },
   ],
 }
