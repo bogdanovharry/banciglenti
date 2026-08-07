@@ -24,6 +24,8 @@ import {
 } from "@/lib/pricing";
 import type { BladeTableKey } from "@/lib/order-pricing";
 import { DEFAULT_MARKET, formatPrice, vatRateFor } from "@/lib/market";
+import { bladeGuide } from "@/lib/blade-guide";
+import Image from "next/image";
 
 /**
  * The rate for a consumer in the market being served. Business customers in
@@ -161,6 +163,65 @@ function QuantityStepper({ value, onChange }: { value: number; onChange: (v: num
   );
 }
 
+/**
+ * What you have actually configured, shown the moment the four fields resolve
+ * to a real price-table row.
+ *
+ * The configurator could always price a blade but never say what it was — a
+ * buyer picking "38 × 1.14, Kodiak, 22.2" saw a number and no confirmation
+ * they had chosen the right thing for their timber. This is the answer the
+ * counter would give: the series, what it cuts, and whether that tooth pitch
+ * suits the cut.
+ */
+function BladePreview({
+  table,
+  blade,
+  length,
+}: {
+  table: BladeTableKey;
+  blade: BladeConfig;
+  length: number;
+}) {
+  const guide = bladeGuide(table, blade.brand, blade.pitch);
+
+  return (
+    <div className="sm:col-span-2 mt-2 border border-ink-15 bg-paper flex flex-col sm:flex-row">
+      <div className="sm:w-[190px] shrink-0 bg-white border-b sm:border-b-0 sm:border-r border-ink-15 p-5 flex items-center justify-center">
+        <Image
+          src={guide.image}
+          alt={guide.name}
+          width={190}
+          height={190}
+          className="w-full h-auto max-h-[150px] object-contain mix-blend-multiply"
+        />
+      </div>
+
+      <div className="p-5 md:p-6 min-w-0">
+        <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">
+          {guide.type} · {guide.application}
+        </div>
+        <div className="font-display text-xl font-bold tracking-tight text-ink mt-1">
+          {guide.name}
+        </div>
+        <div className="font-mono text-[11px] text-ink-70 tabular-nums mt-1.5">
+          {blade.width} × {blade.thickness} мм · стъпка {pitchLabel(blade.pitch)}
+          {length > 0 && <> · контур {length} мм</>}
+        </div>
+
+        <p className="font-sans text-[13px] leading-relaxed text-ink-70 mt-3.5 mb-0 max-w-[60ch]">
+          {guide.description}
+        </p>
+
+        {guide.pitchNote && (
+          <p className="font-sans text-[13px] leading-relaxed text-ink mt-3 mb-0 border-l-2 border-orange pl-3.5 max-w-[60ch]">
+            {guide.pitchNote}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ===== Per-type configurator forms =====
 function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const blades = type === "v" ? VERTICAL_WOOD_BLADES : HORIZONTAL_WOOD_BLADES;
@@ -241,6 +302,9 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
         <Select label="Стъпка" options={availablePitches} required value={pitch} onChange={setPitch} format={pitchLabel} />
         <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
         <QuantityStepper value={qty} onChange={setQty} />
+        {selectedBlade && (
+          <BladePreview table={type === "h" ? "wood-h" : "wood-v"} blade={selectedBlade} length={length} />
+        )}
       </div>
 
       {/* Right — extras + price */}
@@ -365,6 +429,7 @@ function RealDataConfigurator({
           <Select label="Марка" options={widthOptions.brands} required value={brand} onChange={handleBrandChange} />
         )}
         <Select label={availablePitches.some(isProfilePitch) ? "Профил и стъпка" : "Стъпка"} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchLabel} />
+        {selectedBlade && <BladePreview table={tableKey} blade={selectedBlade} length={length} />}
       </div>
       <div className="flex flex-col gap-5">
         <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
