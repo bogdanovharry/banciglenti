@@ -4,8 +4,10 @@ import Link from "next/link";
 import { Placeholder, Tag } from "@/components/ui/primitives";
 import { IconPlus } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
-import { currencySymbol, formatAmount } from "@/lib/market";
+import { usePrices } from "@/lib/market-context";
+import { DualPrice } from "@/components/ui/DualPrice";
 import { type StockState } from "@/lib/catalog-ui";
+import { packFromSlug, unitPriceInPack } from "@/lib/packs";
 import { useTranslations } from "next-intl";
 
 
@@ -105,11 +107,13 @@ function SpecBlock({
 
 export function ProductCard({ p, compact }: { p: ProductCardData; compact?: boolean }) {
   const { addItem } = useCart();
+  const { gross, amount, symbol } = usePrices();
   const tStock = useTranslations("stock");
 
   const stockColor =
     p.stock === "in" ? "text-ok" : p.stock === "low" ? "text-orange" : "text-ink-50";
   const soldOut = p.stock === "out";
+  const pack = packFromSlug(p.slug);
 
   return (
     <article className="bg-white border border-ink-15 flex flex-col h-full transition-all duration-300 hover:border-ink hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(17,17,17,0.45)] group">
@@ -138,6 +142,22 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
               <Tag tone={p.badge === "TOP" ? "orange" : "ink"}>{p.badge}</Tag>
             </div>
           )}
+
+          {/* The saving, given the loudest thing on the card.
+              It used to live inside the product name as "(−10%)", eight point
+              grey, at the end of a string a buyer scanning a grid never reads
+              to the end of. A discount that has to be read is not a discount
+              that sells. Top-right so it does not collide with the TOP tag. */}
+          {pack && (pack.percent > 0 || pack.kind === "set") && (
+            <div className="absolute top-0 right-0 bg-orange text-white pl-3 pr-2.5 py-1.5 shadow-sm">
+              <div className="font-display text-[19px] font-extrabold leading-none tabular-nums tracking-[-0.02em]">
+                {pack.percent > 0 ? `−${pack.percent}%` : "SET"}
+              </div>
+              <div className="font-mono text-[9px] tracking-[0.1em] uppercase leading-none mt-1 opacity-90">
+                {pack.qty} бр.
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Info */}
@@ -153,11 +173,22 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
 
           <div className="mt-auto pt-4 border-t border-ink-05 flex justify-between items-end gap-2">
             <div>
-              <div className="font-display text-[21px] font-bold tracking-[-0.02em] text-ink tabular-nums leading-none">
-                {formatAmount(p.price)}{" "}
-                <span className="text-[11px] text-ink-50 font-normal">{currencySymbol()}</span>
-              </div>
-              <div className="font-mono text-[10px] text-ink-50 mt-1 tabular-nums">без ДДС</div>
+              <DualPrice net={p.price} size="sm" />
+              {/* A box is N of one blade, so a per-blade price is the number a
+                  buyer compares — but only in orange where there is actually a
+                  saving. A set is N different blades, where averaging them
+                  describes none of them, so it states the count instead. */}
+              {pack && (
+                <div className="font-mono text-[10px] mt-1 tabular-nums">
+                  {pack.kind === "box" ? (
+                    <span className={pack.percent > 0 ? "text-orange font-semibold" : "text-ink-50"}>
+                      {amount(gross(unitPriceInPack(p.price, pack.qty)))} {symbol}/бр.
+                    </span>
+                  ) : (
+                    <span className="text-orange font-semibold">{pack.qty} различни ленти</span>
+                  )}
+                </div>
+              )}
             </div>
 
             <button

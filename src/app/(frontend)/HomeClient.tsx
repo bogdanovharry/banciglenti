@@ -28,6 +28,7 @@ import {
   IconHobby, IconMachine, IconAbrasive,
 } from "@/components/ui/icons";
 import { DEFAULT_MARKET, formatPrice, vatRateFor } from "@/lib/market";
+import { usePrices } from "@/lib/market-context";
 import { COMPANY } from "@/lib/company";
 import { ConfiguratorPanel } from "@/components/configurator/ConfiguratorPanel";
 import { useTranslations } from "next-intl";
@@ -110,6 +111,11 @@ function HeroCustom() {
 // ========== TICKER ==========
 function TickerStrip() {
   const t = useTranslations("home.ticker");
+  const tc = useTranslations("common");
+  const { market, price } = usePrices();
+  // The threshold is authored in EUR without VAT; formatted here so a Romanian
+  // visitor reads it in lei, like every other figure on the page.
+  const threshold = `${price(market.freeShippingThreshold)} ${tc("exVat")}`;
   // Every entry has to be defensible. "Над 8 000 размера на склад", "Заваряване
   // за 4 часа" and "Доставка до 48ч" were removed: the first described
   // made-to-order combinations as stock, and the other two promised times the
@@ -118,11 +124,13 @@ function TickerStrip() {
   const items = [
     "specs",
     "widths",
-    "freeShipping",
+    // Only where delivery is actually free above something — not in Romania,
+    // where the courier charges by weight.
+    ...(market.carriage === "flat" ? ["freeShipping"] : []),
     "consult",
     "lengthRange",
     "guarantee",
-  ].map((k) => t(k));
+  ].map((k) => (k === "freeShipping" ? t(k, { threshold }) : t(k)));
   return (
     <div className="bg-navy text-white overflow-hidden border-t-4 border-orange">
       <div className="flex gap-12 py-4 whitespace-nowrap font-mono text-xs tracking-[0.1em] uppercase" style={{ animation: "tl-marquee 45s linear infinite" }}>
@@ -742,6 +750,8 @@ const SERVICES = [
 
 function ServicesBlock() {
   const tSvc = useTranslations("home.services");
+  const tc = useTranslations("common");
+  const { gross, amount, symbol } = usePrices();
   return (
     <section className="bg-blue-deep text-white py-20 md:py-[120px] relative overflow-hidden">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
@@ -804,10 +814,10 @@ function ServicesBlock() {
                   <div className="text-right shrink-0">
                     <div className="font-mono text-[9px] tracking-[0.12em] uppercase text-white/45">от</div>
                     <div className="font-display text-2xl md:text-[26px] font-bold tracking-tight tabular-nums leading-none mt-0.5">
-                      {s.rate.toFixed(2)}
-                      <span className="text-sm font-normal text-white/50 ml-1">€</span>
+                      {amount(gross(s.rate))}
+                      <span className="text-sm font-normal text-white/50 ml-1">{symbol}</span>
                     </div>
-                    <div className="font-mono text-[9px] text-white/45 mt-1">{s.unit}</div>
+                    <div className="font-mono text-[9px] text-white/45 mt-1">{s.unit} · {tc("incVat")}</div>
                   </div>
                 </div>
               ))}

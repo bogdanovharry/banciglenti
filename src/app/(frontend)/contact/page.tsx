@@ -35,7 +35,7 @@ export default function ContactPage() {
   const [company, setCompany] = useState("");
   const [industry, setIndustry] = useState<IndustryCode>("metal");
   const [message, setMessage] = useState("");
-  const [website, setWebsite] = useState(""); // honeypot — see /api/enquiries
+  const [website, setWebsite] = useState(""); // honeypot — see /api/contact
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export default function ContactPage() {
     setError(null);
 
     try {
-      const res = await fetch("/api/enquiries", {
+      const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, phone, company, industry, message, website }),

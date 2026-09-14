@@ -4,6 +4,8 @@ import "../globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CartProvider } from "@/lib/cart";
+import { MarketProvider } from "@/lib/market-context";
+import { getMarket } from "@/i18n/locale";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
@@ -37,11 +39,13 @@ export default async function FrontendLayout({
   // any change to the URL structure — see src/i18n/locale.ts.
   const locale = await getLocale();
   const messages = await getMessages();
+  const market = await getMarket();
 
   return (
     <html lang={locale.split("-")[0]} className={inter.variable}>
       <body className="tl-grain font-sans antialiased text-ink bg-white">
         <NextIntlClientProvider locale={locale} messages={messages}>
+        <MarketProvider code={market.code}>
         <CartProvider>
           <a
             href="#main-content"
@@ -53,6 +57,7 @@ export default async function FrontendLayout({
           <main id="main-content">{children}</main>
           <Footer />
         </CartProvider>
+        </MarketProvider>
         </NextIntlClientProvider>
       </body>
     </html>

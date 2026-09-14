@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { getTranslations } from "next-intl/server";
+
 import { getCategories, getProductBySlug } from "@/lib/catalog";
+import { formatPrice, vatRateFor, withVat } from "@/lib/market";
+import { getMarket } from "@/i18n/locale";
 import { ProductClient, type ProductView } from "./ProductClient";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -12,11 +16,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!product) return { title: "Продуктът не е намерен" };
 
+  const [market, t] = await Promise.all([getMarket(), getTranslations("common")]);
+  const gross = withVat(product.price, vatRateFor(market));
+
   return {
     title: product.name,
     description:
       product.shortDescription ??
-      `${product.name} — ${product.price.toFixed(2)} € без ДДС. Доставка с куриер до адрес или офис.`,
+      `${product.name} — ${formatPrice(gross, market)} ${t("incVat")} (${formatPrice(product.price, market)} ${t("exVat")}). Доставка с куриер до адрес или офис.`,
   };
 }
 
@@ -43,6 +50,7 @@ export default async function ProductPage({ params }: PageProps) {
     topProduct: product.badge === "TOP",
     specs: product.specs,
     series: product.series,
+    setContents: product.setContents,
     breadcrumb: leaf ? { slug: leaf.slug, name: leaf.name } : null,
   };
 

@@ -96,7 +96,7 @@ export const formattedAddress = () =>
 
 /**
  * Commercial terms as the code actually implements them — see src/lib/cart.tsx
- * and src/app/api/orders/route.ts. Kept here so the legal pages cannot drift
+ * and src/app/api/checkout/route.ts. Kept here so the legal pages cannot drift
  * away from what checkout really charges.
  */
 export const TERMS = {

@@ -12,5 +12,6 @@ the commerce screens move to a `src/app/(manage)/` route group.
 **Read `docs/ADMIN-PLAN.md` before touching admin code.** It carries the
 reasoning, the five screens, the phase order and the verification steps.
 
-Also open: the multi-market rollout (Bulgaria live, Romania next, Greece
-after) — its outstanding items are listed at the end of the same file.
+Also open: the multi-market rollout. **Romania launches first** on this
+platform (owner's decision, 2026-09-14), then Bulgaria, then Greece — its
+outstanding items are listed at the end of the same file.

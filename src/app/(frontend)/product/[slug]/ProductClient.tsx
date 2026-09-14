@@ -6,7 +6,9 @@ import { Placeholder, Tag, Btn } from "@/components/ui/primitives";
 import { IconArrowRight, IconHeart, IconMinus, IconPlus, IconTruck, IconShield, IconWrench } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { SAW_MEISTER, SERIES, type SeriesKey } from "@/lib/series";
-import { currencySymbol, formatAmount } from "@/lib/market";
+import { usePrices } from "@/lib/market-context";
+import { DualPrice } from "@/components/ui/DualPrice";
+import { packFromSlug, unitPriceInPack } from "@/lib/packs";
 
 export type ProductView = {
   slug: string;
@@ -19,6 +21,8 @@ export type ProductView = {
   topProduct: boolean;
   specs: { width?: number; thickness?: number; material?: string };
   series: SeriesKey | null;
+  /** One line per blade in a mixed set; empty for everything else. */
+  setContents?: string[];
   breadcrumb: { slug: string; name: string } | null;
 };
 
@@ -44,6 +48,7 @@ export function ProductClient({ product }: { product: ProductView }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
+  const { market, gross, amount, price, symbol } = usePrices();
 
   const inStock = product.stockCount > 0;
 
@@ -67,6 +72,16 @@ export function ProductClient({ product }: { product: ProductView }) {
   ];
 
   const series = product.series ? SERIES[product.series] : null;
+
+  // What the box saves, in money. Derived from the tier rather than compared
+  // against the single-blade product, which may not be on the page — and the
+  // discount is defined as a percentage of the undiscounted total anyway.
+  const pack = packFromSlug(product.slug);
+  const contents = product.setContents ?? [];
+  const fullUnitPrice = pack
+    ? Math.round((product.price / pack.qty / (1 - pack.percent / 100)) * 100) / 100
+    : 0;
+  const packSaving = pack ? Math.round((fullUnitPrice * pack.qty - product.price) * 100) / 100 : 0;
 
   const materialRows: [string, string][] = [
     ...(product.specs.material ? ([["Материал", product.specs.material]] as [string, string][]) : []),
@@ -180,16 +195,90 @@ export function ProductClient({ product }: { product: ProductView }) {
               </Link>
             </div>
 
+            {/* What is in the box. The whole reason a set sells is that
+                somebody already worked out which three blades cover the job —
+                so the answer has to be on the page, above the price, not left
+                to a count that says "3 blades" and nothing about which. */}
+            {contents.length > 0 && (
+              <div className="mb-6 border border-ink-15">
+                <div className="px-5 py-3 bg-ink text-white font-mono text-[10px] tracking-[0.12em] uppercase">
+                  В комплекта · {contents.length} ленти
+                </div>
+                <ul className="list-none m-0 p-0">
+                  {contents.map((line, i) => {
+                    const [spec, job] = line.split(" — ");
+                    return (
+                      <li
+                        key={line}
+                        className={`flex items-baseline gap-3 px-5 py-3 ${i > 0 ? "border-t border-ink-15" : ""}`}
+                      >
+                        <span className="font-mono text-[12px] text-ink font-semibold tabular-nums whitespace-nowrap">
+                          {spec}
+                        </span>
+                        {job && <span className="font-sans text-[13px] text-ink-70">{job}</span>}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
             {/* Price + Cart */}
             <div className="p-6 bg-paper mb-6">
+              {/* The saving, stated as money rather than as a percent in
+                  brackets at the end of the product name. A yard buys boxes on
+                  the per-blade number, so that is the one set large; the
+                  percentage is the hook that makes them look at it. */}
+              {pack && pack.percent > 0 && (
+                <div className="flex items-stretch gap-0 mb-5 -mt-1">
+                  <div className="bg-orange text-white px-4 py-3 flex flex-col justify-center">
+                    <div className="font-display text-[30px] font-extrabold leading-none tabular-nums tracking-[-0.02em]">
+                      −{pack.percent}%
+                    </div>
+                  </div>
+                  <div className="bg-ink text-white px-4 py-3 flex-1 flex flex-col justify-center">
+                    <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/60">
+                      Кутия {pack.qty} бр. — спестявате
+                    </div>
+                    <div className="font-display text-[18px] font-bold leading-none tabular-nums mt-1">
+                      {amount(gross(packSaving))} {symbol}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-5">
                 <div>
-                  <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">Единична цена</div>
-                  <div className="font-display text-[44px] font-extrabold tracking-tight text-ink leading-none">
-                    {formatAmount(product.price)}{" "}
-                    <span className="text-base font-normal text-ink-50">{currencySymbol()}</span>
+                  <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
+                    {pack?.kind === "set"
+                      ? `Цена за комплект · ${pack.qty} бр.`
+                      : pack
+                        ? `Цена за кутия · ${pack.qty} бр.`
+                        : "Единична цена"}
                   </div>
-                  <div className="font-mono text-[11px] text-ink-50 mt-1">без ДДС</div>
+                  <DualPrice net={product.price} size="lg" className="mt-1" />
+                  {pack?.kind === "set" ? (
+                    // Different blades — an average price describes none of
+                    // them, so the count is stated and the contents are listed
+                    // in the spec table below.
+                    <div className="font-mono text-[11px] mt-1.5 text-orange font-semibold">
+                      {pack.qty} различни ленти в комплекта
+                    </div>
+                  ) : pack ? (
+                    // Per blade with VAT, like the headline figure above it, so
+                    // the two can be compared without doing the tax in your head.
+                    <div className="font-mono text-[11px] mt-1.5">
+                      <span className="text-orange font-semibold">
+                        {amount(gross(unitPriceInPack(product.price, pack.qty)))} {symbol}/бр.
+                      </span>
+                      {pack.percent > 0 && (
+                        <span className="text-ink-50">
+                          {" "}
+                          · вместо {amount(gross(fullUnitPrice))} {symbol}
+                        </span>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
                 <div className="inline-flex items-center border border-ink-15 bg-white">
                   <button
@@ -228,7 +317,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                       ? "Изчерпан"
                       : added
                         ? "✓ Добавено!"
-                        : `Добави в количка · ${(product.price * qty).toFixed(2)} €`}
+                        : `Добави в количка · ${price(gross(product.price * qty))}`}
                   </Btn>
                 </div>
                 <button
@@ -243,7 +332,14 @@ export function ProductClient({ product }: { product: ProductView }) {
             {/* Trust */}
             <div className="grid grid-cols-3 gap-0 border-t border-b border-ink-15">
               {[
-                { Icon: IconTruck, title: "Доставка с куриер", desc: "безплатно над 200 €" },
+                {
+                  Icon: IconTruck,
+                  title: "Доставка с куриер",
+                  desc:
+                    market.carriage === "collect"
+                      ? `${market.couriers.join(" · ")} · по тегло, на куриера`
+                      : `безплатно над ${price(market.freeShippingThreshold)}`,
+                },
                 { Icon: IconShield, title: "Гаранция на заварката", desc: "скъсване на шева — подменяме" },
                 { Icon: IconWrench, title: "Технически съвет", desc: "обадете се" },
               ].map((item, i) => (

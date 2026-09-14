@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Placeholder, Btn } from "@/components/ui/primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { IconArrowRight } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
-import { DEFAULT_MARKET, currencySymbol, formatAmount, formatPrice, vatLabel, vatRateFor } from "@/lib/market";
+import { vatLabel, type CheckoutPaymentMethod } from "@/lib/market";
+import { usePrices } from "@/lib/market-context";
 import { COMPANY } from "@/lib/company";
 
 function Input({
@@ -67,10 +69,22 @@ const FIELDS = [
 ] as const;
 type Field = (typeof FIELDS)[number];
 
+/** [method, label, detail] */
+type DeliveryOption = ["courier" | "pickup", string, string];
+
+const PAYMENT_LABELS: Record<CheckoutPaymentMethod, string> = {
+  bank_transfer: "Банков превод",
+  cod: "Наложен платеж",
+};
+
 export default function CheckoutPage() {
-  // Cards are deferred until myPOS is connected; offering a card option that
-  // cannot take a payment would lose the order at the last step.
-  const [method, setMethod] = useState<"bank_transfer" | "cod">("bank_transfer");
+  const { market, gross, amount, price, symbol } = usePrices();
+  const tc = useTranslations("common");
+
+  // Which methods exist is the market's call (Romania: cash on delivery, no
+  // pickup). Cards are deferred until a provider is connected; offering a card
+  // option that cannot take a payment would lose the order at the last step.
+  const [method, setMethod] = useState<CheckoutPaymentMethod>(market.paymentMethods[0]);
   const [shippingMethod, setShippingMethod] = useState<"courier" | "pickup">("courier");
   const [form, setForm] = useState<Record<Field, string>>(
     () => Object.fromEntries(FIELDS.map((f) => [f, ""])) as Record<Field, string>,
@@ -81,7 +95,16 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
 
-  const { items, itemCount, subtotal, shipping, tax, total, clearCart } = useCart();
+  const { items, itemCount, vatRate, totalsFor, clearCart } = useCart();
+  // Priced for the delivery actually selected — pickup carries no carriage.
+  const { subtotal, shippingCost: shipping, tax, total } = totalsFor(shippingMethod);
+
+  const deliveryOptions: DeliveryOption[] = [
+    ["courier", "Куриер", market.couriers.join(" · ")],
+    ...(market.pickup
+      ? [["pickup", "Лично вземане", `Цех ${COMPANY.address.city} · безплатно`] as DeliveryOption]
+      : []),
+  ];
 
   const set = (field: Field) => (v: string) => setForm((prev) => ({ ...prev, [field]: v }));
 
@@ -94,7 +117,7 @@ export default function CheckoutPage() {
     setFieldErrors({});
 
     try {
-      const res = await fetch("/api/orders", {
+      const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -104,11 +127,10 @@ export default function CheckoutPage() {
             city: form.city,
             postalCode: form.postalCode,
             street: form.street,
-            country: "България",
           },
           paymentMethod: method,
           notes,
-          // Only what we are buying. The server prices it — see /api/orders.
+          // Only what we are buying. The server prices it — see /api/checkout.
           items: items.map((i) => ({
             sku: i.sku,
             quantity: i.quantity,
@@ -169,6 +191,11 @@ export default function CheckoutPage() {
                 ? "Ще получите данни за банков превод — поръчката тръгва след потвърждение на плащането."
                 : "Плащате при доставка на куриера."}
             </p>
+            {market.carriage === "collect" && (
+              <p className="font-sans text-sm text-ink-70 mt-2 mb-0">
+                {tc("courierFeeNote", { couriers: market.couriers.join(" / ") })}
+              </p>
+            )}
           </div>
           <Link href="/"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Към началото</Btn></Link>
         </div>
@@ -230,25 +257,37 @@ export default function CheckoutPage() {
             </CheckoutCard>
 
             <CheckoutCard num="02" title="Доставка">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
-                {([
-                  ["courier", "Куриер", DEFAULT_MARKET.couriers.join(" или ")],
-                  ["pickup", "Лично вземане", `Цех ${COMPANY.address.city} · безплатно`],
-                ] as const).map(([k, t, d]) => (
-                  <button
-                    key={k}
-                    type="button"
-                    onClick={() => setShippingMethod(k)}
-                    aria-pressed={shippingMethod === k}
-                    className={`p-3.5 text-left border cursor-pointer transition-colors ${
-                      shippingMethod === k ? "border-ink bg-paper" : "border-ink-15 bg-white hover:border-ink-30"
-                    }`}
-                  >
-                    <div className="font-display text-sm font-semibold text-ink">{t}</div>
-                    <div className="font-mono text-[10px] text-ink-50 mt-0.5 tracking-[0.05em]">{d}</div>
-                  </button>
-                ))}
-              </div>
+              {/* A choice only where there is one. With courier alone, a single
+                  pressed button reads as something that could be un-pressed. */}
+              {deliveryOptions.length > 1 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
+                  {deliveryOptions.map(([k, t, d]) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setShippingMethod(k)}
+                      aria-pressed={shippingMethod === k}
+                      className={`p-3.5 text-left border cursor-pointer transition-colors ${
+                        shippingMethod === k ? "border-ink bg-paper" : "border-ink-15 bg-white hover:border-ink-30"
+                      }`}
+                    >
+                      <div className="font-display text-sm font-semibold text-ink">{t}</div>
+                      <div className="font-mono text-[10px] text-ink-50 mt-0.5 tracking-[0.05em]">{d}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="font-mono text-[11px] text-ink-50 tracking-[0.05em] mb-4">
+                  {deliveryOptions[0][1]} · {deliveryOptions[0][2]}
+                </div>
+              )}
+              {/* Said before the address is typed, not discovered at the door:
+                  a charge the total leaves out has to be stated up front. */}
+              {market.carriage === "collect" && (
+                <div className="p-4 mb-4 bg-paper font-sans text-sm text-ink-70">
+                  {tc("courierFeeNote", { couriers: market.couriers.join(" / ") })}
+                </div>
+              )}
 
               {shippingMethod === "courier" ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -269,24 +308,23 @@ export default function CheckoutPage() {
             </CheckoutCard>
 
             <CheckoutCard num="03" title="Плащане">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-                {([
-                  ["bank_transfer", "Банков превод"],
-                  ["cod", "Наложен платеж"],
-                ] as const).map(([k, l]) => (
-                  <button
-                    key={k}
-                    type="button"
-                    onClick={() => setMethod(k)}
-                    aria-pressed={method === k}
-                    className={`py-4 px-3 border cursor-pointer font-mono text-[11px] tracking-[0.08em] uppercase transition-colors ${
-                      method === k ? "bg-ink text-white border-ink" : "bg-white text-ink border-ink-15 hover:border-ink-30"
-                    }`}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
+              {market.paymentMethods.length > 1 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                  {market.paymentMethods.map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setMethod(k)}
+                      aria-pressed={method === k}
+                      className={`py-4 px-3 border cursor-pointer font-mono text-[11px] tracking-[0.08em] uppercase transition-colors ${
+                        method === k ? "bg-ink text-white border-ink" : "bg-white text-ink border-ink-15 hover:border-ink-30"
+                      }`}
+                    >
+                      {PAYMENT_LABELS[k]}
+                    </button>
+                  ))}
+                </div>
+              )}
               {method === "bank_transfer" && (
                 <div className="p-4 bg-paper font-sans text-sm text-ink-70">
                   <p className="font-semibold text-ink mb-2 mt-0">Банков превод:</p>
@@ -320,18 +358,24 @@ export default function CheckoutPage() {
                 <Placeholder tone="paper" ratio="1/1" className="w-12 shrink-0" caption="" />
                 <div className="flex-1 min-w-0">
                   <div className="font-display text-[13px] font-semibold text-ink leading-tight truncate">{it.name}</div>
-                  <div className="font-mono text-[10px] text-ink-50 mt-0.5">{it.quantity} × {it.price.toFixed(2)} €</div>
+                  <div className="font-mono text-[10px] text-ink-50 mt-0.5 tabular-nums">
+                    {it.quantity} × {price(gross(it.price))} {tc("incVat")} · {price(it.price)} {tc("exVat")}
+                  </div>
                 </div>
-                <div className="font-mono text-[13px] font-semibold text-ink shrink-0 tabular-nums">{(it.quantity * it.price).toFixed(2)}</div>
+                <div className="font-mono text-[13px] font-semibold text-ink shrink-0 tabular-nums">{amount(gross(it.quantity * it.price))}</div>
               </div>
             ))}
             <div className="mt-5 pt-5 border-t border-ink-15">
-              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">Междинна сума</span><span>{formatPrice(subtotal)}</span></div>
-              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">Доставка</span><span>{shipping === 0 ? "Безплатно" : formatPrice(shipping)}</span></div>
-              <div className="flex justify-between text-sm mb-3"><span className="text-ink-50">ДДС {vatLabel(vatRateFor(DEFAULT_MARKET))}</span><span>{formatPrice(tax)}</span></div>
+              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">Междинна сума · {tc("exVat")}</span><span>{price(subtotal)}</span></div>
+              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">Доставка</span><span>{market.carriage === "collect" ? tc("courierFee") : shipping === 0 ? tc("free") : price(shipping)}</span></div>
+              <div className="flex justify-between text-sm mb-3"><span className="text-ink-50">{tc("vat", { rate: vatLabel(vatRate) })}</span><span>{price(tax)}</span></div>
               <div className="flex justify-between items-baseline pt-3 border-t border-ink-15">
-                <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-ink-50">Общо</span>
-                <span className="font-display text-[32px] font-extrabold text-ink tracking-tight tabular-nums">{formatAmount(total)} <span className="text-xs font-normal text-ink-50">{currencySymbol()}</span></span>
+                <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-ink-50">Общо · {tc("incVat")}</span>
+                <span className="font-display text-[32px] font-extrabold text-ink tracking-tight tabular-nums">{amount(total)} <span className="text-xs font-normal text-ink-50">{symbol}</span></span>
+              </div>
+              <div className="flex justify-between font-mono text-[11px] text-ink-50 tabular-nums mt-1">
+                <span>Общо · {tc("exVat")}</span>
+                <span>{price(subtotal + shipping)}</span>
               </div>
             </div>
 

@@ -13,6 +13,8 @@
     "incVat": "cu TVA",
     "vat": "TVA {rate}",
     "free": "Gratuit",
+    "courierFee": "se plătește curierului",
+    "courierFeeNote": "Livrarea cu {couriers} se taxează în funcție de greutate și se plătește curierului la primire. Nu este inclusă în total.",
     "searchPlaceholder": "Caută în catalog",
     "mainNav": "Navigare principală",
     "mobileNav": "Navigare mobilă",
@@ -98,7 +100,7 @@
     "ticker": {
       "specs": "● 133 de specificații de pânze",
       "widths": "● 23 de lățimi · 33 de profile și pași",
-      "freeShipping": "● Livrare gratuită peste 200 €",
+      "freeShipping": "● Livrare gratuită peste {threshold}",
       "consult": "● Consultanță tehnică",
       "lengthRange": "● Sudăm de la 1 000 mm la ∞",
       "guarantee": "● Garanție pentru sudură"
@@ -204,6 +206,109 @@
       "directLine": "Linie directă · Lu–Vi 8:00–17:30",
       "mobile": "mobil",
       "orSend": "Sau trimiteți o solicitare"
+    }
+  },
+  "configurator": {
+    "tabs": {
+      "wood-h": {
+        "label": "Lemn — Orizontal",
+        "subtitle": "Pânze de panglică pentru ferăstraie orizontale"
+      },
+      "wood-v": {
+        "label": "Lemn — Vertical",
+        "subtitle": "Pânze de panglică pentru ferăstraie verticale"
+      },
+      "metal-bi": {
+        "label": "Metal — Bimetalice",
+        "subtitle": "Pânze bimetalice de debitat M42/M51"
+      },
+      "metal-cs": {
+        "label": "Metal — Oțel carbon CS",
+        "subtitle": "Pânze de debitat din oțel carbon"
+      },
+      "hobby": {
+        "label": "Ferăstrău hobby",
+        "subtitle": "Pânze pentru Einhell, Parkside, Scheppach"
+      },
+      "meat": {
+        "label": "Carne și pește",
+        "subtitle": "Cuțite-bandă pentru carne și pește"
+      },
+      "bread": {
+        "label": "Panificație",
+        "subtitle": "Cuțite-bandă pentru mașini de feliat pâine"
+      },
+      "slicer": {
+        "label": "Alte materiale",
+        "subtitle": "Cuțite-bandă pentru burete, textile, cauciuc, piele și hârtie"
+      }
+    },
+    "field": {
+      "choose": "— alege —",
+      "width": "Lățime",
+      "thickness": "Grosime",
+      "brand": "Marcă",
+      "steelType": "Tipul oțelului",
+      "pitch": "Pas dinți",
+      "profileAndPitch": "Profil și pas",
+      "length": "Lungimea pânzei",
+      "quantity": "Cantitate",
+      "pieces": "buc.",
+      "mm": "mm"
+    },
+    "length": {
+      "hint": "De la {min} mm în sus, fără limită superioară. Măsurați conturul pânzei, nu diametrul volanților.",
+      "tooShort": "Minimum {min} mm. Un contur mai scurt nu se sudează — nu există mașină pe care să se întindă.",
+      "tooLong": "Peste {max} mm se stabilește telefonic — limită superioară nu există, dar un contur atât de lung îl confirmăm manual."
+    },
+    "extras": {
+      "welding": "Sudură",
+      "setting": "Ceaprazuire",
+      "sharpening": "Ascuțire",
+      "heatTreatment": "Tratament termic",
+      "heatShort": "Termic"
+    },
+    "price": {
+      "label": "Preț per bucată",
+      "perMeter": "Preț/m",
+      "perPiece": "{price}/buc",
+      "perMetreUnit": "{price}/m",
+      "add": "Adaugă în coș",
+      "added": "✓ Adăugat în coș!",
+      "addedShort": "✓ Adăugat!"
+    },
+    "preview": {
+      "pitch": "pas",
+      "profile": "profil",
+      "loop": "contur {length} mm"
+    },
+    "edgeGuide": {
+      "title": "Profilul tăișului — care pentru ce material",
+      "intro": "Cele patru ascuțiri se deosebesc prin cât de agresiv mușcă tăișul. Materialul moale și cu densitate mică cere tăiș neted, cel dens cere dinte. Între ele stau valul și scalopul.",
+      "stocked": "în lista de prețuri",
+      "onRequest": "la cerere",
+      "footnote": "Profilele la cerere se execută pe lungimea și lățimea dumneavoastră — scrieți-ne materialul, densitatea și grosimea pachetului și revenim cu preț."
+    },
+    "facts": {
+      "madeToOrderFigure": "Execuție",
+      "madeToOrderUnit": "la comandă",
+      "madeToOrderNote": "Termenul se confirmă la plasarea comenzii",
+      "shippingFigure": "Livrare",
+      "shippingUnit": "gratuită",
+      "shippingNote": "La comenzi peste {threshold}",
+      "lengthUnit": "mm contur",
+      "lengthNote": "Fără limită superioară de lungime",
+      "warrantyFigure": "Garanție",
+      "warrantyUnit": "la sudură",
+      "warrantyNote": "Se rupe cordonul — înlocuim pânza"
+    },
+    "item": {
+      "wood": "Pânză pentru lemn {width}×{thickness} {brand}",
+      "metal-bi": "Pânză bimetalică de debitat",
+      "metal-cs": "Pânză din oțel carbon",
+      "meat": "Cuțit-bandă pentru carne/pește",
+      "bread": "Cuțit-bandă pentru pâine",
+      "textile": "Cuțit-bandă pentru materiale moi"
     }
   }
 }

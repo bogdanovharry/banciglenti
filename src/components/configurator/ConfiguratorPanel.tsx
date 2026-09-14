@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Btn, Tag } from "@/components/ui/primitives";
-import { IconArrowRight, IconCheck, IconRuler } from "@/components/ui/icons";
+import { useTranslations } from "next-intl";
+import { Btn } from "@/components/ui/primitives";
+import { IconArrowRight, IconEdge, IconRuler } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import {
   VERTICAL_WOOD_BLADES,
@@ -22,47 +22,45 @@ import {
   pitchLabel,
   type BladeConfig,
 } from "@/lib/pricing";
-import type { BladeTableKey } from "@/lib/order-pricing";
-import { DEFAULT_MARKET, formatPrice, vatRateFor } from "@/lib/market";
-import { bladeGuide } from "@/lib/blade-guide";
+import { MAX_CUSTOM_LENGTH, MIN_CUSTOM_LENGTH, type BladeTableKey } from "@/lib/order-pricing";
+import { usePrices } from "@/lib/market-context";
+import { DualPrice } from "@/components/ui/DualPrice";
+import { MATERIAL_EDGE_GUIDE, bladeGuide, edgeKind } from "@/lib/blade-guide";
 import Image from "next/image";
 
-/**
- * The rate for a consumer in the market being served. Business customers in
- * another EU state are reverse charged at 0%, but the configurator quotes
- * before a customer is known, so it shows the consumer rate — checkout
- * recalculates once a VAT number has been given and validated.
- */
-const VAT_RATE = vatRateFor(DEFAULT_MARKET);
+// Prices here are quoted at the consumer rate of the market being served (see
+// DualPrice). Business customers in another EU state are reverse charged at 0%,
+// but the configurator quotes before a customer is known — checkout is where a
+// validated VAT number would change it.
 
 // ===== Configurator types =====
 type ConfigType = "wood-h" | "wood-v" | "metal-bi" | "metal-cs" | "hobby" | "meat" | "bread" | "slicer";
 
-const TABS: { key: ConfigType; label: string; subtitle: string }[] = [
-  { key: "wood-h", label: "Дърво — Хоризонтален", subtitle: "Банцигови ленти за хоризонтален банциг" },
-  { key: "wood-v", label: "Дърво — Вертикален", subtitle: "Банцигови ленти за вертикален банциг" },
-  { key: "metal-bi", label: "Метал — Биметални", subtitle: "Биметални отрезни ленти M42/M51" },
-  { key: "metal-cs", label: "Метал — Въглеродна CS", subtitle: "Отрезни ленти от въглеродна стомана" },
-  { key: "hobby", label: "Хоби банциг", subtitle: "Ленти за Einhell, Parkside, Scheppach" },
-  { key: "meat", label: "Месо и риба", subtitle: "Лентови ножове за месо и риба" },
-  { key: "bread", label: "Хлебни изделия", subtitle: "Лентови ножове за хлеборезни машини" },
-  { key: "slicer", label: "Слайсъри", subtitle: "Лентови ножове за слайсъри" },
+/**
+ * Tab order only. The label and subtitle come from `configurator.tabs.<key>`,
+ * so a Romanian buyer sees "Lemn — Orizontal" rather than Cyrillic they cannot
+ * read on the one screen that actually sells.
+ *
+ * The "slicer" key was labelled "Слайсъри", which named a machine this tab has
+ * never sold blades for. What is actually priced here is band knives for soft
+ * materials, and the label now says so in every language.
+ */
+const TAB_ORDER: ConfigType[] = [
+  "wood-h", "wood-v", "metal-bi", "metal-cs", "hobby", "meat", "bread", "slicer",
 ];
 
-// ===== Sample dropdown options =====
-const WIDTHS_WOOD = ["20", "25", "27", "32", "35", "38", "40", "50", "60", "80"];
-const WIDTHS_METAL = ["13", "19", "20", "27", "34", "41", "54", "67", "80"];
-const WIDTHS_HOBBY = ["6", "8", "10", "13", "16", "19"];
-const WIDTHS_FOOD = ["10", "13", "16", "19", "22"];
-const THICKNESS_WOOD = ["0.6", "0.7", "0.8", "0.9", "1.0", "1.1"];
-const THICKNESS_METAL = ["0.65", "0.9", "1.1", "1.3", "1.6"];
-const TOOTH_PITCH_WOOD = ["15", "20", "22", "25", "30", "35"];
-const TOOTH_PITCH_METAL = ["2/3", "3/4", "4/6", "5/8", "6/10", "8/12", "10/14"];
-const TOOTH_PITCH_HOBBY = ["4", "6", "10", "14", "18", "24"];
-const BRANDS_WOOD = ["MasterGold", "MasterBlade", "Kodiak", "Tehnoles"];
-const BRANDS_HOBBY = ["Einhell", "Parkside", "Scheppach", "Metabo", "Record Power", "Jet"];
-const STEEL_TYPES = ["M42 Allpower", "M42 Shark", "M51 Cobalt", "M42 Vario"];
-const PROFILES_FOOD = ["4 TPI (кост)", "3 TPI (замразено)", "Вълна", "Изпъкнала вълна", "Фини зъби 10 TPI"];
+/**
+ * The hobby tab now quotes from METAL_CARBON_BLADES like every other tab.
+ *
+ * It used to be its own form with an invented formula —
+ * `(1.2 + width * 0.05) * length / 1000` — which quoted 2.24 EUR for a blade
+ * the catalogue sells at 6.00, ignored the thickness, pitch and all four
+ * process checkboxes it rendered, and had no onClick on its Add button. Its
+ * dropdowns offered 16/19 mm and 10/18/24 TPI, none of which exist in any
+ * price table, and listed machine brands where every other tab lists the
+ * steel. A form that cannot be bought from and lies about the price is worse
+ * than no form.
+ */
 
 function Select({ label, options, required, value, onChange, format }: {
   label: string; options: string[]; required?: boolean;
@@ -70,6 +68,7 @@ function Select({ label, options, required, value, onChange, format }: {
   /** Shows something other than the stored value — tooth profiles are codes. */
   format?: (v: string) => string;
 }) {
+  const t = useTranslations("configurator");
   return (
     <div>
       <label className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">
@@ -80,7 +79,7 @@ function Select({ label, options, required, value, onChange, format }: {
         onChange={(e) => onChange(e.target.value)}
         className="w-full h-12 px-3.5 border border-ink-15 bg-white font-sans text-[15px] text-ink outline-none focus:border-blue hover:border-ink-30 transition-colors cursor-pointer"
       >
-        <option value="">— избери —</option>
+        <option value="">{t("field.choose")}</option>
         {options.map((o) => (
           <option key={o} value={o}>{format ? format(o) : o}</option>
         ))}
@@ -89,29 +88,61 @@ function Select({ label, options, required, value, onChange, format }: {
   );
 }
 
-function NumberInput({ label, unit, value, onChange, required, highlight }: {
-  label: string; unit: string; value: number; onChange: (v: number) => void;
-  required?: boolean; highlight?: boolean;
-}) {
+/**
+ * The loop length, which is the one field with a floor under it.
+ *
+ * The workshop welds from 1 000 mm up — below that there is no machine the
+ * loop will go round. The server has always enforced it (MIN_CUSTOM_LENGTH),
+ * but the form did not, so a 400 mm blade could be configured, priced, added
+ * to the cart and only rejected at checkout. The rule is stated up front and
+ * the same constant is used on both sides, so the two can never disagree.
+ */
+function LengthInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const t = useTranslations("configurator");
+  const tooShort = value > 0 && value < MIN_CUSTOM_LENGTH;
+  const tooLong = value > MAX_CUSTOM_LENGTH;
+
   return (
     <div>
       <label className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">
-        {label} {required && <span className="text-orange">*</span>}
+        {t("field.length")} <span className="text-orange">*</span>
       </label>
       <div className="flex items-center gap-2">
         <input
           type="number"
           value={value || ""}
           onChange={(e) => onChange(+e.target.value)}
-          min={0}
-          className="w-full h-12 px-3.5 border border-ink-15 bg-white font-mono text-[15px] tabular-nums text-ink outline-none focus:border-blue hover:border-ink-30 transition-colors"
-          placeholder="0"
+          min={MIN_CUSTOM_LENGTH}
+          max={MAX_CUSTOM_LENGTH}
+          step={10}
+          aria-invalid={tooShort || tooLong}
+          className={`w-full h-12 px-3.5 border bg-white font-mono text-[15px] tabular-nums text-ink outline-none transition-colors ${
+            tooShort || tooLong ? "border-orange" : "border-ink-15 focus:border-blue hover:border-ink-30"
+          }`}
+          placeholder={String(MIN_CUSTOM_LENGTH)}
         />
-        <span className="font-mono text-sm text-ink-50 shrink-0">{unit}</span>
+        <span className="font-mono text-sm text-ink-50 shrink-0">{t("field.mm")}</span>
       </div>
+
+      {tooShort ? (
+        <p className="font-sans text-[12px] leading-snug text-orange mt-2 mb-0">
+          {t("length.tooShort", { min: MIN_CUSTOM_LENGTH })}
+        </p>
+      ) : tooLong ? (
+        <p className="font-sans text-[12px] leading-snug text-orange mt-2 mb-0">
+          {t("length.tooLong", { max: MAX_CUSTOM_LENGTH })}
+        </p>
+      ) : (
+        <p className="font-sans text-[12px] leading-snug text-ink-50 mt-2 mb-0">
+          {t("length.hint", { min: MIN_CUSTOM_LENGTH })}
+        </p>
+      )}
     </div>
   );
 }
+
+/** A length the workshop will actually take, and the server will accept. */
+const isWeldableLength = (mm: number) => mm >= MIN_CUSTOM_LENGTH && mm <= MAX_CUSTOM_LENGTH;
 
 function Checkbox({ label, checked, onChange }: {
   label: string; checked: boolean; onChange: (v: boolean) => void;
@@ -134,9 +165,10 @@ function Checkbox({ label, checked, onChange }: {
 }
 
 function QuantityStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const t = useTranslations("configurator");
   return (
     <div>
-      <label className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">Количество</label>
+      <label className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">{t("field.quantity")}</label>
       <div className="inline-flex items-center border border-ink-15 bg-white">
         <button
           onClick={() => onChange(Math.max(1, value - 1))}
@@ -157,7 +189,7 @@ function QuantityStepper({ value, onChange }: { value: number; onChange: (v: num
         >
           +
         </button>
-        <span className="px-3 font-sans text-sm text-ink-50">бр.</span>
+        <span className="px-3 font-sans text-sm text-ink-50">{t("field.pieces")}</span>
       </div>
     </div>
   );
@@ -170,8 +202,11 @@ function QuantityStepper({ value, onChange }: { value: number; onChange: (v: num
  * The configurator could always price a blade but never say what it was — a
  * buyer picking "38 × 1.14, Kodiak, 22.2" saw a number and no confirmation
  * they had chosen the right thing for their timber. This is the answer the
- * counter would give: the series, what it cuts, and whether that tooth pitch
- * suits the cut.
+ * counter would give: the series, what that width can and cannot do, and what
+ * the chosen tooth pitch or edge profile is actually for.
+ *
+ * The whole row goes to bladeGuide(), not just the brand — width and profile
+ * are what decide the job, so they are what decide the copy.
  */
 function BladePreview({
   table,
@@ -182,7 +217,12 @@ function BladePreview({
   blade: BladeConfig;
   length: number;
 }) {
-  const guide = bladeGuide(table, blade.brand, blade.pitch);
+  const t = useTranslations("configurator");
+  const guide = bladeGuide(table, blade);
+  const kind = edgeKind(table, blade.pitch);
+  // "3 TPI" is a tooth spacing; "Изпъкнала вълна" is a ground shape. Naming a
+  // pitch a profile reads as a mistake to anyone who buys these.
+  const isProfile = kind === "straight" || kind === "wave" || kind === "scallop" || kind === "convex";
 
   return (
     <div className="sm:col-span-2 mt-2 border border-ink-15 bg-paper flex flex-col sm:flex-row">
@@ -200,12 +240,25 @@ function BladePreview({
         <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">
           {guide.type} · {guide.application}
         </div>
-        <div className="font-display text-xl font-bold tracking-tight text-ink mt-1">
-          {guide.name}
+        {/* The name, with the edge drawn next to it — the profile is a shape,
+            and the shape is faster to read than its name. */}
+        <div className="flex items-center gap-3 flex-wrap mt-1">
+          <span className="font-display text-xl font-bold tracking-tight text-ink">
+            {guide.name}
+          </span>
+          {kind !== "none" && (
+            <span className="inline-flex items-center gap-1.5 border border-ink-15 bg-white px-2 py-1">
+              <IconEdge kind={kind} size={40} className="text-ink" aria-hidden />
+              <span className="font-mono text-[10px] tracking-[0.08em] uppercase text-ink-70">
+                {pitchLabel(blade.pitch)}
+              </span>
+            </span>
+          )}
         </div>
         <div className="font-mono text-[11px] text-ink-70 tabular-nums mt-1.5">
-          {blade.width} × {blade.thickness} мм · стъпка {pitchLabel(blade.pitch)}
-          {length > 0 && <> · контур {length} мм</>}
+          {blade.width} × {blade.thickness} {t("field.mm")} ·{" "}
+          {isProfile ? t("preview.profile") : t("preview.pitch")} {pitchLabel(blade.pitch)}
+          {length > 0 && <> · {t("preview.loop", { length })}</>}
         </div>
 
         <p className="font-sans text-[13px] leading-relaxed text-ink-70 mt-3.5 mb-0 max-w-[60ch]">
@@ -222,11 +275,67 @@ function BladePreview({
   );
 }
 
+/**
+ * Which grind for which material, on the soft-materials tab.
+ *
+ * The four edges sit on one axis — how hard the edge bites — and the material
+ * picks the point on it. Only the knife edge is priced in the table today, so
+ * the other three are marked as quoted on enquiry rather than quietly omitted:
+ * a customer cutting felt or rubber hose should learn that the right blade
+ * exists, not conclude we do not make it.
+ */
+function EdgeProfileGuide() {
+  const t = useTranslations("configurator");
+  return (
+    <div className="mt-10 border-t border-ink-15 pt-8">
+      <h3 className="font-display text-lg font-bold tracking-tight text-ink m-0">
+        {t("edgeGuide.title")}
+      </h3>
+      <p className="font-sans text-sm text-ink-50 mt-1.5 mb-6 max-w-[70ch]">
+        {t("edgeGuide.intro")}
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-ink-15 border border-ink-15">
+        {MATERIAL_EDGE_GUIDE.map((edge) => (
+          <div key={edge.code} className="bg-white p-5">
+            <div className="flex items-center justify-between gap-3">
+              <IconEdge kind={edge.kind} size={56} className="text-ink" aria-hidden />
+              <span
+                className={`font-mono text-[9px] tracking-[0.12em] uppercase px-1.5 py-0.5 border ${
+                  edge.stocked ? "text-orange border-orange" : "text-ink-50 border-ink-15"
+                }`}
+              >
+                {edge.stocked ? t("edgeGuide.stocked") : t("edgeGuide.onRequest")}
+              </span>
+            </div>
+            <div className="font-display text-base font-bold tracking-tight text-ink mt-3">
+              {edge.name}
+            </div>
+            <div className="font-mono text-[10px] tracking-[0.08em] uppercase text-ink-50 mt-1.5 leading-relaxed">
+              {edge.materials}
+            </div>
+            <p className="font-sans text-[13px] leading-relaxed text-ink-70 mt-3 mb-0">
+              {edge.note}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p className="font-sans text-[13px] leading-relaxed text-ink-50 mt-5 mb-0 max-w-[70ch]">
+        {t("edgeGuide.footnote")}
+      </p>
+    </div>
+  );
+}
+
 // ===== Per-type configurator forms =====
 function WoodConfigurator({ type }: { type: "h" | "v" }) {
+  const t = useTranslations("configurator");
+  const tc = useTranslations("common");
+  const { price } = usePrices();
   const blades = type === "v" ? VERTICAL_WOOD_BLADES : HORIZONTAL_WOOD_BLADES;
 
-  const { widths, brands: allBrands } = getUniqueValues(blades);
+  const { widths } = getUniqueValues(blades);
 
   const [width, setWidth] = useState("");
   const [thickness, setThickness] = useState("");
@@ -254,25 +363,27 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
     ? findBlade(blades, widthNum, thicknessNum, pitch, brand)
     : null;
 
-  // Calculate price using real data
-  const prices = selectedBlade && length > 0
+  // Only quote a length the workshop will actually weld — a price against a
+  // 400 mm loop is a promise the checkout would then break.
+  const prices = selectedBlade && isWeldableLength(length)
     ? calculateBladePrice(selectedBlade, length, { welding, sharpening, heatTreatment: heatTreat, setting })
     : null;
 
   const unitPrice = prices?.totalWithoutVat ?? 0;
-  const unitPriceVat = unitPrice * (1 + VAT_RATE);
 
   // Reset downstream when upstream changes
   const handleWidthChange = (v: string) => { setWidth(v); setThickness(""); setPitch(""); setBrand(""); };
   const handleThicknessChange = (v: string) => { setThickness(v); setPitch(""); };
   const handleBrandChange = (v: string) => { setBrand(v); setPitch(""); };
 
+  const canAdd = !!selectedBlade && isWeldableLength(length);
+
   const handleAdd = () => {
-    if (!selectedBlade || length <= 0) return;
+    if (!canAdd || !selectedBlade) return;
     addItem({
       sku: `CUSTOM-${type.toUpperCase()}-${width}x${thickness}-${length}`,
-      name: `Лента за дърво ${width}×${thickness} ${brand}`,
-      dim: `${length} × ${width} × ${thickness} мм · ${pitch} · ${brand}`,
+      name: t("item.wood", { width, thickness, brand }),
+      dim: `${length} × ${width} × ${thickness} мм · ${pitchLabel(pitch)} · ${brand}`,
       price: unitPrice,
       quantity: qty,
       customSpecs: {
@@ -296,11 +407,11 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-12">
       {/* Form */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Select label="Широчина" options={widths.map(String)} required value={width} onChange={handleWidthChange} />
-        <Select label="Дебелина" options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
-        <Select label="Марка" options={widthNum ? widthOptions.brands : []} required value={brand} onChange={handleBrandChange} />
-        <Select label="Стъпка" options={availablePitches} required value={pitch} onChange={setPitch} format={pitchLabel} />
-        <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
+        <Select label={t("field.width")} options={widths.map(String)} required value={width} onChange={handleWidthChange} />
+        <Select label={t("field.thickness")} options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
+        <Select label={t("field.brand")} options={widthNum ? widthOptions.brands : []} required value={brand} onChange={handleBrandChange} />
+        <Select label={t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchLabel} />
+        <LengthInput value={length} onChange={setLength} />
         <QuantityStepper value={qty} onChange={setQty} />
         {selectedBlade && (
           <BladePreview table={type === "h" ? "wood-h" : "wood-v"} blade={selectedBlade} length={length} />
@@ -310,39 +421,33 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
       {/* Right — extras + price */}
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-3">
-          <Checkbox label="Заварка" checked={welding} onChange={setWelding} />
-          <Checkbox label="Чапраз" checked={setting} onChange={setSetting} />
-          <Checkbox label="Заточване" checked={sharpening} onChange={setSharpening} />
-          <Checkbox label="Термообработка" checked={heatTreat} onChange={setHeatTreat} />
+          <Checkbox label={t("extras.welding")} checked={welding} onChange={setWelding} />
+          <Checkbox label={t("extras.setting")} checked={setting} onChange={setSetting} />
+          <Checkbox label={t("extras.sharpening")} checked={sharpening} onChange={setSharpening} />
+          <Checkbox label={t("extras.heatTreatment")} checked={heatTreat} onChange={setHeatTreat} />
         </div>
 
         {selectedBlade && (
+          // The rates the quote is built from, all without VAT — said once at
+          // the end rather than after every figure.
           <div className="p-3 bg-paper font-mono text-[10px] text-ink-50 tracking-[0.05em]">
-            Цена/м: {selectedBlade.pricePerMeter.toFixed(2)} €
-            {welding && <> · Заварка: {selectedBlade.welding.toFixed(2)} €/бр</>}
-            {sharpening && selectedBlade.sharpening > 0 && <> · Заточване: {selectedBlade.sharpening.toFixed(2)} €/м</>}
-            {heatTreat && selectedBlade.heatTreatment > 0 && <> · Термо: {selectedBlade.heatTreatment.toFixed(2)} €/м</>}
-            {setting && selectedBlade.setting > 0 && <> · Чапраз: {selectedBlade.setting.toFixed(2)} €/м</>}
+            {t("price.perMeter")}: {price(selectedBlade.pricePerMeter)}
+            {welding && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
+            {sharpening && selectedBlade.sharpening > 0 && <> · {t("extras.sharpening")}: {t("price.perMetreUnit", { price: price(selectedBlade.sharpening) })}</>}
+            {heatTreat && selectedBlade.heatTreatment > 0 && <> · {t("extras.heatShort")}: {t("price.perMetreUnit", { price: price(selectedBlade.heatTreatment) })}</>}
+            {setting && selectedBlade.setting > 0 && <> · {t("extras.setting")}: {t("price.perMetreUnit", { price: price(selectedBlade.setting) })}</>}
+            {" "}· {tc("exVat")}
           </div>
         )}
 
-        {/* The figure a buyer acts on, given the weight it deserves: ex-VAT
-            large because that is what a trade customer budgets against, with
-            VAT stated beneath rather than shouted in red. */}
+        {/* The figure a buyer acts on, stated both ways — see DualPrice. */}
         <div className="mt-auto border-t-2 border-ink pt-4">
           <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">
-            Цена без ДДС
+            {t("price.label")}
           </div>
-          <div className="flex items-baseline gap-2 mt-1 mb-1">
-            <span className="font-display text-[40px] leading-none font-extrabold tracking-[-0.03em] text-ink tabular-nums">
-              {formatPrice(unitPrice)}
-            </span>
-          </div>
-          <div className="font-mono text-[11px] text-ink-50 tabular-nums mb-5">
-            с ДДС {formatPrice(unitPriceVat)}
-          </div>
-          <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAdd}>
-            {added ? "✓ Добавено в количката!" : "Добави в количката"}
+          <DualPrice net={unitPrice} size="lg" className="mt-1 mb-5" />
+          <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAdd} disabled={!canAdd}>
+            {added ? t("price.added") : t("price.add")}
           </Btn>
         </div>
       </div>
@@ -352,17 +457,19 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
 
 function RealDataConfigurator({
   blades,
-  label,
   tableKey,
-  hasProcessing = false,
 }: {
   blades: BladeConfig[];
-  label: string;
   // Names the price table this form quotes from, so the order route can find
-  // the same row again and verify the price.
+  // the same row again and verify the price. It also names the cart line, via
+  // `configurator.item.<tableKey>` — the label used to be passed in as a
+  // Bulgarian string, which put untranslatable copy in the render tree.
   tableKey: BladeTableKey;
-  hasProcessing?: boolean;
 }) {
+  const t = useTranslations("configurator");
+  const label = t(`item.${tableKey}`);
+  const tc = useTranslations("common");
+  const { price } = usePrices();
   const { widths } = getUniqueValues(blades);
   const [width, setWidth] = useState("");
   const [thickness, setThickness] = useState("");
@@ -387,19 +494,20 @@ function RealDataConfigurator({
     ? findBlade(blades, widthNum, thicknessNum, pitch, effectiveBrand)
     : null;
 
-  const prices = selectedBlade && length > 0
+  const prices = selectedBlade && isWeldableLength(length)
     ? calculateBladePrice(selectedBlade, length, { welding: selectedBlade.welding > 0, sharpening: false, heatTreatment: false, setting: false })
     : null;
 
   const unitPrice = prices?.totalWithoutVat ?? 0;
-  const unitPriceVat = unitPrice * (1 + VAT_RATE);
 
   const handleWidthChange = (v: string) => { setWidth(v); setThickness(""); setPitch(""); setBrand(""); };
   const handleThicknessChange = (v: string) => { setThickness(v); setPitch(""); };
   const handleBrandChange = (v: string) => { setBrand(v); setPitch(""); };
 
+  const canAdd = !!selectedBlade && isWeldableLength(length);
+
   const handleAdd = () => {
-    if (!selectedBlade || length <= 0) return;
+    if (!canAdd || !selectedBlade) return;
     addItem({
       sku: `CUSTOM-${widthNum}x${thicknessNum}-${length}-${pitch}`,
       name: label,
@@ -423,148 +531,34 @@ function RealDataConfigurator({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 lg:gap-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Select label="Широчина" options={widths.map(String)} required value={width} onChange={handleWidthChange} />
-        <Select label="Дебелина" options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
+        <Select label={t("field.width")} options={widths.map(String)} required value={width} onChange={handleWidthChange} />
+        <Select label={t("field.thickness")} options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
         {widthOptions.brands.length > 1 && (
-          <Select label="Марка" options={widthOptions.brands} required value={brand} onChange={handleBrandChange} />
+          <Select label={t("field.brand")} options={widthOptions.brands} required value={brand} onChange={handleBrandChange} />
         )}
-        <Select label={availablePitches.some(isProfilePitch) ? "Профил и стъпка" : "Стъпка"} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchLabel} />
+        <Select label={availablePitches.some(isProfilePitch) ? t("field.profileAndPitch") : t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchLabel} />
+        {/* Length belongs with width, thickness and profile — it is the fourth
+            dimension of the blade, not a commercial control like quantity.
+            Sitting alone in the price column it read as an afterthought on the
+            one product where it is the whole point. */}
+        <LengthInput value={length} onChange={setLength} />
         {selectedBlade && <BladePreview table={tableKey} blade={selectedBlade} length={length} />}
       </div>
       <div className="flex flex-col gap-5">
-        <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
         <QuantityStepper value={qty} onChange={setQty} />
         {selectedBlade && (
           <div className="p-3 bg-paper font-mono text-[10px] text-ink-50 tracking-[0.05em]">
-            Цена/м: {selectedBlade.pricePerMeter.toFixed(2)} €
-            {selectedBlade.welding > 0 && <> · Заварка: {selectedBlade.welding.toFixed(2)} €/бр</>}
+            {t("price.perMeter")}: {price(selectedBlade.pricePerMeter)}
+            {selectedBlade.welding > 0 && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
+            {" "}· {tc("exVat")}
           </div>
         )}
         <div className="mt-auto border-t-2 border-ink pt-4">
-          <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">Цена без ДДС</div>
-          <div className="font-display text-[40px] leading-none font-extrabold tracking-[-0.03em] text-ink tabular-nums mt-1 mb-1">{formatPrice(unitPrice)}</div>
-          <div className="font-mono text-[11px] text-ink-50 tabular-nums mb-5">с ДДС {formatPrice(unitPriceVat)}</div>
-          <Btn variant="primary" size="lg" fullWidth onClick={handleAdd}>
-            {added ? "✓ Добавено!" : "Добави в количката"}
+          <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">{t("price.label")}</div>
+          <DualPrice net={unitPrice} size="lg" className="mt-1 mb-5" />
+          <Btn variant="primary" size="lg" fullWidth onClick={handleAdd} disabled={!canAdd}>
+            {added ? t("price.addedShort") : t("price.add")}
           </Btn>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MetalBiConfigurator() {
-  const [steelType, setSteelType] = useState("");
-  const [width, setWidth] = useState("");
-  const [thickness, setThickness] = useState("");
-  const [pitch, setPitch] = useState("");
-  const [length, setLength] = useState(0);
-  const [qty, setQty] = useState(1);
-
-  const pricePerMeter = steelType && width ? 4.0 + parseFloat(width || "0") * 0.12 : 0;
-  const unitPrice = length > 0 ? pricePerMeter * length / 1000 : 0;
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 lg:gap-12">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div className="sm:col-span-2">
-          <Select label="Тип на стоманата" options={STEEL_TYPES} required value={steelType} onChange={setSteelType} />
-        </div>
-        <Select label="Широчина" options={WIDTHS_METAL} required value={width} onChange={setWidth} />
-        <Select label="Дебелина" options={THICKNESS_METAL} required value={thickness} onChange={setThickness} />
-        <Select label="Стъпка" options={TOOTH_PITCH_METAL} required value={pitch} onChange={setPitch} />
-      </div>
-      <div className="flex flex-col gap-5">
-        <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
-        <QuantityStepper value={qty} onChange={setQty} />
-        <div className="mt-auto border-t-2 border-ink pt-4">
-          <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">Цена без ДДС</div>
-          <div className="font-display text-[40px] leading-none font-extrabold tracking-[-0.03em] text-ink tabular-nums mt-1 mb-1">{formatPrice(unitPrice)}</div>
-          <div className="font-mono text-[11px] text-ink-50 tabular-nums mb-5">с ДДС {formatPrice(unitPrice * (1 + VAT_RATE))}</div>
-          <Btn variant="primary" size="lg" fullWidth>Добави в количката</Btn>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SimpleConfigurator({ widths, pitchLabel, pitchOptions }: {
-  widths: string[];
-  pitchLabel?: string;
-  pitchOptions?: string[];
-}) {
-  const [width, setWidth] = useState("");
-  const [thickness, setThickness] = useState("");
-  const [pitch, setPitch] = useState("");
-  const [length, setLength] = useState(0);
-  const [qty, setQty] = useState(1);
-
-  const pricePerMeter = width ? 1.8 + parseFloat(width) * 0.06 : 0;
-  const unitPrice = length > 0 ? pricePerMeter * length / 1000 : 0;
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 lg:gap-12">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Select label="Широчина" options={widths} required value={width} onChange={setWidth} />
-        {pitchOptions ? (
-          <Select label={pitchLabel || "Стъпка"} options={pitchOptions} required value={pitch} onChange={setPitch} />
-        ) : (
-          <>
-            <Select label="Дебелина" options={THICKNESS_METAL} required value={thickness} onChange={setThickness} />
-            <Select label="Стъпка" options={TOOTH_PITCH_METAL} required value={pitch} onChange={setPitch} />
-          </>
-        )}
-      </div>
-      <div className="flex flex-col gap-5">
-        <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
-        <QuantityStepper value={qty} onChange={setQty} />
-        <div className="mt-auto border-t-2 border-ink pt-4">
-          <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">Цена без ДДС</div>
-          <div className="font-display text-[40px] leading-none font-extrabold tracking-[-0.03em] text-ink tabular-nums mt-1 mb-1">{formatPrice(unitPrice)}</div>
-          <div className="font-mono text-[11px] text-ink-50 tabular-nums mb-5">с ДДС {formatPrice(unitPrice * (1 + VAT_RATE))}</div>
-          <Btn variant="primary" size="lg" fullWidth>Добави в количката</Btn>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function HobbyConfigurator() {
-  const [width, setWidth] = useState("");
-  const [thickness, setThickness] = useState("");
-  const [pitch, setPitch] = useState("");
-  const [brand, setBrand] = useState("");
-  const [length, setLength] = useState(0);
-  const [qty, setQty] = useState(1);
-  const [welding, setWelding] = useState(true);
-  const [setting, setSetting] = useState(true);
-  const [sharpening, setSharpening] = useState(true);
-  const [heatTreat, setHeatTreat] = useState(false);
-
-  const unitPrice = length > 0 && width ? (1.2 + parseFloat(width) * 0.05) * length / 1000 : 0;
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-12">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Select label="Широчина" options={WIDTHS_HOBBY} required value={width} onChange={setWidth} />
-        <Select label="Дебелина" options={["0.36", "0.5", "0.65"]} required value={thickness} onChange={setThickness} />
-        <Select label="Стъпка" options={TOOTH_PITCH_HOBBY} required value={pitch} onChange={setPitch} />
-        <Select label="Марка" options={BRANDS_HOBBY} required value={brand} onChange={setBrand} />
-        <NumberInput label="Дължина в мм." unit="мм." value={length} onChange={setLength} required highlight />
-        <QuantityStepper value={qty} onChange={setQty} />
-      </div>
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-3">
-          <Checkbox label="Заварка" checked={welding} onChange={setWelding} />
-          <Checkbox label="Чапраз" checked={setting} onChange={setSetting} />
-          <Checkbox label="Заточване" checked={sharpening} onChange={setSharpening} />
-          <Checkbox label="Термообработка" checked={heatTreat} onChange={setHeatTreat} />
-        </div>
-        <div className="mt-auto border-t-2 border-ink pt-4">
-          <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">Цена без ДДС</div>
-          <div className="font-display text-[40px] leading-none font-extrabold tracking-[-0.03em] text-ink tabular-nums mt-1 mb-1">{formatPrice(unitPrice)}</div>
-          <div className="font-mono text-[11px] text-ink-50 tabular-nums mb-5">с ДДС {formatPrice(unitPrice * (1 + VAT_RATE))}</div>
-          <Btn variant="primary" size="lg" fullWidth>Добави в количката</Btn>
         </div>
       </div>
     </div>
@@ -573,25 +567,27 @@ function HobbyConfigurator() {
 
 // ===== Main page =====
 export function ConfiguratorPanel() {
+  const t = useTranslations("configurator");
+  const tc = useTranslations("common");
+  const { market, price } = usePrices();
   const [activeTab, setActiveTab] = useState<ConfigType>("wood-h");
-  const currentTab = TABS.find((t) => t.key === activeTab)!;
 
   return (
     <div className="bg-white">
       {/* Tabs */}
       <div className="border-b border-ink-15 bg-paper overflow-x-auto">
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 flex gap-0 min-w-max">
-          {TABS.map((tab) => (
+          {TAB_ORDER.map((key) => (
             <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              key={key}
+              onClick={() => setActiveTab(key)}
               className={`px-5 py-4 font-mono text-[11px] tracking-[0.08em] uppercase border-none cursor-pointer whitespace-nowrap transition-colors ${
-                activeTab === tab.key
+                activeTab === key
                   ? "bg-white text-ink border-b-2 border-orange -mb-px font-semibold"
                   : "bg-transparent text-ink-50 hover:text-ink border-b-2 border-transparent"
               }`}
             >
-              {tab.label}
+              {t(`tabs.${key}.label`)}
             </button>
           ))}
         </div>
@@ -603,20 +599,25 @@ export function ConfiguratorPanel() {
         <div className="flex items-center gap-4 mb-8">
           <IconRuler size={28} className="text-blue" />
           <div>
-            <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-ink m-0">{currentTab.label}</h2>
-            <p className="font-sans text-sm text-ink-50 mt-1">{currentTab.subtitle}</p>
+            <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-ink m-0">{t(`tabs.${activeTab}.label`)}</h2>
+            <p className="font-sans text-sm text-ink-50 mt-1">{t(`tabs.${activeTab}.subtitle`)}</p>
           </div>
         </div>
 
         {/* Form */}
         {(activeTab === "wood-h") && <WoodConfigurator type="h" />}
         {(activeTab === "wood-v") && <WoodConfigurator type="v" />}
-        {(activeTab === "metal-bi") && <RealDataConfigurator blades={METAL_BIMETAL_BLADES} label="Биметална отрезна лента" tableKey="metal-bi" hasProcessing={false} />}
-        {(activeTab === "metal-cs") && <RealDataConfigurator blades={METAL_CARBON_BLADES} label="Лента въглеродна стомана" tableKey="metal-cs" hasProcessing={false} />}
-        {(activeTab === "hobby") && <HobbyConfigurator />}
-        {(activeTab === "meat") && <RealDataConfigurator blades={MEAT_BLADES} label="Лентов нож за месо/риба" tableKey="meat" hasProcessing={false} />}
-        {(activeTab === "bread") && <RealDataConfigurator blades={BREAD_BLADES} label="Лентов нож за хляб" tableKey="bread" hasProcessing={false} />}
-        {(activeTab === "slicer") && <RealDataConfigurator blades={TEXTILE_BLADES} label="Лента за текстил/хартия" tableKey="textile" hasProcessing={false} />}
+        {(activeTab === "metal-bi") && <RealDataConfigurator blades={METAL_BIMETAL_BLADES} tableKey="metal-bi" />}
+        {(activeTab === "metal-cs") && <RealDataConfigurator blades={METAL_CARBON_BLADES} tableKey="metal-cs" />}
+        {(activeTab === "hobby") && <RealDataConfigurator blades={METAL_CARBON_BLADES} tableKey="metal-cs" />}
+        {(activeTab === "meat") && <RealDataConfigurator blades={MEAT_BLADES} tableKey="meat" />}
+        {(activeTab === "bread") && <RealDataConfigurator blades={BREAD_BLADES} tableKey="bread" />}
+        {(activeTab === "slicer") && (
+          <>
+            <RealDataConfigurator blades={TEXTILE_BLADES} tableKey="textile" />
+            <EdgeProfileGuide />
+          </>
+        )}
 
         {/* Set as data, in the site's own idiom. The green ticks came from the
             old shop and read as a template; a numbered rail with hairline rules
@@ -624,10 +625,12 @@ export function ConfiguratorPanel() {
             claim is gone — it has never been substantiated. */}
         <div className="mt-14 pt-10 border-t border-ink-15 grid grid-cols-2 lg:grid-cols-4 gap-px bg-ink-15">
           {[
-            ["Изработка", "по поръчка", "Срокът се потвърждава при поръчката"],
-            ["Доставка", "безплатна", `При поръчка над ${DEFAULT_MARKET.freeShippingThreshold} €`],
-            ["1 000 — ∞", "мм контур", "Без горна граница на дължината"],
-            ["Гаранция", "на заварката", "Скъсване на шева — подменяме лентата"],
+            [t("facts.madeToOrderFigure"), t("facts.madeToOrderUnit"), t("facts.madeToOrderNote")],
+            market.carriage === "collect"
+              ? [t("facts.shippingFigure"), market.couriers.join(" · "), tc("courierFeeNote", { couriers: market.couriers.join(" / ") })]
+              : [t("facts.shippingFigure"), t("facts.shippingUnit"), t("facts.shippingNote", { threshold: `${price(market.freeShippingThreshold)} ${tc("exVat")}` })],
+            [`${MIN_CUSTOM_LENGTH.toLocaleString("bg-BG")} — ∞`, t("facts.lengthUnit"), t("facts.lengthNote")],
+            [t("facts.warrantyFigure"), t("facts.warrantyUnit"), t("facts.warrantyNote")],
           ].map(([figure, unit, desc]) => (
             <div key={desc} className="bg-white p-5">
               <div className="font-display text-lg font-bold tracking-tight text-ink tabular-nums leading-none">

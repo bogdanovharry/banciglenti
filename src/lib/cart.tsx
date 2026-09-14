@@ -3,7 +3,11 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 
 import type { CustomSpecs } from "./order-pricing";
-import { DEFAULT_MARKET } from "./market";
+import { computeOrderTotals, type OrderTotals } from "./order-totals";
+import { carriageTerms, vatRateFor } from "./market";
+import { useMarket } from "./market-context";
+
+type ShippingMethod = "courier" | "pickup";
 
 export interface CartItem {
   id: string; // unique key: sku + custom specs hash
@@ -28,20 +32,18 @@ interface CartContextType {
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   itemCount: number;
+  /** The rate the totals below were taken at — the current market's. */
+  vatRate: number;
+  /** Totals assuming courier delivery, for the cart page. */
   subtotal: number;
   shipping: number;
   tax: number;
   total: number;
+  /** Totals for a chosen delivery method, for checkout. */
+  totalsFor: (shippingMethod: ShippingMethod) => OrderTotals;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
-
-// Commercial terms live in one place — see src/lib/market.ts. Bulgaria is the
-// only market currently served, so the cart reads its figures directly; when a
-// second market goes live this becomes the active market rather than a constant.
-const { freeShippingThreshold: FREE_SHIPPING_THRESHOLD, shippingCost: SHIPPING_COST } =
-  DEFAULT_MARKET;
-const TAX_RATE = DEFAULT_MARKET.vatRate;
 
 function generateId(item: Omit<CartItem, "id">): string {
   const specsKey = item.customSpecs
@@ -103,15 +105,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   }, []);
 
+  // The same function the order route charges through, fed the same market
+  // terms, so the preview is the bill. It used to add courier carriage even
+  // when pickup was chosen, and always at Bulgarian VAT.
+  const market = useMarket();
+  const vatRate = vatRateFor(market);
+  const totalsFor = useCallback(
+    (shippingMethod: ShippingMethod) =>
+      computeOrderTotals({
+        lines: items,
+        shippingMethod,
+        vatRate,
+        ...carriageTerms(market),
+      }),
+    [items, vatRate, market],
+  );
+
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
-  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-  const tax = subtotal * TAX_RATE;
-  const total = subtotal + shipping + tax;
+  const { subtotal, shippingCost: shipping, tax, total } = totalsFor("courier");
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, clearCart, itemCount, subtotal, shipping, tax, total }}
+      value={{ items, addItem, removeItem, updateQuantity, clearCart, itemCount, vatRate, subtotal, shipping, tax, total, totalsFor }}
     >
       {children}
     </CartContext.Provider>

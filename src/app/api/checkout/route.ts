@@ -4,26 +4,27 @@ import config from '@payload-config'
 
 import {
   computeOrderTotals,
+  customSku,
   parseCustomSpecs,
   priceCustomItem,
   round2,
   type CustomSpecs,
 } from '@/lib/order-pricing'
-import { DEFAULT_MARKET, vatRateFor } from '@/lib/market'
+import { carriageTerms, vatRateFor, type CheckoutPaymentMethod } from '@/lib/market'
+import { getMarket } from '@/i18n/locale'
+import { withOrderNumber } from '@/lib/order-number'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
-// Commerce rules come from the market registry, so the server, the browser and
-// the legal pages cannot disagree about what an order costs. This is the
-// authoritative copy: the browser's figures are a preview, and everything is
-// recomputed here before an order is written.
-const VAT_RATE = vatRateFor(DEFAULT_MARKET)
+// Commerce rules come from the market registry, resolved from the domain the
+// order arrived on — the same lookup the storefront layout makes — so the price
+// a Romanian buyer was shown and the VAT they are charged come from one entry.
+// This is the authoritative copy: the browser's figures are a preview, and
+// everything is recomputed here before an order is written.
 
-const PAYMENT_METHODS = ['bank_transfer', 'cod'] as const
 const SHIPPING_METHODS = ['courier', 'pickup'] as const
 
-type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 type ShippingMethod = (typeof SHIPPING_METHODS)[number]
 
 type IncomingLine = { sku?: unknown; quantity?: unknown; customSpecs?: unknown }
@@ -35,23 +36,6 @@ type PricedLine = {
   quantity: number
   price: number
   customSpecs?: CustomSpecs
-}
-
-/**
- * TL-260806-4F2A — sortable by eye, short enough to read down a phone line.
- * The random tail avoids a collision when two orders land in the same second.
- */
-function generateOrderNumber(now: Date): string {
-  const stamp = [
-    String(now.getUTCFullYear()).slice(2),
-    String(now.getUTCMonth() + 1).padStart(2, '0'),
-    String(now.getUTCDate()).padStart(2, '0'),
-  ].join('')
-  const tail = Math.floor(Math.random() * 0xffff)
-    .toString(16)
-    .toUpperCase()
-    .padStart(4, '0')
-  return `TL-${stamp}-${tail}`
 }
 
 const isNonEmpty = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0
@@ -68,6 +52,10 @@ export async function POST(request: Request) {
   const shipping = (body.shipping ?? {}) as Record<string, unknown>
   const rawItems = Array.isArray(body.items) ? (body.items as IncomingLine[]) : []
 
+  // Before validation, because what is valid depends on it: Romania has no
+  // pickup and takes cash on delivery only.
+  const market = await getMarket()
+
   // --- Validation -----------------------------------------------------------
   const errors: Record<string, string> = {}
 
@@ -81,13 +69,16 @@ export async function POST(request: Request) {
     SHIPPING_METHODS.includes(shipping.method as ShippingMethod) ? shipping.method : 'courier'
   ) as ShippingMethod
 
+  if (shippingMethod === 'pickup' && !market.pickup) {
+    errors.shippingMethod = 'Личното вземане не се предлага.'
+  }
   if (shippingMethod === 'courier') {
     if (!isNonEmpty(shipping.city)) errors.city = 'Въведете град.'
     if (!isNonEmpty(shipping.street)) errors.street = 'Въведете адрес.'
   }
 
-  const paymentMethod = body.paymentMethod
-  if (!PAYMENT_METHODS.includes(paymentMethod as PaymentMethod)) {
+  const paymentMethod = body.paymentMethod as CheckoutPaymentMethod
+  if (!market.paymentMethods.includes(paymentMethod)) {
     errors.paymentMethod = 'Изберете начин на плащане.'
   }
 
@@ -99,6 +90,7 @@ export async function POST(request: Request) {
 
   try {
     const payload = await getPayload({ config })
+    const vatRate = vatRateFor(market)
 
     // --- Re-price every line from our own data -----------------------------
     const priced: PricedLine[] = []
@@ -125,7 +117,8 @@ export async function POST(request: Request) {
         }
         priced.push({
           name: `Лента по размер ${specs.length}×${specs.width}×${specs.thickness} мм · ${specs.brand}`,
-          sku: line.sku,
+          // Built here, never taken from the browser — see customSku.
+          sku: customSku(specs),
           quantity,
           price: round2(unit),
           customSpecs: specs,
@@ -166,7 +159,8 @@ export async function POST(request: Request) {
     const { subtotal, shippingCost, tax, total } = computeOrderTotals({
       lines: priced,
       shippingMethod,
-      vatRate: VAT_RATE,
+      vatRate,
+      ...carriageTerms(market),
     })
 
     // --- Customer: reuse the record if this email has ordered before --------
@@ -192,31 +186,35 @@ export async function POST(request: Request) {
     const addressLines = [
       isNonEmpty(shipping.street) ? String(shipping.street).trim() : null,
       [shipping.postalCode, shipping.city].filter(isNonEmpty).map(String).join(' ').trim() || null,
-      isNonEmpty(shipping.country) ? String(shipping.country).trim() : 'България',
+      market.country,
     ].filter(Boolean)
 
-    const order = await payload.create({
-      collection: 'orders',
-      data: {
-        orderNumber: generateOrderNumber(new Date()),
-        customer: customerId,
-        items: priced,
-        status: 'pending',
-        payment: { method: paymentMethod as PaymentMethod, status: 'pending' },
-        shipping: {
-          method: shippingMethod,
-          address: shippingMethod === 'pickup' ? 'Лично вземане · Габрово' : addressLines.join('\n'),
-          cost: shippingCost,
+    const order = await withOrderNumber((orderNumber) =>
+      payload.create({
+        collection: 'orders',
+        data: {
+          orderNumber,
+          customer: customerId,
+          items: priced,
+          status: 'pending',
+          payment: { method: paymentMethod, status: 'pending' },
+          shipping: {
+            method: shippingMethod,
+            address: shippingMethod === 'pickup' ? 'Лично вземане · Габрово' : addressLines.join('\n'),
+            cost: shippingCost,
+          },
+          subtotal,
+          tax,
+          total,
+          vatRate,
+          // Totals stay in EUR, the authored currency. These record what the
+          // buyer was shown, and at what rate, for the day RON display is on.
+          currency: market.displayCurrency,
+          exchangeRate: market.exchangeRate,
+          ...(isNonEmpty(body.notes) ? { notes: String(body.notes).trim() } : {}),
         },
-        subtotal,
-        tax,
-        total,
-        vatRate: VAT_RATE,
-        currency: 'EUR',
-        exchangeRate: 1,
-        ...(isNonEmpty(body.notes) ? { notes: String(body.notes).trim() } : {}),
-      },
-    })
+      }),
+    )
 
     const created = order as unknown as { orderNumber: string }
     return NextResponse.json({

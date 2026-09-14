@@ -4,11 +4,16 @@ import Link from "next/link";
 import { Placeholder, Btn } from "@/components/ui/primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { IconMinus, IconPlus, IconClose, IconArrowRight } from "@/components/ui/icons";
+import { useTranslations } from "next-intl";
 import { useCart } from "@/lib/cart";
-import { DEFAULT_MARKET, currencySymbol, formatAmount, formatPrice, vatLabel, vatRateFor } from "@/lib/market";
+import { vatLabel } from "@/lib/market";
+import { usePrices } from "@/lib/market-context";
+import { DualPrice } from "@/components/ui/DualPrice";
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, itemCount, subtotal, shipping, tax, total } = useCart();
+  const { items, removeItem, updateQuantity, itemCount, vatRate, subtotal, shipping, tax, total } = useCart();
+  const { market, amount, price, symbol } = usePrices();
+  const tc = useTranslations("common");
 
   if (items.length === 0) {
     return (
@@ -63,13 +68,13 @@ export default function CartPage() {
                     <div className="font-mono text-[11px] text-ink-50 mt-1">{it.dim} · SKU {it.sku}</div>
                   </div>
                 </div>
-                <div className="font-mono text-[13px] text-ink-70 tabular-nums">{formatPrice(it.price)}</div>
+                <DualPrice net={it.price} size="xs" />
                 <div className="inline-flex border border-ink-15 bg-white">
                   <button onClick={() => updateQuantity(it.id, it.quantity - 1)} className="w-8 h-9 bg-transparent border-none cursor-pointer flex items-center justify-center"><IconMinus size={12} /></button>
                   <div className="w-10 h-9 flex items-center justify-center font-mono text-[13px] font-semibold">{it.quantity}</div>
                   <button onClick={() => updateQuantity(it.id, it.quantity + 1)} className="w-8 h-9 bg-transparent border-none cursor-pointer flex items-center justify-center"><IconPlus size={12} /></button>
                 </div>
-                <div className="text-right font-display text-lg font-bold text-ink tabular-nums">{formatAmount(it.quantity * it.price)} <span className="text-[11px] font-normal text-ink-50">{currencySymbol()}</span></div>
+                <DualPrice net={it.quantity * it.price} size="sm" className="md:text-right" />
                 <button onClick={() => removeItem(it.id)} className="bg-transparent border-none cursor-pointer text-ink-50 hover:text-danger transition-colors"><IconClose size={16} /></button>
               </div>
             ))}
@@ -87,16 +92,22 @@ export default function CartPage() {
             <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-5">Обобщение · {itemCount} артикула</div>
             <div className="flex flex-col gap-3.5 font-sans text-sm">
               {[
-                ["Междинна сума", formatPrice(subtotal)],
-                ["Доставка", shipping === 0 ? "Безплатно" : formatPrice(shipping)],
-                [`ДДС ${vatLabel(vatRateFor(DEFAULT_MARKET))}`, formatPrice(tax)],
+                [`Междинна сума · ${tc("exVat")}`, price(subtotal)],
+                ["Доставка", market.carriage === "collect" ? tc("courierFee") : shipping === 0 ? tc("free") : price(shipping)],
+                [tc("vat", { rate: vatLabel(vatRate) }), price(tax)],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between"><span className="text-white/65">{k}</span><span>{v}</span></div>
               ))}
               <div className="h-px bg-white/15 my-2" />
               <div className="flex justify-between items-baseline">
-                <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/60">Общо</span>
-                <span className="font-display text-4xl font-extrabold tracking-tight tabular-nums">{formatAmount(total)} <span className="text-[13px] text-white/60 font-normal">{currencySymbol()}</span></span>
+                <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/60">Общо · {tc("incVat")}</span>
+                <span className="font-display text-4xl font-extrabold tracking-tight tabular-nums">{amount(total)} <span className="text-[13px] text-white/60 font-normal">{symbol}</span></span>
+              </div>
+              {/* Carriage carries no VAT here, so the ex-VAT total is goods plus
+                  delivery — the figure a trade buyer books. */}
+              <div className="flex justify-between font-mono text-[11px] text-white/60 tabular-nums">
+                <span>Общо · {tc("exVat")}</span>
+                <span>{price(subtotal + shipping)}</span>
               </div>
             </div>
             <div className="mt-6">
@@ -105,7 +116,11 @@ export default function CartPage() {
               </Link>
             </div>
             <div className="mt-6 font-mono text-[10px] text-white/55 tracking-[0.05em] flex flex-col gap-2">
-              <span>● Безплатна доставка над 200 €</span>
+              {market.carriage === "collect" ? (
+                <span>● {tc("courierFeeNote", { couriers: market.couriers.join(" / ") })}</span>
+              ) : (
+                <span>● Безплатна доставка над {price(market.freeShippingThreshold)} {tc("exVat")}</span>
+              )}
               <span>● Гаранция на заваръчния шев</span>
               <span>● Защитено плащане SSL</span>
             </div>

@@ -37,6 +37,8 @@ const DOMAIN_MARKET: Record<string, MarketCode> = {
   'tehnoles.com': 'bg',
   'www.tehnoles.com': 'bg',
 
+  // Romania — launches first. Add the domain and its www. form once bought.
+
   // Local development
   'bg.localhost': 'bg',
   'ro.localhost': 'ro',
