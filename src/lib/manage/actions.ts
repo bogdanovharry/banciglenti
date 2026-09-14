@@ -4,18 +4,29 @@ import { redirect } from 'next/navigation'
 
 import {
   computeOrderTotals,
+  customSku,
   parseCustomSpecs,
   priceCustomItem,
   round2,
   type CustomSpecs,
 } from '@/lib/order-pricing'
-import { getClient, requireUser, type ManageUser } from '@/lib/manage/session'
-import { isOrderStatus, statusPill } from '@/lib/manage/vocabulary'
+import { MARKETS, carriageTerms, marketForOrder, vatRateFor, type MarketCode } from '@/lib/market'
+import { withOrderNumber } from '@/lib/order-number'
+import { money } from '@/lib/manage/format'
+import { getClient, isAdmin, requireUser, type ManageUser } from '@/lib/manage/session'
+import {
+  PAYMENT_LABEL,
+  PAYMENT_METHOD_LABEL,
+  isOrderStatus,
+  moneyLockReason,
+  nextStatuses,
+  statusPill,
+} from '@/lib/manage/vocabulary'
 
 /**
  * Everything that changes an order.
  *
- * Three rules hold across every action here, and they are the reason this file
+ * Five rules hold across every action here, and they are the reason this file
  * exists rather than a set of PATCH endpoints:
  *
  *  1. `requireUser()` runs first. A Server Action is a public HTTP endpoint
@@ -26,8 +37,13 @@ import { isOrderStatus, statusPill } from '@/lib/manage/vocabulary'
  *     computeOrderTotals — the same function the checkout uses. There is no
  *     form field on any of these screens that writes a price.
  *  3. Anything a person would later ask "who did that, and when" about writes
- *     a history entry. The old platform had that and it is why an order can be
- *     argued about six weeks later.
+ *     a history entry — and only when something actually changed. The history
+ *     is append-only (enforced in the Orders collection too).
+ *  4. A form carries the version of the order it was drawn from. If the order
+ *     has changed since — someone else saved first — the save is refused rather
+ *     than quietly overwriting their work with a stale screen.
+ *  5. Once an order has shipped, closed or been paid, nothing that moves its
+ *     total can change. See `moneyLockReason` in vocabulary.ts.
  *
  * A failure returns an ActionResult and the form shows it in place. A success
  * never returns — it ends in `done()`, which navigates. See the note there:
@@ -39,6 +55,8 @@ export type ActionResult = { ok: true; message?: string } | { ok: false; error: 
 const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded']
 const PAYMENT_METHODS = ['mypos', 'cod', 'bank_transfer']
 const SHIPPING_METHODS = ['courier', 'pickup']
+
+const SHIPPING_LABEL: Record<string, string> = { courier: 'Куриер', pickup: 'Лично вземане' }
 
 /** Form fields arrive as strings or Files; only non-empty strings interest us. */
 function str(form: FormData, key: string): string {
@@ -80,14 +98,16 @@ const pick = (value: string, allowed: string[]): string | null =>
  * A stale screen is not cosmetic on this page. The line table addresses rows by
  * position, so a table that has not caught up means the next "remove" click
  * deletes a different line — which is precisely what happened to a real order
- * during testing. `removeLine` now also refuses a row that does not match what
- * the button thought it was removing, so that failure mode is closed twice over.
+ * during testing. `removeLine` refuses a row that does not match what the button
+ * thought it was removing, and every action refuses a stale version, so that
+ * failure mode is closed three times over.
  *
  * `saved` survives the navigation in the query string, since a redirect throws
- * away whatever the action would otherwise have returned.
+ * away whatever the action would otherwise have returned. It is always called
+ * outside a try block: `redirect()` works by throwing.
  */
-function done(id: number, saved: string): never {
-  redirect(`/manage/orders/${id}?saved=${encodeURIComponent(saved)}`)
+function done(id: number, saved: string, extra = ''): never {
+  redirect(`/manage/orders/${id}?saved=${encodeURIComponent(saved)}${extra}`)
 }
 
 type StoredLine = {
@@ -100,13 +120,25 @@ type StoredLine = {
   customSpecs?: unknown
 }
 
+type StoredLogRow = { id?: string | null; note?: string | null; at?: string | null; author?: unknown }
+
 type StoredOrder = {
   id: number
   status?: string | null
+  updatedAt?: string | null
   items?: StoredLine[] | null
   vatRate?: number | null
-  shipping?: { method?: string | null } | null
-  log?: { note?: string | null; at?: string | null; author?: number | null }[] | null
+  currency?: string | null
+  payment?: { method?: string | null; status?: string | null; transactionId?: string | null } | null
+  shipping?: {
+    method?: string | null
+    cost?: number | null
+    trackingNumber?: string | null
+    office?: string | null
+    address?: string | null
+  } | null
+  total?: number | null
+  log?: StoredLogRow[] | null
 }
 
 /**
@@ -122,26 +154,36 @@ async function loadOrder(id: number): Promise<StoredOrder | null> {
   }
 }
 
-/**
- * A history entry, stamped with who and when.
- *
- * The collection's own beforeChange hooks fill author and time, but only for
- * rows that arrive without them — so existing entries keep their original
- * author instead of being re-attributed to whoever touched the order last.
- */
-function withEntry(
-  existing: StoredOrder['log'],
-  note: string,
-  user: ManageUser,
-): { note: string; at: string; author: number }[] {
-  const kept = (existing ?? [])
-    .filter((e) => typeof e.note === 'string' && e.note.trim())
-    .map((e) => ({
-      note: String(e.note),
-      at: e.at ?? new Date().toISOString(),
-      author: typeof e.author === 'number' ? e.author : user.id,
-    }))
+/** The screen was drawn from an older copy of this order than the one stored. */
+function isStale(form: FormData, order: { updatedAt?: string | null }): boolean {
+  const version = str(form, 'version')
+  return Boolean(version && order.updatedAt && version !== order.updatedAt)
+}
 
+const STALE: ActionResult = {
+  ok: false,
+  error: 'Поръчката е променена междувременно — презаредете страницата и опитайте отново.',
+}
+
+/**
+ * The history with one entry added.
+ *
+ * Existing rows go back exactly as stored, id included. The id is how Payload
+ * matches a row to its stored self; without it every old entry looked new and
+ * was re-signed by whoever saved last — and the collection now refuses any
+ * write that alters an existing entry, so an honest copy is also the only one
+ * that saves. The new entry's author and time are stamped by the collection.
+ */
+function withEntry(existing: StoredOrder['log'], note: string, user: ManageUser) {
+  const kept = (existing ?? []).map((e) => ({
+    id: e.id ?? undefined,
+    note: e.note ?? '',
+    at: e.at ?? null,
+    author:
+      e.author && typeof e.author === 'object' && 'id' in e.author
+        ? (e.author as { id: number }).id
+        : ((e.author as number | null | undefined) ?? null),
+  }))
   return [...kept, { note, at: new Date().toISOString(), author: user.id }]
 }
 
@@ -150,15 +192,44 @@ function withEntry(
  *
  * Existing lines keep the price they were sold at — that is what the customer
  * agreed to and what the card was charged. Only the arithmetic over them is
- * redone, at the order's own VAT rate rather than today's.
+ * redone, at the order's own VAT rate rather than today's, and under its own
+ * market's carriage — a Romanian order must never pick up Bulgaria's €6.
  */
-function totalsFor(order: StoredOrder, lines: StoredLine[]) {
+function totalsFor(order: StoredOrder, lines: StoredLine[], shippingMethod = order.shipping?.method) {
   return computeOrderTotals({
     lines: lines.map((l) => ({ price: l.price ?? 0, quantity: l.quantity ?? 0 })),
-    shippingMethod: order.shipping?.method === 'pickup' ? 'pickup' : 'courier',
+    shippingMethod: shippingMethod === 'pickup' ? 'pickup' : 'courier',
     vatRate: typeof order.vatRate === 'number' ? order.vatRate : 0.2,
+    ...carriageTerms(marketForOrder(order)),
   })
 }
+
+/**
+ * The write, with its failure turned into something the form can show.
+ *
+ * Without this a database hiccup threw straight through the action and the
+ * person got Next's error page and lost what they had typed. A refusal from the
+ * append-only history means someone else wrote to the order in the same moment,
+ * which is the same advice as a stale version: reload.
+ */
+async function write(run: () => Promise<unknown>): Promise<ActionResult | null> {
+  try {
+    await run()
+    return null
+  } catch (error) {
+    return writeFailure(error)
+  }
+}
+
+function writeFailure(error: unknown): ActionResult {
+  const paths = ((error as { data?: { errors?: { path?: string }[] } }).data?.errors ?? []).map((e) => e.path)
+  if (paths.includes('log')) return STALE
+  console.error('[manage] order write failed:', error)
+  return { ok: false, error: 'Записът не мина — опитайте отново. Ако се повтаря, презаредете страницата.' }
+}
+
+/** Browsers submit a textarea's line breaks as CRLF; stored text uses LF. */
+const lf = (text: string): string => text.replace(/\r\n?/g, '\n')
 
 // --- Status -----------------------------------------------------------------
 
@@ -172,7 +243,15 @@ export async function setStatus(_prev: ActionResult | null, form: FormData): Pro
 
   const order = await loadOrder(id)
   if (!order) return { ok: false, error: 'Поръчката не е намерена.' }
+  if (isStale(form, order)) return STALE
   if (order.status === next) return { ok: true, message: 'Статусът вече е такъв.' }
+
+  if (!nextStatuses(order.status, isAdmin(user)).includes(next)) {
+    return {
+      ok: false,
+      error: `От „${statusPill(order.status)}“ не се преминава в „${statusPill(next)}“.`,
+    }
+  }
 
   // A refusal without a reason is the entry nobody can interpret later, so it
   // is the one status change that insists on a note.
@@ -183,15 +262,24 @@ export async function setStatus(_prev: ActionResult | null, form: FormData): Pro
 
   const from = statusPill(order.status)
   const to = statusPill(next)
-  const note = reason ? `Статус: ${from} → ${to}. ${reason}` : `Статус: ${from} → ${to}`
+  const parts = [`Статус: ${from} → ${to}`]
+  if (reason) parts.push(reason)
+  // Money already taken on an order that will not be fulfilled has to go back,
+  // and the history is where the next person looks for whether it did.
+  if (next === 'cancelled' && order.payment?.status === 'paid') {
+    parts.push('Плащането е получено — нужно е възстановяване.')
+  }
 
   const payload = await getClient()
-  await payload.update({
-    collection: 'orders',
-    id,
-    data: { status: next, log: withEntry(order.log, note, user) },
-    user,
-  })
+  const failed = await write(() =>
+    payload.update({
+      collection: 'orders',
+      id,
+      data: { status: next, log: withEntry(order.log, parts.join('. '), user) },
+      user,
+    }),
+  )
+  if (failed) return failed
 
   done(id, `Статусът е ${to.toLowerCase()}.`)
 }
@@ -207,16 +295,23 @@ export async function addComment(_prev: ActionResult | null, form: FormData): Pr
   if (!note) return { ok: false, error: 'Празен коментар.' }
   if (note.length > 2000) return { ok: false, error: 'Коментарът е твърде дълъг.' }
 
+  // No version check: a comment changes nothing anyone else is editing, so a
+  // status saved a moment ago is no reason to refuse it. Two comments landing
+  // at once are still safe — the history refuses the second write rather than
+  // losing the first, and the person is asked to send it again.
   const order = await loadOrder(id)
   if (!order) return { ok: false, error: 'Поръчката не е намерена.' }
 
   const payload = await getClient()
-  await payload.update({
-    collection: 'orders',
-    id,
-    data: { log: withEntry(order.log, note, user) },
-    user,
-  })
+  const failed = await write(() =>
+    payload.update({
+      collection: 'orders',
+      id,
+      data: { log: withEntry(order.log, note, user) },
+      user,
+    }),
+  )
+  if (failed) return failed
 
   done(id, 'Коментарът е добавен.')
 }
@@ -233,55 +328,121 @@ export async function saveFulfilment(
 
   const order = await loadOrder(id)
   if (!order) return { ok: false, error: 'Поръчката не е намерена.' }
+  if (isStale(form, order)) return STALE
 
-  const paymentStatus = pick(str(form, 'paymentStatus'), PAYMENT_STATUSES)
-  const paymentMethod = pick(str(form, 'paymentMethod'), PAYMENT_METHODS)
-  const shippingMethod = pick(str(form, 'shippingMethod'), SHIPPING_METHODS)
-  const tracking = str(form, 'trackingNumber')
-  const office = str(form, 'office')
-  const address = str(form, 'address')
-
-  // Collecting in person costs no carriage, so switching method re-prices the
-  // order. Everything else here is descriptive and leaves the money alone.
-  const nextOrder: StoredOrder = {
-    ...order,
-    shipping: { ...order.shipping, method: shippingMethod ?? order.shipping?.method },
+  const before = {
+    paymentStatus: order.payment?.status ?? 'pending',
+    paymentMethod: order.payment?.method ?? null,
+    shippingMethod: order.shipping?.method ?? 'courier',
+    tracking: order.shipping?.trackingNumber ?? '',
+    office: order.shipping?.office ?? '',
+    address: lf(order.shipping?.address ?? ''),
   }
-  const totals = totalsFor(nextOrder, order.items ?? [])
 
-  const wasTracked = Boolean(str(form, 'previousTracking'))
+  // A select the screen disabled is not submitted; absent means "unchanged".
+  const after = {
+    paymentStatus: pick(str(form, 'paymentStatus'), PAYMENT_STATUSES) ?? before.paymentStatus,
+    paymentMethod: pick(str(form, 'paymentMethod'), PAYMENT_METHODS) ?? before.paymentMethod,
+    shippingMethod: pick(str(form, 'shippingMethod'), SHIPPING_METHODS) ?? before.shippingMethod,
+    tracking: str(form, 'trackingNumber'),
+    office: str(form, 'office'),
+    address: lf(str(form, 'address')),
+  }
+
+  const methodChanged = after.shippingMethod !== before.shippingMethod
+  if (methodChanged) {
+    const locked = moneyLockReason({ status: order.status, paymentStatus: order.payment?.status })
+    if (locked) return { ok: false, error: locked }
+    if (after.shippingMethod === 'pickup' && !marketForOrder(order).pickup) {
+      return { ok: false, error: 'Лично вземане не се предлага за този пазар.' }
+    }
+  }
+
+  // Only a change of delivery method moves money. Re-pricing on every save
+  // meant a waybill typed into an old order could quietly change its total if
+  // the carriage rules had moved since.
+  const totals = methodChanged ? totalsFor(order, order.items ?? [], after.shippingMethod) : null
+
+  // One entry per save, naming what changed. The old version logged "marked as
+  // paid" on every save of an already-paid order and said nothing at all when a
+  // delivery change moved the total.
   const notes: string[] = []
-  if (tracking && !wasTracked) notes.push(`Товарителница ${tracking}`)
-  if (paymentStatus === 'paid' && order.status !== 'cancelled') notes.push('Отбелязана като платена')
+  if (after.paymentStatus !== before.paymentStatus) {
+    notes.push(`Плащане: ${PAYMENT_LABEL[before.paymentStatus] ?? before.paymentStatus} → ${PAYMENT_LABEL[after.paymentStatus] ?? after.paymentStatus}`)
+  }
+  if (after.paymentMethod !== before.paymentMethod) {
+    notes.push(
+      `Метод на плащане: ${PAYMENT_METHOD_LABEL[before.paymentMethod ?? ''] ?? '—'} → ${PAYMENT_METHOD_LABEL[after.paymentMethod ?? ''] ?? '—'}`,
+    )
+  }
+  if (methodChanged && totals) {
+    notes.push(
+      `Доставка: ${SHIPPING_LABEL[before.shippingMethod] ?? before.shippingMethod} → ${SHIPPING_LABEL[after.shippingMethod] ?? after.shippingMethod}, сума ${money(order.total ?? 0)} → ${money(totals.total)}`,
+    )
+  }
+  if (after.tracking !== before.tracking) {
+    notes.push(
+      !before.tracking
+        ? `Товарителница ${after.tracking}`
+        : after.tracking
+          ? `Товарителница: ${before.tracking} → ${after.tracking}`
+          : `Товарителницата ${before.tracking} е изтрита`,
+    )
+  }
+  if (after.office !== before.office) {
+    notes.push(after.office ? `Офис на куриера: ${after.office}` : 'Офисът на куриера е изтрит')
+  }
+  if (after.address !== before.address) notes.push('Адресът за доставка е променен')
+
+  if (notes.length === 0) return { ok: true, message: 'Няма промени.' }
 
   const payload = await getClient()
-  await payload.update({
-    collection: 'orders',
-    id,
-    data: {
-      payment: {
-        ...(paymentMethod ? { method: paymentMethod } : {}),
-        ...(paymentStatus ? { status: paymentStatus } : {}),
+  const failed = await write(() =>
+    payload.update({
+      collection: 'orders',
+      id,
+      data: {
+        // Whole groups, carrying forward what this form does not show, so a
+        // partial group can never blank a field such as the transaction id.
+        payment: {
+          method: after.paymentMethod,
+          status: after.paymentStatus,
+          transactionId: order.payment?.transactionId ?? null,
+        },
+        shipping: {
+          method: after.shippingMethod,
+          cost: totals ? totals.shippingCost : (order.shipping?.cost ?? 0),
+          trackingNumber: after.tracking || null,
+          office: after.office || null,
+          address: after.address || null,
+        },
+        ...(totals ? { subtotal: totals.subtotal, tax: totals.tax, total: totals.total } : {}),
+        log: withEntry(order.log, notes.join(' · '), user),
       },
-      shipping: {
-        ...(shippingMethod ? { method: shippingMethod } : {}),
-        cost: totals.shippingCost,
-        trackingNumber: tracking || null,
-        office: office || null,
-        address: address || null,
-      },
-      subtotal: totals.subtotal,
-      tax: totals.tax,
-      total: totals.total,
-      ...(notes.length ? { log: withEntry(order.log, notes.join(' · '), user) } : {}),
-    },
-    user,
-  })
+      user,
+    }),
+  )
+  if (failed) return failed
 
   done(id, 'Записано.')
 }
 
 // --- Lines ------------------------------------------------------------------
+
+/** Shared gate for the three line actions: the order exists, is current and is open. */
+async function openOrder(form: FormData): Promise<{ order: StoredOrder } | { error: ActionResult }> {
+  const id = orderId(form)
+  if (!id) return { error: { ok: false, error: 'Липсва поръчка.' } }
+
+  const order = await loadOrder(id)
+  if (!order) return { error: { ok: false, error: 'Поръчката не е намерена.' } }
+  if (isStale(form, order)) return { error: STALE }
+
+  const locked = moneyLockReason({ status: order.status, paymentStatus: order.payment?.status })
+  if (locked) return { error: { ok: false, error: locked } }
+
+  return { order }
+}
 
 /** Writes the new line set and the totals that follow from it. */
 async function commitLines(
@@ -293,19 +454,22 @@ async function commitLines(
   const totals = totalsFor(order, lines)
   const payload = await getClient()
 
-  await payload.update({
-    collection: 'orders',
-    id: order.id,
-    data: {
-      items: lines,
-      subtotal: totals.subtotal,
-      tax: totals.tax,
-      total: totals.total,
-      shipping: { ...order.shipping, cost: totals.shippingCost },
-      log: withEntry(order.log, note, user),
-    },
-    user,
-  })
+  const failed = await write(() =>
+    payload.update({
+      collection: 'orders',
+      id: order.id,
+      data: {
+        items: lines,
+        subtotal: totals.subtotal,
+        tax: totals.tax,
+        total: totals.total,
+        shipping: { ...order.shipping, cost: totals.shippingCost },
+        log: withEntry(order.log, `${note} · сума ${money(order.total ?? 0)} → ${money(totals.total)}`, user),
+      },
+      user,
+    }),
+  )
+  if (failed) return failed
 
   done(order.id, 'Поръчката е преизчислена.')
 }
@@ -324,8 +488,6 @@ export async function addCatalogueLine(
   form: FormData,
 ): Promise<ActionResult> {
   const user = await requireUser()
-  const id = orderId(form)
-  if (!id) return { ok: false, error: 'Липсва поръчка.' }
 
   const sku = str(form, 'sku')
   if (!sku) return { ok: false, error: 'Изберете артикул.' }
@@ -333,8 +495,9 @@ export async function addCatalogueLine(
   const quantity = quantityFrom(form)
   if (!quantity) return { ok: false, error: 'Количеството е между 1 и 999.' }
 
-  const order = await loadOrder(id)
-  if (!order) return { ok: false, error: 'Поръчката не е намерена.' }
+  const gate = await openOrder(form)
+  if ('error' in gate) return gate.error
+  const { order } = gate
 
   const payload = await getClient()
   const found = await payload.find({
@@ -344,10 +507,11 @@ export async function addCatalogueLine(
     where: { slug: { equals: sku } },
   })
   const product = found.docs[0] as unknown as
-    | { id: number; name: string; basePrice?: number | null }
+    | { id: number; name: string; basePrice?: number | null; status?: string | null }
     | undefined
 
   if (!product) return { ok: false, error: `Няма артикул „${sku}“.` }
+  if (product.status === 'inactive') return { ok: false, error: `„${product.name}“ вече не се предлага.` }
 
   const line: StoredLine = {
     product: product.id,
@@ -375,14 +539,9 @@ export async function addCustomLine(
   form: FormData,
 ): Promise<ActionResult> {
   const user = await requireUser()
-  const id = orderId(form)
-  if (!id) return { ok: false, error: 'Липсва поръчка.' }
 
   const quantity = quantityFrom(form)
   if (!quantity) return { ok: false, error: 'Количеството е между 1 и 999.' }
-
-  const order = await loadOrder(id)
-  if (!order) return { ok: false, error: 'Поръчката не е намерена.' }
 
   const specs: CustomSpecs | null = parseCustomSpecs({
     table: str(form, 'table'),
@@ -404,10 +563,14 @@ export async function addCustomLine(
     return { ok: false, error: 'Тази комбинация не е в ценоразписа. Проверете ширина, дебелина, стъпка и марка.' }
   }
 
+  const gate = await openOrder(form)
+  if ('error' in gate) return gate.error
+  const { order } = gate
+
   const name = `Лента по размер ${specs.length}×${specs.width}×${specs.thickness} мм · ${specs.brand}`
   const line: StoredLine = {
     name,
-    sku: `CUSTOM-${specs.width}x${specs.thickness}-${specs.length}-${specs.pitch}`,
+    sku: customSku(specs),
     quantity,
     price: round2(unit),
     customSpecs: specs,
@@ -422,14 +585,13 @@ export async function addCustomLine(
  */
 export async function removeLine(_prev: ActionResult | null, form: FormData): Promise<ActionResult> {
   const user = await requireUser()
-  const id = orderId(form)
-  if (!id) return { ok: false, error: 'Липсва поръчка.' }
 
   const index = Number.parseInt(str(form, 'index'), 10)
   if (!Number.isInteger(index) || index < 0) return { ok: false, error: 'Няма такъв ред.' }
 
-  const order = await loadOrder(id)
-  if (!order) return { ok: false, error: 'Поръчката не е намерена.' }
+  const gate = await openOrder(form)
+  if ('error' in gate) return gate.error
+  const { order } = gate
 
   const lines = order.items ?? []
   const target = lines[index]
@@ -441,13 +603,10 @@ export async function removeLine(_prev: ActionResult | null, form: FormData): Pr
   /**
    * Refuse to delete a line that is not the one the person was looking at.
    *
-   * A position is only meaningful against the table that produced it. If the
-   * screen has not caught up with a change — and on this page it sometimes does
-   * not, see the note in _components/form.tsx — then row 3 on screen is not row
-   * 3 in the database, and deleting by position alone would quietly remove a
-   * different blade from a real order. The button sends what it thinks it is
-   * removing; if the two disagree, nothing is deleted and the person is told to
-   * reload rather than being lied to.
+   * A position is only meaningful against the table that produced it. The
+   * version check above already refuses a stale screen; this is the second
+   * lock, kept because deleting the wrong blade from a real order is the one
+   * mistake this page has actually made.
    */
   const expected = str(form, 'expect')
   const actual = target.sku ?? target.name ?? ''
@@ -466,4 +625,103 @@ export async function removeLine(_prev: ActionResult | null, form: FormData): Pr
     `Премахнат ред: ${target.name ?? target.sku ?? '—'} × ${target.quantity ?? 0}`,
     user,
   )
+}
+
+// --- New order (phone and walk-in) ------------------------------------------
+
+/**
+ * An order taken by a person rather than the checkout.
+ *
+ * Most orders in this trade arrive by phone, and until now the only way to
+ * record one was to type it into the storefront as if you were the customer.
+ * This creates the order shell — customer, market, delivery, payment — and
+ * lands on the order screen, where lines are added with the same priced
+ * controls as any other amendment. The market is chosen, not inferred from a
+ * domain, because the call did not come through one.
+ */
+export async function createOrder(_prev: ActionResult | null, form: FormData): Promise<ActionResult> {
+  const user = await requireUser('/manage/orders/new')
+
+  const customerId = Number.parseInt(str(form, 'customerId'), 10)
+  if (!Number.isInteger(customerId) || customerId <= 0) return { ok: false, error: 'Изберете клиент.' }
+
+  const marketCode = str(form, 'market')
+  if (!(marketCode in MARKETS)) return { ok: false, error: 'Изберете пазар.' }
+  const market = MARKETS[marketCode as MarketCode]
+
+  const shippingMethod = pick(str(form, 'shippingMethod'), SHIPPING_METHODS)
+  if (!shippingMethod) return { ok: false, error: 'Изберете начин на доставка.' }
+  if (shippingMethod === 'pickup' && !market.pickup) {
+    return { ok: false, error: 'Лично вземане не се предлага за този пазар.' }
+  }
+
+  const paymentMethod = str(form, 'paymentMethod')
+  if (!(market.paymentMethods as string[]).includes(paymentMethod)) {
+    return { ok: false, error: 'Този начин на плащане не се предлага за избрания пазар.' }
+  }
+
+  const address = str(form, 'address')
+  if (shippingMethod === 'courier' && !address) return { ok: false, error: 'Въведете адрес за доставка.' }
+
+  const payload = await getClient()
+  try {
+    await payload.findByID({ collection: 'customers', id: customerId, depth: 0 })
+  } catch {
+    return { ok: false, error: 'Клиентът не е намерен.' }
+  }
+
+  const vatRate = vatRateFor(market)
+  const totals = computeOrderTotals({
+    lines: [],
+    shippingMethod: shippingMethod === 'pickup' ? 'pickup' : 'courier',
+    vatRate,
+    ...carriageTerms(market),
+  })
+
+  const internalNote = str(form, 'note')
+  const firstEntry = [`Създадена ръчно · ${market.country}`, internalNote].filter(Boolean).join('. ')
+
+  let createdId: number
+  try {
+    const created = (await withOrderNumber((orderNumber) =>
+      payload.create({
+        collection: 'orders',
+        data: {
+          orderNumber,
+          customer: customerId,
+          items: [],
+          status: 'pending',
+          payment: { method: paymentMethod as 'cod' | 'bank_transfer', status: 'pending' },
+          shipping: {
+            method: shippingMethod as 'courier' | 'pickup',
+            address: shippingMethod === 'pickup' ? 'Лично вземане · Габрово' : address,
+            office: str(form, 'office') || null,
+            cost: totals.shippingCost,
+          },
+          subtotal: totals.subtotal,
+          tax: totals.tax,
+          total: totals.total,
+          vatRate,
+          currency: market.displayCurrency,
+          exchangeRate: market.exchangeRate,
+          log: [{ note: firstEntry, at: new Date().toISOString(), author: user.id }],
+        },
+        user,
+      }),
+    )) as unknown as { id: number }
+    createdId = created.id
+  } catch (error) {
+    return writeFailure(error)
+  }
+
+  // A machine picked on the customer screen travels on to the add-a-line form,
+  // so the blade it takes is already filled in.
+  const prefill = new URLSearchParams()
+  for (const key of ['length', 'width', 'thickness'] as const) {
+    const value = Number(str(form, `prefill-${key}`))
+    if (Number.isFinite(value) && value > 0) prefill.set(key, String(value))
+  }
+  const extra = prefill.size ? `&${prefill.toString()}` : ''
+
+  done(createdId, 'Поръчката е създадена — добавете редовете.', extra)
 }

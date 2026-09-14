@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { isAdmin, isStaff, serverOnly } from '../access'
+
 export const Customers: CollectionConfig = {
   slug: 'customers',
   labels: { singular: 'Клиент', plural: 'Клиенти' },
@@ -7,6 +9,14 @@ export const Customers: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'email', 'company', 'createdAt'],
     group: 'Поръчки',
+  },
+  // Staff keep the customer book current; removing a customer — and with it
+  // the link from their orders — is an administrator's call.
+  access: {
+    read: isStaff,
+    create: isStaff,
+    update: isStaff,
+    delete: isAdmin,
   },
   fields: [
     { name: 'name', type: 'text', required: true, label: 'Име' },
@@ -37,6 +47,9 @@ export const Customers: CollectionConfig = {
       type: 'checkbox',
       label: 'Проверен във VIES',
       defaultValue: false,
+      // A reverse-charge invoice rests on this, so no person may tick it —
+      // only a VIES check running on the server.
+      access: serverOnly,
       admin: {
         description: 'Отбелязва се автоматично при успешна проверка. Не отмятайте ръчно.',
       },

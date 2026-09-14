@@ -10,7 +10,7 @@ import { useFormFields } from '@payloadcms/ui'
  * needs no heat treatment you had to read `"heatTreatment": false`. Nobody in a
  * workshop should have to parse a data structure to cut a blade.
  *
- * The underlying JSON is untouched and still on the document — /api/orders
+ * The underlying JSON is untouched and still on the document — /api/checkout
  * writes it and re-prices from it. This only changes how a person reads it.
  */
 
@@ -21,7 +21,7 @@ const TABLE_LABEL: Record<string, string> = {
   'metal-cs': 'Метал · въглеродна',
   meat: 'Месо и риба',
   bread: 'Хлебни изделия',
-  textile: 'Текстил / хартия',
+  textile: 'Други материали',
 }
 
 const PROCESSES: { key: string; label: string }[] = [

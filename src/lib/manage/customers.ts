@@ -1,5 +1,4 @@
-import type { Where } from 'payload'
-import { cache } from 'react'
+import { sql } from '@payloadcms/db-postgres'
 
 import { getClient, requireUser } from '@/lib/manage/session'
 import { PAGE_SIZE } from '@/lib/manage/vocabulary'
@@ -13,10 +12,10 @@ import { PAGE_SIZE } from '@/lib/manage/vocabulary'
  */
 
 export const CUSTOMER_SORTS = {
-  spend: { label: 'Най-много похарчено', local: true },
-  recent: { label: 'Последна поръчка', local: true },
-  name: { label: 'По име', payload: 'name' },
-  newest: { label: 'Най-нови', payload: '-createdAt' },
+  spend: { label: 'Най-много похарчено' },
+  recent: { label: 'Последна поръчка' },
+  name: { label: 'По име' },
+  newest: { label: 'Най-нови' },
 } as const
 
 export type CustomerSortKey = keyof typeof CUSTOMER_SORTS
@@ -69,6 +68,8 @@ export type CustomerEnquiry = {
 
 export type CustomerDetail = {
   id: number
+  /** Posted back by every form on the screen; see `isStale` in customer-actions.ts. */
+  updatedAt: string | null
   name: string
   company: string | null
   email: string
@@ -86,6 +87,7 @@ export type CustomerDetail = {
     isDefault: boolean
   }[]
   machines: CustomerMachine[]
+  /** The most recent ORDER_LIMIT orders; `orderCount` is the full count. */
   orders: CustomerOrderLine[]
   orderCount: number
   totalSpent: number
@@ -102,6 +104,7 @@ type RawCustomer = {
   vatNumber?: string | null
   vatNumberValidated?: boolean | null
   createdAt?: string | null
+  updatedAt?: string | null
   addresses?: Record<string, unknown>[] | null
   machines?: Record<string, unknown>[] | null
 }
@@ -109,6 +112,8 @@ type RawCustomer = {
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null)
 const numOrNull = (v: unknown): number | null =>
   typeof v === 'number' && Number.isFinite(v) ? v : null
+const iso = (v: unknown): string | null =>
+  v instanceof Date ? v.toISOString() : typeof v === 'string' ? v : null
 
 function toMachines(rows: Record<string, unknown>[] | null | undefined): CustomerMachine[] {
   return (rows ?? []).map((m, index) => ({
@@ -124,174 +129,105 @@ function toMachines(rows: Record<string, unknown>[] | null | undefined): Custome
 }
 
 /**
- * Every order, once per request, keyed by customer.
+ * Raw SQL through Payload's own connection.
  *
- * Payload has no group-by, and the customer list needs a spend and an order
- * count per row — so N queries for N customers, or one pass over the orders.
- * This is the one pass. `cache` keeps it to a single trip even though the list
- * and its sort both want it.
- *
- * It reads in pages rather than one huge query, and stops at CEILING. That
- * limit is reported rather than swallowed: a total that quietly omitted older
- * orders would be worse than no total at all. The old platform holds 5 766
- * orders, so the ceiling is set above that with room to spare.
+ * The list sorts on figures no collection stores — a customer's spend and the
+ * date of their last order. Payload has no group-by, so this used to read every
+ * order into memory and fetch at most 1 000 customers to sort among, which
+ * silently dropped everyone past the thousandth once the old platform's
+ * customers arrive. Postgres does the grouping, the sort and the paging now,
+ * whatever the size of the book.
  */
-const CEILING = 20000
+type Rows = { rows: Record<string, unknown>[] }
 
-type Aggregate = {
-  byCustomer: Map<number, { count: number; spent: number; lastAt: string | null }>
-  /** True when there were more orders than the pass was willing to read. */
-  truncated: boolean
+async function query(statement: ReturnType<typeof sql>): Promise<Record<string, unknown>[]> {
+  const payload = await getClient()
+  const drizzle = (payload.db as unknown as { drizzle: { execute: (q: unknown) => Promise<Rows> } }).drizzle
+  return (await drizzle.execute(statement)).rows
 }
 
-const aggregateOrders = cache(async (): Promise<Aggregate> => {
-  const payload = await getClient()
-  const byCustomer: Aggregate['byCustomer'] = new Map()
+/** Postgres LIKE treats % and _ as wildcards; a search for "50%" should not. */
+const likePattern = (q: string): string => `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`
 
-  let page = 1
-  let read = 0
-  let truncated = false
-
-  for (;;) {
-    const batch = await payload.find({
-      collection: 'orders',
-      limit: 500,
-      page,
-      depth: 0,
-      sort: '-createdAt',
-      select: { customer: true, total: true, status: true, createdAt: true },
-    })
-
-    for (const doc of batch.docs as unknown as {
-      customer?: unknown
-      total?: number | null
-      status?: string | null
-      createdAt?: string | null
-    }[]) {
-      const id =
-        typeof doc.customer === 'number'
-          ? doc.customer
-          : doc.customer && typeof doc.customer === 'object'
-            ? ((doc.customer as { id?: number }).id ?? null)
-            : null
-      if (id === null) continue
-
-      const entry = byCustomer.get(id) ?? { count: 0, spent: 0, lastAt: null }
-      entry.count += 1
-      // A cancelled order is not money the customer spent, and counting it
-      // would rank a serial canceller alongside a real buyer.
-      if (doc.status !== 'cancelled' && typeof doc.total === 'number') entry.spent += doc.total
-      if (doc.createdAt && (!entry.lastAt || doc.createdAt > entry.lastAt)) {
-        entry.lastAt = doc.createdAt
-      }
-      byCustomer.set(id, entry)
-    }
-
-    read += batch.docs.length
-    if (!batch.hasNextPage) break
-    if (read >= CEILING) {
-      truncated = true
-      break
-    }
-    page += 1
-  }
-
-  return { byCustomer, truncated }
-})
+const ORDER_BY: Record<CustomerSortKey, ReturnType<typeof sql>> = {
+  spend: sql`total_spent desc, c.id desc`,
+  recent: sql`last_order_at desc nulls last, c.id desc`,
+  name: sql`lower(c.name) asc, c.id asc`,
+  newest: sql`c.created_at desc, c.id desc`,
+}
 
 export type CustomerList = {
   rows: CustomerRow[]
   total: number
   page: number
   pageCount: number
-  /** Set when the spend figures are computed over an incomplete order set. */
-  spendTruncated: boolean
-}
-
-function searchWhere(q: string): Where {
-  // Whoever is looking has one of these in front of them: a name off a
-  // delivery note, a company from an invoice, or the email or phone the
-  // customer just rang from.
-  return {
-    or: [
-      { name: { contains: q } },
-      { company: { contains: q } },
-      { email: { contains: q } },
-      { phone: { contains: q } },
-    ],
-  }
 }
 
 export async function listCustomers(
-  query: { q?: string; sort?: CustomerSortKey; page?: number } = {},
+  input: { q?: string; sort?: CustomerSortKey; page?: number } = {},
 ): Promise<CustomerList> {
   await requireUser('/manage/customers')
-  const payload = await getClient()
 
-  const q = (query.q ?? '').trim()
-  const sort = isCustomerSortKey(query.sort) ? query.sort : DEFAULT_CUSTOMER_SORT
-  const page = Math.max(1, Math.trunc(query.page ?? 1))
-  const where = q ? searchWhere(q) : undefined
+  const q = (input.q ?? '').trim()
+  const sort = isCustomerSortKey(input.sort) ? input.sort : DEFAULT_CUSTOMER_SORT
+  const page = Math.max(1, Math.trunc(input.page ?? 1))
 
-  const config = CUSTOMER_SORTS[sort]
+  // Whoever is looking has one of these in front of them: a name off a
+  // delivery note, a company from an invoice, or the email or phone the
+  // customer just rang from.
+  const pattern = likePattern(q)
+  const where = q
+    ? sql`where (c.name ilike ${pattern} or c.company ilike ${pattern} or c.email ilike ${pattern} or c.phone ilike ${pattern})`
+    : sql``
 
-  const [result, aggregate] = await Promise.all([
-    payload.find({
-      collection: 'customers',
-      where,
-      // The two money sorts are computed here, not in the database — Payload
-      // cannot order by a figure it does not store. Those fetch a wider slice
-      // and sort it in memory; see below.
-      sort: 'payload' in config ? config.payload : 'name',
-      limit: 'local' in config ? 1000 : PAGE_SIZE,
-      page: 'local' in config ? 1 : page,
-      depth: 0,
-    }),
-    aggregateOrders(),
+  const [rows, counted] = await Promise.all([
+    query(sql`
+      select c.id, c.name, c.company, c.email, c.phone, c.created_at,
+             coalesce(o.order_count, 0)::int as order_count,
+             -- A cancelled order is not money the customer spent, and counting
+             -- it would rank a serial canceller alongside a real buyer.
+             coalesce(o.total_spent, 0)::float as total_spent,
+             o.last_order_at,
+             (select count(*) from customers_machines m where m._parent_id = c.id)::int as machine_count
+        from customers c
+        left join (
+          select customer_id,
+                 count(*) as order_count,
+                 sum(total) filter (where status <> 'cancelled') as total_spent,
+                 max(created_at) as last_order_at
+            from orders
+           group by customer_id
+        ) o on o.customer_id = c.id
+        ${where}
+       order by ${ORDER_BY[sort]}
+       limit ${PAGE_SIZE} offset ${(page - 1) * PAGE_SIZE}
+    `),
+    query(sql`select count(*)::int as total from customers c ${where}`),
   ])
 
-  const all: CustomerRow[] = (result.docs as unknown as RawCustomer[]).map((doc) => {
-    const stats = aggregate.byCustomer.get(doc.id) ?? { count: 0, spent: 0, lastAt: null }
-    return {
-      id: doc.id,
-      name: str(doc.name) ?? '—',
-      company: str(doc.company),
-      email: str(doc.email) ?? '—',
-      phone: str(doc.phone),
-      createdAt: doc.createdAt ?? null,
-      orderCount: stats.count,
-      totalSpent: Math.round(stats.spent * 100) / 100,
-      lastOrderAt: stats.lastAt,
-      machineCount: (doc.machines ?? []).length,
-    }
-  })
+  const total = Number(counted[0]?.total ?? 0)
 
-  if (!('local' in config)) {
-    return {
-      rows: all,
-      total: result.totalDocs,
-      page: result.page ?? page,
-      pageCount: result.totalPages ?? 1,
-      spendTruncated: aggregate.truncated,
-    }
-  }
-
-  // Sorted on a derived figure, so paged here too.
-  all.sort((a, b) =>
-    sort === 'spend'
-      ? b.totalSpent - a.totalSpent
-      : (b.lastOrderAt ?? '').localeCompare(a.lastOrderAt ?? ''),
-  )
-
-  const start = (page - 1) * PAGE_SIZE
   return {
-    rows: all.slice(start, start + PAGE_SIZE),
-    total: all.length,
+    rows: rows.map((r) => ({
+      id: Number(r.id),
+      name: str(r.name) ?? '—',
+      company: str(r.company),
+      email: str(r.email) ?? '—',
+      phone: str(r.phone),
+      createdAt: iso(r.created_at),
+      orderCount: Number(r.order_count ?? 0),
+      totalSpent: Math.round(Number(r.total_spent ?? 0) * 100) / 100,
+      lastOrderAt: iso(r.last_order_at),
+      machineCount: Number(r.machine_count ?? 0),
+    })),
+    total,
     page,
-    pageCount: Math.max(1, Math.ceil(all.length / PAGE_SIZE)),
-    spendTruncated: aggregate.truncated,
+    pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)),
   }
 }
+
+/** How many orders the customer screen lists; the count and spend cover all of them. */
+const ORDER_LIMIT = 200
 
 export async function getCustomer(id: number): Promise<CustomerDetail | null> {
   await requireUser(`/manage/customers/${id}`)
@@ -311,12 +247,12 @@ export async function getCustomer(id: number): Promise<CustomerDetail | null> {
 
   const email = str(doc.email)
 
-  const [orders, enquiries] = await Promise.all([
+  const [orders, enquiries, totals] = await Promise.all([
     payload.find({
       collection: 'orders',
       where: { customer: { equals: id } },
       sort: '-createdAt',
-      limit: 200,
+      limit: ORDER_LIMIT,
       depth: 0,
     }),
     // Enquiries carry no customer relationship — the contact form is open to
@@ -331,6 +267,13 @@ export async function getCustomer(id: number): Promise<CustomerDetail | null> {
           depth: 0,
         })
       : Promise.resolve({ docs: [] as unknown[] }),
+    // Counted in the database, not from the listed orders: a customer with more
+    // than ORDER_LIMIT orders used to show ORDER_LIMIT as their count.
+    query(sql`
+      select count(*)::int as order_count,
+             coalesce(sum(total) filter (where status <> 'cancelled'), 0)::float as total_spent
+        from orders where customer_id = ${id}
+    `),
   ])
 
   const orderRows = (orders.docs as unknown as {
@@ -349,12 +292,9 @@ export async function getCustomer(id: number): Promise<CustomerDetail | null> {
     itemCount: Array.isArray(o.items) ? o.items.length : 0,
   }))
 
-  const spent = orderRows
-    .filter((o) => o.status !== 'cancelled')
-    .reduce((sum, o) => sum + o.total, 0)
-
   return {
     id: doc.id,
+    updatedAt: doc.updatedAt ?? null,
     name: str(doc.name) ?? '—',
     company: str(doc.company),
     email: email ?? '—',
@@ -373,8 +313,8 @@ export async function getCustomer(id: number): Promise<CustomerDetail | null> {
     })),
     machines: toMachines(doc.machines),
     orders: orderRows,
-    orderCount: orderRows.length,
-    totalSpent: Math.round(spent * 100) / 100,
+    orderCount: Number(totals[0]?.order_count ?? orderRows.length),
+    totalSpent: Math.round(Number(totals[0]?.total_spent ?? 0) * 100) / 100,
     enquiries: (enquiries.docs as unknown as {
       id: number
       status?: string | null
@@ -386,5 +326,36 @@ export async function getCustomer(id: number): Promise<CustomerDetail | null> {
       message: e.message ?? '',
       createdAt: e.createdAt ?? null,
     })),
+  }
+}
+
+/**
+ * The address to offer on a new order: the one the customer's latest order went
+ * to. Checkout never saves addresses to the customer record, so their last
+ * delivery is the best guess there is — and it is only a default in a textarea.
+ */
+export async function lastDelivery(customerId: number): Promise<{
+  address: string | null
+  office: string | null
+  currency: string | null
+}> {
+  await requireUser('/manage/orders/new')
+  const payload = await getClient()
+  const latest = await payload.find({
+    collection: 'orders',
+    where: { customer: { equals: customerId } },
+    sort: '-createdAt',
+    limit: 1,
+    depth: 0,
+    select: { shipping: true, currency: true },
+  })
+  const doc = latest.docs[0] as unknown as
+    | { shipping?: { address?: string | null; office?: string | null; method?: string | null }; currency?: string | null }
+    | undefined
+
+  return {
+    address: doc?.shipping?.method === 'pickup' ? null : (doc?.shipping?.address ?? null),
+    office: doc?.shipping?.office ?? null,
+    currency: doc?.currency ?? null,
   }
 }

@@ -1,9 +1,14 @@
 'use client'
 
-import { useActionState } from 'react'
-
-import { saveFulfilment, type ActionResult } from '@/lib/manage/actions'
-import { FieldLabel, Result, SubmitButton, inputClass, selectClass } from '../../../_components/form'
+import { saveFulfilment } from '@/lib/manage/actions'
+import {
+  FieldLabel,
+  Result,
+  SubmitButton,
+  inputClass,
+  selectClass,
+  useActionForm,
+} from '../../../_components/form'
 import type { OrderDetail } from '@/lib/manage/order'
 
 /**
@@ -15,15 +20,25 @@ import type { OrderDetail } from '@/lib/manage/order'
  * Splitting them into three saves was what made the old screen feel like data
  * entry rather than work.
  */
-export function FulfilmentForm({ order }: { order: OrderDetail }) {
-  const [state, formAction] = useActionState<ActionResult | null, FormData>(saveFulfilment, null)
+export function FulfilmentForm({
+  order,
+  version,
+  lockReason,
+  pickupOffered,
+}: {
+  order: OrderDetail
+  version: string
+  /** Set once the order's total is frozen: the delivery method then cannot change. */
+  lockReason: string | null
+  /** Collection from the workshop exists only in markets a buyer can drive from. */
+  pickupOffered: boolean
+}) {
+  const { state, onSubmit, pending } = useActionForm(saveFulfilment)
 
   return (
-    <form action={formAction}>
+    <form onSubmit={onSubmit}>
       <input type="hidden" name="orderId" value={order.id} />
-      {/* Lets the action tell "waybill added" from "waybill edited", so it only
-          writes a history entry for the first one. */}
-      <input type="hidden" name="previousTracking" value={order.shipping.trackingNumber ?? ''} />
+      <input type="hidden" name="version" value={version} />
 
       <div className="grid grid-cols-2 gap-2">
         <div>
@@ -57,14 +72,17 @@ export function FulfilmentForm({ order }: { order: OrderDetail }) {
 
         <div>
           <FieldLabel htmlFor="shippingMethod">Доставка</FieldLabel>
+          {/* Disabled rather than hidden when the total is frozen: a disabled
+              select is not submitted, which the action reads as "unchanged". */}
           <select
             id="shippingMethod"
             name="shippingMethod"
             defaultValue={order.shipping.method ?? 'courier'}
-            className={selectClass}
+            disabled={Boolean(lockReason)}
+            className={`${selectClass} disabled:bg-paper disabled:text-ink-50 disabled:cursor-not-allowed`}
           >
             <option value="courier">Куриер</option>
-            <option value="pickup">Лично вземане</option>
+            {pickupOffered && <option value="pickup">Лично вземане</option>}
           </select>
         </div>
 
@@ -104,13 +122,15 @@ export function FulfilmentForm({ order }: { order: OrderDetail }) {
       </div>
 
       <div className="mt-2">
-        <SubmitButton>Запази</SubmitButton>
+        <SubmitButton pending={pending}>Запази</SubmitButton>
       </div>
 
       {/* Switching to "Лично вземане" drops the carriage, so the total moves.
           Said here rather than discovered afterwards. */}
       <p className="mt-2 text-[11.5px] text-ink-50">
-        Смяната на метода на доставка преизчислява сумата.
+        {lockReason
+          ? 'Начинът на доставка е заключен — сумата вече не се променя.'
+          : 'Смяната на метода на доставка преизчислява сумата.'}
       </p>
 
       <Result state={state} />

@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { isAdmin, isStaff } from '../access'
+
 export const Media: CollectionConfig = {
   slug: 'media',
   labels: { singular: 'Файл', plural: 'Файлове' },
@@ -24,6 +26,9 @@ export const Media: CollectionConfig = {
    */
   access: {
     read: () => true,
+    create: isStaff,
+    update: isStaff,
+    delete: isAdmin,
   },
   upload: {
     mimeTypes: ['image/*', 'application/pdf'],

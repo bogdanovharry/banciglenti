@@ -60,7 +60,7 @@ is the whole scope, and it is why this is a week rather than a quarter.
 | **Orders list** | Status filter, search by number, sortable by date and total. The list is scanned for "what needs doing", so status and total lead. |
 | **Order detail** | Everything the PHP screen has, in one view: customer with click-to-call, line items with the made-to-measure sizes as fields, address, totals, customer comment, internal history, status control, print. Plus the two it lacks in the new system — adding a line, and the courier office. |
 | **Customers (CRM)** | The ask that has no equivalent today. Per customer: contact and tax details, order history with totals, enquiries, and **which machines they own** — the strongest asset here, because a customer with a Holzmann BS128HDR always needs 1 638 mm. |
-| **Products** | Bulk stock editing and price review across 132 products. Payload's list is adequate for one-off edits and poor for a stock-take. |
+| **Products** | Bulk stock editing and price review across the catalogue (384 products as of Sep 2026). Payload's list is adequate for one-off edits and poor for a stock-take. |
 | **Dashboard** | Already built and already good — `src/payload/components/Dashboard.tsx` moves across largely unchanged. |
 
 ## Stack
@@ -108,11 +108,36 @@ real order end to end, so there is never a period with no working admin.
 - Place an order through the storefront and work it end to end in the new
   admin: confirm, add a comment, set a tracking number, print. Nothing should
   require opening Payload.
-- Totals shown must equal the values `/api/orders` computed — compare against
+- Totals shown must equal the values `/api/checkout` computed — compare against
   the `orders` table directly, as was done for the storefront prices.
 - Every mutation goes through a server action; confirm no money field can be
   written from the browser.
 - `npx tsc --noEmit`, `npx eslint src`, `npx next build` per phase.
+
+## Status — 14 Sep 2026
+
+All five screens exist: dashboard (`/manage`), orders, customers, products, plus
+new order (`/manage/orders/new`, phone orders with a machine's blade prefilled)
+and new customer. Checked end to end in a headless browser against the dev
+database (158 checks, test data removed afterwards).
+
+Decisions taken on the way, so they are not re-litigated:
+
+- **Payload's order screen is read-only** (`Orders.ts` access: update/create
+  false for everyone). Orders change only through `/manage`, where the status
+  rules, the money lock and the history live. That is phase 5 in effect; the
+  Orders entry stays in Payload's nav for viewing and admin deletes.
+- **Roles are enforced** (`src/payload/access.ts`): staff edit, administrators
+  delete, manage users and set prices; passwords are at least 12 characters.
+- **Status moves are restricted** (`nextStatuses` in vocabulary.ts); delivered
+  and cancelled are closed except for an administrator's correction.
+- **Lines and delivery method freeze** once an order is shipped, closed or paid
+  (`moneyLockReason`).
+- **Every form posts the version it was drawn from**; a stale save is refused.
+- **Order history is append-only**, enforced in the collection hook.
+- **Storefront endpoints moved** to `/api/checkout` and `/api/contact` — the old
+  paths shadowed Payload's own `/api/orders` and `/api/enquiries`, which broke
+  bulk actions in its admin.
 
 ## What this does not change
 

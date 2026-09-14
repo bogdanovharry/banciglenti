@@ -1,7 +1,10 @@
 import type { CollectionConfig } from 'payload'
 
+import { staffEditAdminDelete } from '../access'
+
 export const ProductVariants: CollectionConfig = {
   slug: 'product-variants',
+  access: staffEditAdminDelete,
   labels: { singular: 'Вариант', plural: 'Варианти' },
   admin: {
     useAsTitle: 'sku',

@@ -76,3 +76,11 @@ export async function requireUser(returnTo = '/manage/orders'): Promise<ManageUs
   if (!user) redirect(`${LOGIN_PATH}?redirect=${encodeURIComponent(returnTo)}`)
   return user
 }
+
+/**
+ * Administrators — the owner's decisions: the price list, reopening a closed
+ * order. Everything else on these screens is day-to-day work any staff account
+ * does. A row with no role is a legacy account and counts as an editor, the
+ * same reading src/payload/access.ts takes.
+ */
+export const isAdmin = (user: ManageUser | null): boolean => user?.role === 'admin'

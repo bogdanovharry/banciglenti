@@ -1,11 +1,8 @@
 'use client'
 
-import { useActionState } from 'react'
-
 import { saveCustomer } from '@/lib/manage/customer-actions'
-import type { ActionResult } from '@/lib/manage/actions'
 import type { CustomerDetail } from '@/lib/manage/customers'
-import { FieldLabel, Result, SubmitButton, inputClass } from '../../../_components/form'
+import { FieldLabel, Result, SubmitButton, inputClass, useActionForm } from '../../../_components/form'
 
 /**
  * Contact and tax details.
@@ -19,11 +16,12 @@ import { FieldLabel, Result, SubmitButton, inputClass } from '../../../_componen
  * cannot support if a reverse-charge invoice is ever questioned.
  */
 export function CustomerForm({ customer }: { customer: CustomerDetail }) {
-  const [state, formAction] = useActionState<ActionResult | null, FormData>(saveCustomer, null)
+  const { state, onSubmit, pending } = useActionForm(saveCustomer)
 
   return (
-    <form action={formAction}>
+    <form onSubmit={onSubmit}>
       <input type="hidden" name="customerId" value={customer.id} />
+      <input type="hidden" name="version" value={customer.updatedAt ?? ''} />
 
       <div className="grid grid-cols-2 gap-2">
         <div className="col-span-2">
@@ -91,7 +89,7 @@ export function CustomerForm({ customer }: { customer: CustomerDetail }) {
       )}
 
       <div className="mt-3">
-        <SubmitButton>Запази</SubmitButton>
+        <SubmitButton pending={pending}>Запази</SubmitButton>
       </div>
 
       <Result state={state} />

@@ -1,7 +1,10 @@
 import type { CollectionConfig } from 'payload'
 
+import { staffEditAdminDelete } from '../access'
+
 export const Pages: CollectionConfig = {
   slug: 'pages',
+  access: staffEditAdminDelete,
   labels: { singular: 'Страница', plural: 'Страници' },
   admin: {
     useAsTitle: 'title',

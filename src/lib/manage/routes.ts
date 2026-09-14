@@ -21,12 +21,16 @@ export type NavItem = {
   label: string
   /** Ordinal in the mono rail, in the storefront's section-number idiom. */
   n: string
-  /** Phases 3 and 4. Rendered inert and marked rather than hidden. */
-  soon?: boolean
+  /**
+   * Active only on this exact path. The dashboard lives at /manage, which every
+   * other screen's path also starts with.
+   */
+  exact?: boolean
 }
 
 export const NAV_ITEMS: NavItem[] = [
+  { href: '/manage', label: 'Табло', n: '00', exact: true },
   { href: '/manage/orders', label: 'Поръчки', n: '01' },
   { href: '/manage/customers', label: 'Клиенти', n: '02' },
-  { href: '/manage/products', label: 'Продукти', n: '03', soon: true },
+  { href: '/manage/products', label: 'Продукти', n: '03' },
 ]

@@ -5,8 +5,9 @@
  * authored EUR price into whatever the *visitor's* market displays, which is
  * right for a storefront and wrong here: an order total is a settled figure in
  * EUR, and the person reconciling it against the bank must see the number that
- * was actually charged, not a re-conversion of it. The rate is 1 today, so the
- * two agree — the day Romania gets a real RON rate, they would not.
+ * was actually charged, not a re-conversion of it. Romania displays RON, so the
+ * two now differ: its orders show the RON figure beside the EUR one, converted
+ * at the rate stored on the order — see customerMoney.
  */
 
 const MONEY = new Intl.NumberFormat('bg-BG', {
@@ -18,6 +19,20 @@ const MONEY = new Intl.NumberFormat('bg-BG', {
 
 /** "1 234,50 €" — always EUR, the currency orders are stored in. */
 export const money = (amount: number): string => MONEY.format(amount)
+
+/**
+ * "6 489,19 RON" — the figure a customer in another currency was shown: the
+ * amount the courier collects on delivery, and the one to read back on the
+ * phone. Converted at the rate stored on the order, never today's, and shown
+ * beside the EUR figure it came from rather than instead of it.
+ */
+export const customerMoney = (amountEur: number, currency: string, rate: number): string =>
+  new Intl.NumberFormat('bg-BG', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Math.round(amountEur * rate * 100) / 100)
 
 const DATE = new Intl.DateTimeFormat('bg-BG', {
   day: '2-digit',

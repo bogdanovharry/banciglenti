@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { INDUSTRY_OPTIONS } from '@/lib/catalog-ui'
+import { isAdmin, isStaff } from '../access'
 
 /**
  * Contact-form submissions.
@@ -10,7 +11,7 @@ import { INDUSTRY_OPTIONS } from '@/lib/catalog-ui'
  * spam-filtered message would lose a customer enquiry silently. The database
  * is the record; email is the notification on top of it.
  *
- * Writes come only from /api/enquiries via the local API — `create` is closed
+ * Writes come only from /api/contact via the local API — `create` is closed
  * so the REST endpoint cannot be posted to directly.
  */
 export const Enquiries: CollectionConfig = {
@@ -26,9 +27,9 @@ export const Enquiries: CollectionConfig = {
   },
   access: {
     create: () => false, // only the route, through the local API
-    read: ({ req }) => Boolean(req.user),
-    update: ({ req }) => Boolean(req.user),
-    delete: ({ req }) => Boolean(req.user),
+    read: isStaff,
+    update: isStaff,
+    delete: isAdmin,
   },
   fields: [
     {

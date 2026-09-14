@@ -125,7 +125,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   return (
     <div className="min-w-0">
       {/* Masthead — title, the count it is showing, and the search box. */}
-      <header className="border-b border-ink-15 px-6 py-4 flex flex-wrap items-end justify-between gap-4">
+      <header className="border-b border-ink-15 px-4 sm:px-6 py-4 flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50">
             01 · Поръчки
@@ -139,8 +139,15 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
         {/* A plain GET form: the query lands in the URL, where it belongs. The
             hidden fields carry the current tab and sort through the search so
             searching inside "Чакащи" stays inside "Чакащи". */}
-        <form method="get" action="/manage/orders" className="flex items-center gap-2">
+        <form method="get" action="/manage/orders" className="flex flex-wrap items-center gap-2">
           {status && <input type="hidden" name="status" value={status} />}
+          {/* Phone orders start here — the storefront was the only way in. */}
+          <Link
+            href="/manage/orders/new"
+            className="tl-btn h-9 px-4 inline-flex items-center border border-ink-15 text-[13px] font-semibold hover:bg-paper"
+          >
+            + Нова поръчка
+          </Link>
           {sort !== DEFAULT_SORT && <input type="hidden" name="sort" value={sort} />}
           <label htmlFor="q" className="sr-only">
             Търсене по номер на поръчка
@@ -151,7 +158,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
             defaultValue={q}
             placeholder="Номер на поръчка"
             autoComplete="off"
-            className="h-9 w-[210px] border border-ink-15 px-3 text-[13px] placeholder:text-ink-30 focus:border-blue focus:outline-none"
+            className="h-9 w-full sm:w-[210px] border border-ink-15 px-3 text-[13px] placeholder:text-ink-30 focus:border-blue focus:outline-none"
           />
           <button
             type="submit"
@@ -172,7 +179,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
 
       {/* Status tabs. The counts respect the search, so they never promise rows
           that the current query would not return. */}
-      <div className="border-b border-ink-15 px-6 flex items-center gap-1 overflow-x-auto">
+      <div className="border-b border-ink-15 px-4 sm:px-6 flex items-center gap-1 overflow-x-auto overflow-y-hidden">
         {tabs.map((tab) => {
           const active = tab.value === status
           return (
@@ -200,7 +207,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       </div>
 
       {list.rows.length === 0 ? (
-        <div className="px-6 py-16 text-center">
+        <div className="px-4 sm:px-6 py-16 text-center">
           <div className="text-[15px] text-ink-70">
             {q
               ? `Нищо не отговаря на „${q}“.`
@@ -333,7 +340,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       {/* Paging. Stated in full — "51–100 от 214" — so a truncated list never
           reads as the whole list. */}
       {list.pageCount > 1 && (
-        <div className="px-6 py-4 border-t border-ink-15 flex items-center justify-between gap-4">
+        <div className="px-4 sm:px-6 py-4 border-t border-ink-15 flex items-center justify-between gap-4">
           <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-ink-50 tl-figures">
             {from}–{to} от {list.total}
           </div>

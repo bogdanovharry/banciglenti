@@ -5,7 +5,14 @@ import { useActionState, useState } from 'react'
 import { addMachine, removeMachine } from '@/lib/manage/customer-actions'
 import type { ActionResult } from '@/lib/manage/actions'
 import { MACHINES, machineLabel } from '@/lib/machines'
-import { FieldLabel, Result, SubmitButton, inputClass, selectClass } from '../../../_components/form'
+import {
+  FieldLabel,
+  Result,
+  SubmitButton,
+  inputClass,
+  selectClass,
+  useActionForm,
+} from '../../../_components/form'
 
 /**
  * Recording which machine a customer runs.
@@ -24,16 +31,17 @@ import { FieldLabel, Result, SubmitButton, inputClass, selectClass } from '../..
 
 const OTHER = '__other__'
 
-export function AddMachine({ customerId }: { customerId: number }) {
-  const [state, formAction] = useActionState<ActionResult | null, FormData>(addMachine, null)
+export function AddMachine({ customerId, version }: { customerId: number; version: string }) {
+  const { state, onSubmit, pending } = useActionForm(addMachine)
   const [choice, setChoice] = useState<string>(MACHINES[0] ? machineLabel(MACHINES[0]) : OTHER)
 
   const picked = MACHINES.find((m) => machineLabel(m) === choice) ?? null
   const custom = choice === OTHER
 
   return (
-    <form action={formAction}>
+    <form onSubmit={onSubmit}>
       <input type="hidden" name="customerId" value={customerId} />
+      <input type="hidden" name="version" value={version} />
 
       <div>
         <FieldLabel htmlFor="machine">Машина</FieldLabel>
@@ -131,7 +139,7 @@ export function AddMachine({ customerId }: { customerId: number }) {
       </div>
 
       <div className="mt-3">
-        <SubmitButton>Добави машината</SubmitButton>
+        <SubmitButton pending={pending}>Добави машината</SubmitButton>
       </div>
 
       <Result state={state} />
@@ -143,16 +151,19 @@ export function RemoveMachineButton({
   customerId,
   index,
   label,
+  version,
 }: {
   customerId: number
   index: number
   label: string
+  version: string
 }) {
   const [state, formAction] = useActionState<ActionResult | null, FormData>(removeMachine, null)
 
   return (
     <form action={formAction} className="inline">
       <input type="hidden" name="customerId" value={customerId} />
+      <input type="hidden" name="version" value={version} />
       <input type="hidden" name="index" value={index} />
       {/* As with order lines: a position only means something against the list
           that produced it, so the action re-checks what it is deleting. */}

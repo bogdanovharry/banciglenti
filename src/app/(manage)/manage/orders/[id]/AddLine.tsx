@@ -1,11 +1,18 @@
 'use client'
 
-import { useActionState, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
-import { addCatalogueLine, addCustomLine, type ActionResult } from '@/lib/manage/actions'
+import { addCatalogueLine, addCustomLine } from '@/lib/manage/actions'
 import { BLADE_TABLES, MIN_CUSTOM_LENGTH, type BladeTableKey } from '@/lib/order-pricing'
 import { pitchLabel } from '@/lib/pricing'
-import { FieldLabel, Result, SubmitButton, inputClass, selectClass } from '../../../_components/form'
+import {
+  FieldLabel,
+  Result,
+  SubmitButton,
+  inputClass,
+  selectClass,
+  useActionForm,
+} from '../../../_components/form'
 
 /**
  * Adding a line to an existing order — the thing the old platform could do and
@@ -29,7 +36,7 @@ const TABLE_LABELS: Record<BladeTableKey, string> = {
   'metal-cs': 'Метал · въглеродна',
   meat: 'Месо и риба',
   bread: 'Хлебни изделия',
-  textile: 'Текстил',
+  textile: 'Други материали',
 }
 
 const PROCESSES = [
@@ -41,12 +48,38 @@ const PROCESSES = [
 
 type Mode = 'custom' | 'catalogue'
 
+/** A machine's blade, when the order was started from one on the customer screen. */
+export type LineDefaults = { length?: number; width?: number; thickness?: number }
+
+/**
+ * The price table a machine's blade most likely belongs to: the first that has
+ * its width and thickness, then the first that has its width. The person can
+ * still change it — this only saves them finding it.
+ */
+function tableFor(defaults: LineDefaults): BladeTableKey {
+  const keys = Object.keys(BLADE_TABLES) as BladeTableKey[]
+  if (defaults.width === undefined) return 'wood-v'
+  return (
+    keys.find((k) =>
+      BLADE_TABLES[k].some(
+        (b) => b.width === defaults.width && (defaults.thickness === undefined || b.thickness === defaults.thickness),
+      ),
+    ) ??
+    keys.find((k) => BLADE_TABLES[k].some((b) => b.width === defaults.width)) ??
+    'wood-v'
+  )
+}
+
 export function AddLine({
   orderId,
   products,
+  version,
+  defaults = {},
 }: {
   orderId: number
   products: { slug: string; name: string }[]
+  version: string
+  defaults?: LineDefaults
 }) {
   const [mode, setMode] = useState<Mode>('custom')
 
@@ -74,20 +107,38 @@ export function AddLine({
         ))}
       </div>
 
-      {mode === 'custom' ? <CustomLine orderId={orderId} /> : <CatalogueLine orderId={orderId} products={products} />}
+      {mode === 'custom' ? (
+        <CustomLine orderId={orderId} version={version} defaults={defaults} />
+      ) : (
+        <CatalogueLine orderId={orderId} products={products} version={version} />
+      )}
     </div>
   )
 }
 
-function CustomLine({ orderId }: { orderId: number }) {
-  const [state, formAction] = useActionState<ActionResult | null, FormData>(addCustomLine, null)
+function CustomLine({
+  orderId,
+  version,
+  defaults,
+}: {
+  orderId: number
+  version: string
+  defaults: LineDefaults
+}) {
+  const { state, onSubmit, pending } = useActionForm(addCustomLine)
 
-  const [table, setTable] = useState<BladeTableKey>('wood-v')
+  const [table, setTable] = useState<BladeTableKey>(() => tableFor(defaults))
   const blades = BLADE_TABLES[table]
 
-  const [width, setWidth] = useState<number | null>(null)
-  const [thickness, setThickness] = useState<number | null>(null)
+  const [width, setWidth] = useState<number | null>(defaults.width ?? null)
+  const [thickness, setThickness] = useState<number | null>(defaults.thickness ?? null)
   const [brand, setBrand] = useState<string | null>(null)
+
+  // Said plainly when the machine's size is not one the price list makes, so
+  // nobody mistakes the nearest option for an exact match.
+  const unmatchedMachine =
+    defaults.width !== undefined &&
+    !Object.values(BLADE_TABLES).some((rows) => rows.some((b) => b.width === defaults.width))
 
   /**
    * Each choice narrows the next, and each level falls back to the first still
@@ -128,8 +179,18 @@ function CustomLine({ orderId }: { orderId: number }) {
   }, [blades, width, thickness, brand])
 
   return (
-    <form action={formAction}>
+    <form onSubmit={onSubmit}>
       <input type="hidden" name="orderId" value={orderId} />
+      <input type="hidden" name="version" value={version} />
+
+      {defaults.length !== undefined && (
+        <p className="mb-2 text-[12.5px] text-blue">
+          Попълнено от машината на клиента: {defaults.length} мм
+          {defaults.width !== undefined && ` × ${defaults.width}`}
+          {defaults.thickness !== undefined && ` × ${String(defaults.thickness).replace('.', ',')}`} мм.
+          {unmatchedMachine && ' Ширината ѝ не е в ценоразписа — изберете най-близката.'}
+        </p>
+      )}
 
       <div className="grid grid-cols-2 gap-2">
         <div className="col-span-2">
@@ -228,7 +289,7 @@ function CustomLine({ orderId }: { orderId: number }) {
             type="number"
             min={MIN_CUSTOM_LENGTH}
             step={1}
-            defaultValue={3000}
+            defaultValue={defaults.length ?? 3000}
             required
             className={inputClass}
           />
@@ -264,7 +325,7 @@ function CustomLine({ orderId }: { orderId: number }) {
       </fieldset>
 
       <div className="mt-3">
-        <SubmitButton>Добави реда</SubmitButton>
+        <SubmitButton pending={pending}>Добави реда</SubmitButton>
       </div>
 
       <Result state={state} />
@@ -275,15 +336,18 @@ function CustomLine({ orderId }: { orderId: number }) {
 function CatalogueLine({
   orderId,
   products,
+  version,
 }: {
   orderId: number
   products: { slug: string; name: string }[]
+  version: string
 }) {
-  const [state, formAction] = useActionState<ActionResult | null, FormData>(addCatalogueLine, null)
+  const { state, onSubmit, pending } = useActionForm(addCatalogueLine)
 
   return (
-    <form action={formAction}>
+    <form onSubmit={onSubmit}>
       <input type="hidden" name="orderId" value={orderId} />
+      <input type="hidden" name="version" value={version} />
 
       <div>
         <FieldLabel htmlFor="sku">Артикул</FieldLabel>
@@ -313,7 +377,7 @@ function CatalogueLine({
             className={inputClass}
           />
         </div>
-        <SubmitButton>Добави реда</SubmitButton>
+        <SubmitButton pending={pending}>Добави реда</SubmitButton>
       </div>
 
       <p className="mt-2 text-[11.5px] text-ink-50">

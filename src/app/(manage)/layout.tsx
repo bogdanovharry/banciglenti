@@ -3,7 +3,7 @@ import localFont from 'next/font/local'
 
 import '../globals.css'
 import { Nav } from './_components/Nav'
-import { requireUser } from '@/lib/manage/session'
+import { currentUser } from '@/lib/manage/session'
 
 /**
  * Root layout for /manage — a second root, alongside the storefront's.
@@ -13,10 +13,14 @@ import { requireUser } from '@/lib/manage/session'
  * Tailwind and the brand tokens, while Payload's admin next door keeps its own
  * stylesheet untouched.
  *
- * The guard here is for the chrome, not for the data: the nav needs a name to
- * show, and an unauthenticated visitor should meet the login screen rather than
- * an empty frame. Every read enforces it again next to the query — see
- * src/lib/manage/session.ts for why a layout cannot be the security boundary.
+ * The layout does not send a logged-out visitor to the login screen; the page
+ * does. A layout cannot know which page it is wrapping, so its redirect always
+ * returned people to the order list — a link to one order, opened after the
+ * session expired, landed on the list after logging in. Every page calls
+ * `requireUser()` with its own path next to its data (see
+ * src/lib/manage/session.ts for why a layout cannot be the security boundary
+ * anyway), so without a user this renders the bare frame for the instant before
+ * that redirect lands.
  */
 
 const inter = localFont({
@@ -33,13 +37,13 @@ export const metadata: Metadata = {
 }
 
 export default async function ManageLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireUser()
+  const user = await currentUser()
 
   return (
     <html lang="bg" className={inter.variable}>
       <body className="font-sans antialiased text-ink bg-white">
-        <div className="flex min-h-screen">
-          <Nav user={{ name: user.name, email: user.email }} />
+        <div className="flex flex-col lg:flex-row min-h-screen">
+          {user && <Nav user={{ name: user.name, email: user.email }} />}
           <main className="flex-1 min-w-0">{children}</main>
         </div>
       </body>

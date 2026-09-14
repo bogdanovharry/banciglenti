@@ -69,7 +69,7 @@ export default async function CustomerPage({
 
   return (
     <div className="min-w-0">
-      <header className="border-b border-ink-15 px-6 py-4">
+      <header className="border-b border-ink-15 px-4 sm:px-6 py-4">
         <Link
           href="/manage/customers"
           className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 hover:text-ink"
@@ -91,13 +91,21 @@ export default async function CustomerPage({
             {customer.email}
           </a>
 
-          <div className="ml-auto text-right">
-            <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
-              Похарчено
+          <div className="ml-auto flex items-end gap-4">
+            <Link
+              href={`/manage/orders/new?customer=${customer.id}`}
+              className="tl-btn h-9 px-4 inline-flex items-center bg-ink text-white text-[13px] font-semibold"
+            >
+              Нова поръчка
+            </Link>
+            <div className="text-right">
+              <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
+                Похарчено
+              </div>
+              <strong className="text-[22px] font-semibold tracking-tight tl-figures">
+                {money(customer.totalSpent)}
+              </strong>
             </div>
-            <strong className="text-[22px] font-semibold tracking-tight tl-figures">
-              {money(customer.totalSpent)}
-            </strong>
           </div>
         </div>
 
@@ -129,7 +137,7 @@ export default async function CustomerPage({
             </div>
 
             {customer.orders.length === 0 ? (
-              <p className="px-6 py-6 text-[13.5px] text-ink-50">
+              <p className="px-4 sm:px-6 py-6 text-[13.5px] text-ink-50">
                 Още няма поръчки от този клиент.
               </p>
             ) : (
@@ -137,7 +145,7 @@ export default async function CustomerPage({
                 <tbody>
                   {customer.orders.map((o) => (
                     <tr key={o.id} className="border-t border-ink-08 hover:bg-paper/60">
-                      <td className="px-6 py-2.5">
+                      <td className="px-4 sm:px-6 py-2.5">
                         <Link
                           href={`/manage/orders/${o.id}`}
                           className="font-mono font-semibold text-blue hover:underline"
@@ -154,13 +162,19 @@ export default async function CustomerPage({
                       <td className="px-3 py-2.5 text-right font-semibold tl-figures whitespace-nowrap">
                         {money(o.total)}
                       </td>
-                      <td className="px-6 py-2.5 text-right">
+                      <td className="px-4 sm:px-6 py-2.5 text-right">
                         <StatusPill status={o.status} />
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            )}
+            {customer.orderCount > customer.orders.length && (
+              <p className="px-4 sm:px-6 py-2 border-t border-ink-08 text-[12px] text-ink-50">
+                Показани са последните {customer.orders.length} от {customer.orderCount} поръчки. Сумата
+                горе включва всички.
+              </p>
             )}
           </section>
 
@@ -173,13 +187,13 @@ export default async function CustomerPage({
             </div>
 
             {customer.enquiries.length === 0 ? (
-              <p className="px-6 py-6 text-[13.5px] text-ink-50">
+              <p className="px-4 sm:px-6 py-6 text-[13.5px] text-ink-50">
                 Няма запитвания от този имейл.
               </p>
             ) : (
               <ul>
                 {customer.enquiries.map((e) => (
-                  <li key={e.id} className="px-6 py-3 border-t border-ink-08">
+                  <li key={e.id} className="px-4 sm:px-6 py-3 border-t border-ink-08">
                     <div className="flex items-center gap-3">
                       <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 tl-figures">
                         {shortDate(e.createdAt)}
@@ -204,7 +218,7 @@ export default async function CustomerPage({
               <div className={PANEL_HEAD}>
                 <span>Адреси</span>
               </div>
-              <ul className="px-6 py-3 flex flex-wrap gap-6">
+              <ul className="px-4 sm:px-6 py-3 flex flex-wrap gap-6">
                 {customer.addresses.map((a, i) => (
                   <li key={i} className="text-[13px]">
                     <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50">
@@ -260,11 +274,22 @@ export default async function CustomerPage({
                             {[m.source, m.notes].filter(Boolean).join(' · ')}
                           </div>
                         )}
+                        {/* The reason a machine is on file: its blade is one
+                            click from an order, sizes already filled in. */}
+                        {m.bladeLength !== null && (
+                          <Link
+                            href={`/manage/orders/new?customer=${customer.id}&machine=${m.index}`}
+                            className="inline-block mt-1 font-mono text-[10px] tracking-[0.12em] uppercase text-blue hover:underline"
+                          >
+                            Поръчай лента →
+                          </Link>
+                        )}
                       </div>
                       <RemoveMachineButton
                         customerId={customer.id}
                         index={m.index}
                         label={`${m.brand} ${m.model}`}
+                        version={customer.updatedAt ?? ''}
                       />
                     </li>
                   )
@@ -283,7 +308,7 @@ export default async function CustomerPage({
                 Добави машина
               </summary>
               <div className="px-4 pb-4">
-                <AddMachine customerId={customer.id} />
+                <AddMachine customerId={customer.id} version={customer.updatedAt ?? ''} />
               </div>
             </details>
           </section>

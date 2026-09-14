@@ -1,27 +1,64 @@
 'use client'
 
+import { startTransition, useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 
 import type { ActionResult } from '@/lib/manage/actions'
 
 /**
- * The two pieces every form on the order screen needs: a button that knows it
- * is submitting, and a line that says what happened.
+ * The pieces every form on these screens needs: a way to submit that keeps what
+ * was typed when the save is refused, a button that knows it is submitting, and
+ * a line that says what happened.
  *
- * Shared because the alternative is six forms each inventing their own idea of
- * "saving…", and because a control that gives no feedback gets clicked twice.
+ * Shared because the alternative is a dozen forms each inventing their own idea
+ * of "saving…", and because a control that gives no feedback gets clicked twice.
  */
+
+type FormAction = (prev: ActionResult | null, form: FormData) => Promise<ActionResult>
+
+/**
+ * `useActionState`, submitted without React's automatic form reset.
+ *
+ * Handing an action straight to `<form action>` makes React reset every field
+ * once the action settles — whether the save worked or not. So a refusal (a
+ * duplicate email, a stale screen, a missing reason) cleared the form in the
+ * same moment it showed the message: a typed comment, a new customer's details,
+ * a stock-take's figures, gone. Controlled fields were not spared either. A
+ * successful save navigates and remounts the form with fresh values anyway, so
+ * the reset only ever cost typing, on failure. Dispatching from `onSubmit`
+ * inside a transition does everything else the same way, minus the reset.
+ *
+ * `pending` is passed to SubmitButton, because `useFormStatus` only sees
+ * submissions made through `<form action>`.
+ */
+export function useActionForm(action: FormAction) {
+  const [state, dispatch, pending] = useActionState<ActionResult | null, FormData>(action, null)
+
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (pending) return
+    const submitter = (event.nativeEvent as SubmitEvent).submitter
+    const data = new FormData(event.currentTarget, submitter)
+    startTransition(() => dispatch(data))
+  }
+
+  return { state, onSubmit, pending }
+}
 
 export function SubmitButton({
   children,
   tone = 'dark',
   className = '',
+  pending: pendingProp,
 }: {
   children: React.ReactNode
   tone?: 'dark' | 'blue' | 'quiet'
   className?: string
+  /** From useActionForm; falls back to the enclosing `<form action>`'s status. */
+  pending?: boolean
 }) {
-  const { pending } = useFormStatus()
+  const status = useFormStatus()
+  const pending = pendingProp ?? status.pending
 
   const tones = {
     dark: 'bg-ink text-white',

@@ -9,9 +9,15 @@ import { PrintButton, RemoveLineButton } from './LineActions'
 import { StatusControl } from './StatusControl'
 import { StatusPill } from '../../../_components/StatusPill'
 import { getOrder } from '@/lib/manage/order'
-import { getClient } from '@/lib/manage/session'
-import { money, shortDate, shortTime } from '@/lib/manage/format'
-import { PAYMENT_LABEL, PAYMENT_METHOD_LABEL } from '@/lib/manage/vocabulary'
+import { currentUser, getClient, isAdmin } from '@/lib/manage/session'
+import { customerMoney, money, shortDate, shortTime } from '@/lib/manage/format'
+import { marketForOrder } from '@/lib/market'
+import {
+  PAYMENT_LABEL,
+  PAYMENT_METHOD_LABEL,
+  moneyLockReason,
+  nextStatuses,
+} from '@/lib/manage/vocabulary'
 import { COMPANY } from '@/lib/company'
 
 /**
@@ -66,7 +72,7 @@ export default async function OrderPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ saved?: string | string[] }>
+  searchParams: Promise<Record<'saved' | 'length' | 'width' | 'thickness', string | string[] | undefined>>
 }) {
   const { id } = await params
   const numericId = Number.parseInt(id, 10)
@@ -75,22 +81,41 @@ export default async function OrderPage({
   const order = await getOrder(numericId)
   if (!order) notFound()
 
-  const products = await catalogueOptions()
+  const [products, user] = await Promise.all([catalogueOptions(), currentUser()])
 
   // Left behind by the navigation a successful mutation ends on — see done() in
   // actions.ts. The screen itself already shows the result; this just names what
   // was saved, so a change with no visible trace (a payment method, say) still
   // acknowledges the click.
-  const savedParam = (await searchParams).saved
-  const saved = (Array.isArray(savedParam) ? savedParam[0] : savedParam)?.slice(0, 120)
+  const sp = await searchParams
+  const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
+  const saved = first(sp.saved)?.slice(0, 120)
+
+  // A machine's blade, carried here from "new order" on the customer screen.
+  const numberParam = (v: string | string[] | undefined) => {
+    const n = Number(first(v))
+    return Number.isFinite(n) && n > 0 ? n : undefined
+  }
+  const lineDefaults = {
+    length: numberParam(sp.length),
+    width: numberParam(sp.width),
+    thickness: numberParam(sp.thickness),
+  }
 
   const phone = order.customer.phone?.replace(/\s/g, '')
   const vatPercent = Math.round(order.vatRate * 100)
+  const orderMarket = marketForOrder(order)
+
+  // Every form below posts this back; the action refuses if the order has moved
+  // on since the screen was drawn.
+  const version = order.updatedAt ?? ''
+  const lockReason = moneyLockReason({ status: order.status, paymentStatus: order.payment.status })
+  const statusOptions = nextStatuses(order.status, isAdmin(user))
 
   return (
     <div className="tl-order">
       {/* --- Masthead ---------------------------------------------------- */}
-      <header className="border-b border-ink-15 px-6 py-4">
+      <header className="border-b border-ink-15 px-4 sm:px-6 py-4">
         <Link
           href="/manage/orders"
           className="tl-no-print font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 hover:text-ink"
@@ -99,7 +124,7 @@ export default async function OrderPage({
         </Link>
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
-          <h1 className="text-[24px] font-semibold tracking-tight font-mono">{order.orderNumber}</h1>
+          <h1 className="text-[20px] sm:text-[24px] font-semibold tracking-tight font-mono">{order.orderNumber}</h1>
           <StatusPill status={order.status} />
           <span className="text-[13px] text-ink-70 tl-figures">
             {shortDate(order.createdAt)} {shortTime(order.createdAt)}
@@ -137,7 +162,7 @@ export default async function OrderPage({
         <div className="min-w-0 border-b xl:border-b-0 xl:border-r border-ink-15">
           {/* Who to ring. One line, because an order you cannot act on without
               opening a second record is a half-finished screen. */}
-          <section className="px-6 py-3 border-b border-ink-15 flex flex-wrap items-baseline gap-x-5 gap-y-1">
+          <section className="px-4 sm:px-6 py-3 border-b border-ink-15 flex flex-wrap items-baseline gap-x-5 gap-y-1">
             <strong className="text-[15px]">{order.customer.name ?? '—'}</strong>
             {order.customer.company && (
               <span className="text-[13px] text-ink-70">{order.customer.company}</span>
@@ -169,7 +194,7 @@ export default async function OrderPage({
             <table className="w-full border-collapse text-[13.5px]">
               <thead>
                 <tr className="bg-paper">
-                  <th className="px-6 py-2 text-left font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
+                  <th className="px-4 sm:px-6 py-2 text-left font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
                     Артикул
                   </th>
                   <th className="px-3 py-2 text-right font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
@@ -187,14 +212,14 @@ export default async function OrderPage({
               <tbody>
                 {order.lines.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-6 text-ink-50">
+                    <td colSpan={5} className="px-4 sm:px-6 py-6 text-ink-50">
                       Няма артикули по тази поръчка.
                     </td>
                   </tr>
                 )}
                 {order.lines.map((line) => (
                   <tr key={line.index} className="border-t border-ink-08 align-top">
-                    <td className="px-6 py-3">
+                    <td className="px-4 sm:px-6 py-3">
                       <div className="font-semibold">{line.name}</div>
                       {line.specs && (
                         <div className="text-[12.5px] text-ink-70 mt-0.5">{line.specs}</div>
@@ -213,12 +238,15 @@ export default async function OrderPage({
                       {money(line.lineTotal)}
                     </td>
                     <td className="tl-no-print px-1 py-3 text-right">
-                      <RemoveLineButton
-                        orderId={order.id}
-                        index={line.index}
-                        label={line.name}
-                        expect={line.sku || line.name}
-                      />
+                      {!lockReason && (
+                        <RemoveLineButton
+                          orderId={order.id}
+                          index={line.index}
+                          label={line.name}
+                          expect={line.sku || line.name}
+                          version={version}
+                        />
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -227,7 +255,7 @@ export default async function OrderPage({
           </div>
 
           {/* Where it goes, and what it comes to. */}
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] gap-6 px-6 py-4 bg-paper border-t border-ink-15">
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] gap-6 px-4 sm:px-6 py-4 bg-paper border-t border-ink-15">
             <div className="text-[13px]">
               <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mb-1">
                 Доставка
@@ -257,7 +285,13 @@ export default async function OrderPage({
                 </tr>
                 <tr>
                   <td className="pr-8 py-0.5 text-ink-70">Доставка</td>
-                  <td className="text-right py-0.5">{money(order.shipping.cost)}</td>
+                  <td className="text-right py-0.5">
+                    {/* Under 'collect' the 0 is not "free": the courier bills the
+                        customer at the door, and the COD amount excludes it. */}
+                    {orderMarket.carriage === 'collect'
+                      ? `плаща се на ${orderMarket.couriers.join(' / ')}`
+                      : money(order.shipping.cost)}
+                  </td>
                 </tr>
                 <tr>
                   <td className="pr-8 py-0.5 text-ink-70">ДДС {vatPercent}%</td>
@@ -267,6 +301,16 @@ export default async function OrderPage({
                   <td className="pr-8 pt-1.5 font-bold">Общо</td>
                   <td className="text-right pt-1.5 font-bold text-[15px]">{money(order.total)}</td>
                 </tr>
+                {order.currency !== 'EUR' && (
+                  <tr>
+                    <td className="pr-8 pt-1 text-ink-50">
+                      За клиента · курс {order.exchangeRate.toLocaleString('bg-BG', { maximumFractionDigits: 4 })}
+                    </td>
+                    <td className="text-right pt-1 font-semibold">
+                      {customerMoney(order.total, order.currency, order.exchangeRate)}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -274,7 +318,7 @@ export default async function OrderPage({
           {/* What the customer wrote at checkout. Set apart because it is
               theirs, and it is the one thing on the order nobody can re-derive. */}
           {order.notes && (
-            <section className="px-6 py-3 border-t border-ink-15 border-l-[3px] border-l-orange">
+            <section className="px-4 sm:px-6 py-3 border-t border-ink-15 border-l-[3px] border-l-orange">
               <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mb-1">
                 Коментар от клиента
               </div>
@@ -282,11 +326,21 @@ export default async function OrderPage({
             </section>
           )}
 
-          <section className="tl-no-print px-6 py-4 border-t border-ink-15">
+          <section className="tl-no-print px-4 sm:px-6 py-4 border-t border-ink-15">
             <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mb-3">
               Добави ред
             </div>
-            <AddLine orderId={order.id} products={products} />
+            {lockReason ? (
+              <p className="text-[13px] text-ink-50">{lockReason}</p>
+            ) : (
+              <AddLine
+                key={version}
+                orderId={order.id}
+                products={products}
+                version={version}
+                defaults={lineDefaults}
+              />
+            )}
           </section>
         </div>
 
@@ -302,9 +356,11 @@ export default async function OrderPage({
                 value if clicked again. */}
             <div className="p-4">
               <StatusControl
-                key={order.status ?? 'none'}
+                key={`${order.status ?? 'none'}|${version}`}
                 orderId={order.id}
                 status={order.status}
+                options={statusOptions}
+                version={version}
               />
             </div>
           </section>
@@ -312,17 +368,15 @@ export default async function OrderPage({
           <section className={`${PANEL} border-0 border-b`}>
             <div className={PANEL_HEAD}>Плащане и доставка</div>
             {/* Same reason: every field in here is uncontrolled with a
-                defaultValue, which only applies on mount. */}
+                defaultValue, which only applies on mount. Keyed on the
+                version, which moves on every save of any field. */}
             <div className="p-4">
               <FulfilmentForm
-                key={[
-                  order.payment.status,
-                  order.payment.method,
-                  order.shipping.method,
-                  order.shipping.trackingNumber,
-                  order.shipping.office,
-                ].join('|')}
+                key={version}
                 order={order}
+                version={version}
+                lockReason={lockReason}
+                pickupOffered={orderMarket.pickup || order.shipping.method === 'pickup'}
               />
             </div>
           </section>
@@ -330,7 +384,10 @@ export default async function OrderPage({
           <section className={`${PANEL} border-0`}>
             <div className={PANEL_HEAD}>История</div>
             <div className="p-4">
-              <HistoryPanel orderId={order.id} log={order.log} />
+              {/* Keyed on the entry count: a saved comment adds one, which
+                  remounts the box empty. A failed save leaves the count — and
+                  the typed text — where they were. */}
+              <HistoryPanel key={order.log.length} orderId={order.id} log={order.log} />
             </div>
           </section>
         </aside>

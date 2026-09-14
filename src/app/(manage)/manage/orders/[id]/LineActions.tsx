@@ -14,18 +14,21 @@ export function RemoveLineButton({
   index,
   label,
   expect,
+  version,
 }: {
   orderId: number
   index: number
   label: string
   /** What this row is, so the action can refuse if the table is out of date. */
   expect: string
+  version: string
 }) {
   const [state, formAction] = useActionState<ActionResult | null, FormData>(removeLine, null)
 
   return (
     <form action={formAction} className="tl-no-print inline">
       <input type="hidden" name="orderId" value={orderId} />
+      <input type="hidden" name="version" value={version} />
       <input type="hidden" name="index" value={index} />
       <input type="hidden" name="expect" value={expect} />
       <button

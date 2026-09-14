@@ -1,4 +1,14 @@
-import type { CollectionConfig } from 'payload'
+import { ValidationError, type CollectionConfig } from 'payload'
+
+import { isAdmin, isStaff } from '../access'
+
+type LogRow = { id?: string | null; note?: string | null; author?: unknown; at?: string | null }
+
+const authorId = (value: unknown): unknown =>
+  value && typeof value === 'object' && 'id' in value ? (value as { id: unknown }).id : (value ?? null)
+
+const instant = (value: string | null | undefined): number | null =>
+  value ? new Date(value).getTime() : null
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -7,10 +17,69 @@ export const Orders: CollectionConfig = {
     useAsTitle: 'orderNumber',
     defaultColumns: ['orderNumber', 'status', 'total', 'customer', 'createdAt'],
     description:
-      'Нови поръчки са със статус „Чакаща“. Сумите и артикулите са изчислени и проверени от сървъра при поръчката и не се редактират — променят се само статусът, плащането и товарителницата.',
+      'Само за преглед. Поръчките се обработват в /manage/orders — там статусът следва правилата, сумите се преизчисляват и всяка промяна влиза в историята.',
     listSearchableFields: ['orderNumber'],
     pagination: { defaultLimit: 50 },
     group: 'Поръчки',
+  },
+  /**
+   * Read-only through Payload, on purpose.
+   *
+   * Editing an order here skipped everything that makes an order trustworthy:
+   * the status could jump from cancelled to shipped, a shipping change left the
+   * total unrecomputed, and nothing reached the history. Every one of those
+   * rules lives in src/lib/manage/actions.ts, which writes through the Local API
+   * and so is not affected by these settings; the storefront's order route is
+   * not either. What is closed is the side door — this form and PATCH on
+   * /api/orders/:id — for every account, administrators included.
+   *
+   * Deleting stays possible for an administrator, for test orders and spam.
+   */
+  access: {
+    read: isStaff,
+    create: () => false,
+    update: () => false,
+    delete: isAdmin,
+  },
+  hooks: {
+    /**
+     * History is append-only.
+     *
+     * Access control already keeps browsers out, so this guards against the
+     * code: any write that drops, reorders or rewrites an existing entry is
+     * refused, whoever makes it. An order's history is what gets argued about
+     * weeks later, and it is only worth that if nothing in it can be changed.
+     */
+    beforeChange: [
+      ({ data, originalDoc, operation, req }) => {
+        if (operation !== 'update' || !originalDoc || !Array.isArray((data as { log?: unknown }).log)) {
+          return data
+        }
+        const before = ((originalDoc as { log?: LogRow[] | null }).log ?? []) as LogRow[]
+        const after = (data as { log: LogRow[] }).log
+
+        const intact =
+          after.length >= before.length &&
+          before.every((entry, i) => {
+            const next = after[i]
+            return (
+              next !== undefined &&
+              (next.note ?? '') === (entry.note ?? '') &&
+              authorId(next.author) === authorId(entry.author) &&
+              instant(next.at) === instant(entry.at)
+            )
+          })
+
+        if (!intact) {
+          throw new ValidationError({
+            collection: 'orders',
+            errors: [{ path: 'log', message: 'Историята на поръчката не се редактира — само се допълва.' }],
+            req,
+          })
+        }
+        return data
+      },
+    ],
   },
   fields: [
     // The order as a document, above the fields that edit it. See
@@ -85,7 +154,7 @@ export const Orders: CollectionConfig = {
             condition: (_data, sibling) => Boolean(sibling?.variant),
           },
         },
-        // Written by /api/orders. It stays on the document because the order
+        // Written by /api/checkout. It stays on the document because the order
         // route and the workshop both read it — but a JSON editor with line
         // numbers is a request to a programmer, not a work order. Hidden here
         // and rendered as fields by the panel below.
@@ -194,7 +263,7 @@ export const Orders: CollectionConfig = {
         { name: 'address', type: 'textarea', label: 'Адрес за доставка' },
       ],
     },
-    // The three money fields sit in the sidebar, read-only, because /api/orders
+    // The three money fields sit in the sidebar, read-only, because /api/checkout
     // computed them from the price tables and re-verified every line. Editing
     // one here would silently disagree with what the customer was charged and
     // with what the accountant reconciles against.
@@ -281,9 +350,19 @@ export const Orders: CollectionConfig = {
               relationTo: 'users',
               label: 'Автор',
               admin: { readOnly: true },
-              // Stamped on create so an entry cannot be attributed to someone else.
+              /**
+               * An existing entry keeps the author it was written with; a new
+               * one is signed by whoever is making the request, whatever the
+               * request claims. Rows are matched by id, which is why the
+               * actions send existing rows back with theirs.
+               */
               hooks: {
-                beforeChange: [({ value, req }) => value ?? req.user?.id ?? null],
+                beforeChange: [
+                  ({ value, previousValue, previousSiblingDoc, req }) =>
+                    (previousSiblingDoc as { id?: unknown } | undefined)?.id
+                      ? (previousValue ?? value ?? null)
+                      : (req.user?.id ?? value ?? null),
+                ],
               },
             },
             {
@@ -294,8 +373,15 @@ export const Orders: CollectionConfig = {
                 readOnly: true,
                 date: { pickerAppearance: 'dayAndTime' },
               },
+              // Same rule: the server's clock for a new entry, the original
+              // time for one that already exists.
               hooks: {
-                beforeChange: [({ value }) => value ?? new Date().toISOString()],
+                beforeChange: [
+                  ({ value, previousValue, previousSiblingDoc }) =>
+                    (previousSiblingDoc as { id?: unknown } | undefined)?.id
+                      ? (previousValue ?? value ?? new Date().toISOString())
+                      : new Date().toISOString(),
+                ],
               },
             },
           ],

@@ -1,9 +1,7 @@
 'use client'
 
-import { useActionState, useRef } from 'react'
-
-import { addComment, type ActionResult } from '@/lib/manage/actions'
-import { Result, SubmitButton } from '../../../_components/form'
+import { addComment } from '@/lib/manage/actions'
+import { Result, SubmitButton, useActionForm } from '../../../_components/form'
 import type { OrderLogEntry } from '@/lib/manage/order'
 
 /**
@@ -15,8 +13,7 @@ import type { OrderLogEntry } from '@/lib/manage/order'
  * keeps its author and its time and nothing is ever overwritten.
  */
 export function HistoryPanel({ orderId, log }: { orderId: number; log: OrderLogEntry[] }) {
-  const [state, formAction] = useActionState<ActionResult | null, FormData>(addComment, null)
-  const boxRef = useRef<HTMLTextAreaElement>(null)
+  const { state, onSubmit, pending } = useActionForm(addComment)
 
   const when = (iso: string | null) =>
     iso
@@ -31,18 +28,15 @@ export function HistoryPanel({ orderId, log }: { orderId: number; log: OrderLogE
 
   return (
     <div>
-      <form
-        action={(formData) => {
-          formAction(formData)
-          // Clearing here rather than through state: the entry is already on
-          // its way to the list below, and leaving the text sitting in the box
-          // invites it being sent twice.
-          if (boxRef.current) boxRef.current.value = ''
-        }}
-      >
+      {/* The box is never cleared by the submit itself. It used to be, before
+          the result was known, so a failed save threw the typed comment away.
+          A saved comment empties it by remounting the panel (the page keys it
+          on the entry count); a refused one leaves the text to send again —
+          see useActionForm. The button disables itself while saving, which is
+          what stops a double send. */}
+      <form onSubmit={onSubmit}>
         <input type="hidden" name="orderId" value={orderId} />
         <textarea
-          ref={boxRef}
           name="note"
           rows={2}
           required
@@ -50,7 +44,9 @@ export function HistoryPanel({ orderId, log }: { orderId: number; log: OrderLogE
           className="w-full border border-ink-15 px-2.5 py-2 text-[13px] bg-white focus:border-blue focus:outline-none resize-y"
         />
         <div className="mt-2">
-          <SubmitButton tone="quiet">Добави коментар</SubmitButton>
+          <SubmitButton tone="quiet" pending={pending}>
+            Добави коментар
+          </SubmitButton>
         </div>
         <Result state={state} />
       </form>
