@@ -19,9 +19,9 @@ type NavGroup = { group: string; items: NavItem[] };
 type NavCat = { name: string; href: string; Icon: typeof IconWood; children: NavGroup[] | null };
 
 /**
- * Navigation carries translation keys, not words. Brand names (Bizerba, Berkel)
- * and steel grades (M42 HSS, CS Flexback) are deliberately literal — they are
- * the same in every market and translating them would be wrong.
+ * Navigation carries translation keys, not words. Steel grades (M42 HSS,
+ * CS Flexback) are deliberately literal — they are the same in every market
+ * and translating them would be wrong.
  */
 const NAV_CATS: NavCat[] = [
   {
@@ -66,10 +66,6 @@ const NAV_CATS: NavCat[] = [
       ]},
       { group: "bakery", items: [
         { label: "breadBlades", href: "/category/hlebni-izdeliya" },
-      ]},
-      { group: "slicers", items: [
-        { label: "!Bizerba", href: "/category/slicers" },
-        { label: "!Berkel", href: "/category/slicers" },
       ]},
     ],
   },
@@ -182,7 +178,7 @@ export function Header() {
               className="h-8 w-auto md:h-9"
             />
           ) : (
-            <SawMeisterLogo size={34} tone="brand" />
+            <SawMeisterLogo tone="brand" priority />
           )}
           <div className="font-mono text-[9px] md:text-[10px] tracking-[0.14em] text-ink-50 mt-1.5 uppercase whitespace-nowrap">
             {tCommon("tagline")}

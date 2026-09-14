@@ -36,7 +36,7 @@ const CATEGORIES: {
 
   { name: 'Месо и риба', slug: 'meso-i-riba', parent: 'hrani', sortOrder: 30, description: 'Лентови ножове за рязане на месо и риба.' },
   { name: 'Хлебни изделия', slug: 'hlebni-izdeliya', parent: 'hrani', sortOrder: 31, description: 'Лентови ножове за хлеборезни машини.' },
-  { name: 'Слайсъри', slug: 'slicers', parent: 'hrani', sortOrder: 32, description: 'Лентови ножове за слайсъри Bizerba, Berkel и др.' },
+  { name: 'Слайсъри', slug: 'slicers', parent: 'hrani', sortOrder: 32, description: 'Лентови ножове за слайсъри.' },
 ]
 
 // Matched against the product name, first hit wins. The source sheet mixes Latin

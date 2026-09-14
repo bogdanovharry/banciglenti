@@ -29,13 +29,43 @@ async function loadMessages(language: string) {
       `[i18n] No messages/${language}.json — falling back to "${FALLBACK_LANGUAGE}". ` +
         `The storefront will render untranslated for this market.`,
     )
-    return (await import(`../../messages/${FALLBACK_LANGUAGE}.json`)).default
+    return null
   }
+}
+
+type Messages = { [k: string]: string | Messages }
+
+/**
+ * Bulgarian under everything, the market's own language on top.
+ *
+ * The fallback above is all-or-nothing: it saves a market with no file at all,
+ * but a file that merely lags behind still breaks, because next-intl throws on
+ * a message it cannot find. With the site being translated a screen at a time,
+ * every half-finished file would be a set of 500s waiting for whoever visited
+ * the screen that had not been done yet.
+ *
+ * Merging keyed by key means an untranslated string renders in Bulgarian —
+ * visibly untranslated, which is a bug report, rather than a dead page. It also
+ * means ro.json and el.json need only carry what has actually been translated.
+ */
+function merge(base: Messages, over: Messages): Messages {
+  const out: Messages = { ...base }
+  for (const [k, v] of Object.entries(over)) {
+    const b = out[k]
+    out[k] =
+      b && typeof b === 'object' && v && typeof v === 'object'
+        ? merge(b, v as Messages)
+        : (v as string)
+  }
+  return out
 }
 
 export default getRequestConfig(async () => {
   const locale = await getLocale()
   const language = locale.split('-')[0]
 
-  return { locale, messages: await loadMessages(language) }
+  const base = (await import(`../../messages/${FALLBACK_LANGUAGE}.json`)).default as Messages
+  const own = language === FALLBACK_LANGUAGE ? null : ((await loadMessages(language)) as Messages | null)
+
+  return { locale, messages: own ? merge(base, own) : base }
 })

@@ -7,6 +7,7 @@ import { ProductCard, type ProductCardData } from "@/components/product/ProductC
 import { IconRuler, IconArrowRight } from "@/components/ui/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SORT_OPTIONS, compareBy, type SortKey } from "@/lib/catalog-ui";
+import { useSizeFilters } from "@/components/catalog/SizeFilters";
 
 export type Subcategory = { slug: string; name: string; count: number };
 
@@ -23,11 +24,14 @@ export function CategoryClient({
   categoryImage?: string;
   parent: { slug: string; name: string } | null;
   subcategories: Subcategory[];
-  products: ProductCardData[];
+  // Richer than the card needs: the size filters read specs.length and the
+  // machine list, which the page already passes through.
+  products: (ProductCardData & { machines?: string[] })[];
 }) {
   const [sort, setSort] = useState<SortKey>("popularity");
 
-  const sortedProducts = [...products].sort(compareBy(sort));
+  const { filtered, panel, clear } = useSizeFilters(products);
+  const sortedProducts = [...filtered].sort(compareBy(sort));
 
   return (
     <>
@@ -105,17 +109,32 @@ export function CategoryClient({
           </div>
         </Link>
 
-        {sortedProducts.length === 0 ? (
+        {products.length === 0 ? (
           <div className="text-center py-20">
             <h2 className="font-display text-2xl font-bold text-ink mb-2">Няма продукти в тази категория</h2>
             <p className="text-ink-50 mb-6">Опитайте конфигуратора за поръчка по размер.</p>
             <Link href="/configurator"><Btn variant="primary" size="lg">Конфигуратор</Btn></Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {sortedProducts.map((p) => (
-              <ProductCard key={p.sku} p={p} compact />
-            ))}
+          /* Sidebar only where there is something to filter on — a category of
+             machines or consumables has no loop length, and an empty column
+             beside the grid just makes the page narrower for no gain. */
+          <div className={panel ? "grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-8 lg:gap-10" : ""}>
+            {panel && <aside>{panel}</aside>}
+
+            {sortedProducts.length === 0 ? (
+              <div className="text-center py-20">
+                <h2 className="font-display text-xl font-bold text-ink mb-2">Няма продукт с този филтър</h2>
+                <p className="text-ink-50 mb-6">Изчистете филтрите или поръчайте по размер.</p>
+                <Btn variant="ghost" size="md" onClick={clear}>Изчисти филтрите</Btn>
+              </div>
+            ) : (
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-5 ${panel ? "xl:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-4"}`}>
+                {sortedProducts.map((p) => (
+                  <ProductCard key={p.sku} p={p} compact />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

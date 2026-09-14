@@ -1,22 +1,29 @@
 import { useId } from "react";
+import Image from "next/image";
 
 /**
- * The Saw-Meister brand mark.
+ * The Saw-Meister brand mark and logo.
  *
- * A band with hook teeth on one edge, crossed by the weld seam — the seam
- * being the thing the business actually guarantees, so the mark states the
- * promise rather than just depicting a saw.
+ * The logo is now the supplied artwork: the SAW-MEISTER wordmark with the
+ * blade rule beneath it, navy into orange. It replaces the drawn symbol plus
+ * HTML text this file used to compose, because the delivered logo already is
+ * the lockup and re-drawing it in a webfont would only approximate it.
  *
- * The symbol is drawn as paths, not type, so it never depends on a webfont
- * loading. The wordmark is real HTML text in the site's own display face,
- * which keeps it selectable, translatable and crisp at every size — an image
- * of a word would go soft on a retina header and invisible to search.
+ * saw-meister-logo-new.png is the file as delivered — 1835x857, 87% of it
+ * white padding, and no alpha channel, so on anything but a white surface it
+ * would show as a white rectangle. The two files used here are derived from
+ * it: trimmed to the 1538x255 artwork and de-matted off white, with the
+ * baked-in highlight across SAW flattened out. -light swaps the navy half to
+ * white, because a navy wordmark disappears on a dark surface.
  *
- * `tone="mono"` inherits `currentColor` for the single-colour uses that a
- * two-colour logo has to survive: stamped on packaging, embroidered, faxed on
- * an invoice, or rendered into a favicon.
+ * The square SawMeisterMark below is kept: a 6:1 wordmark cannot be a favicon,
+ * an avatar, or a stamp on a work order, and those uses need a symbol.
  */
 type Tone = "brand" | "light" | "dark" | "mono";
+
+/** Intrinsic size of the trimmed artwork, used to hold the aspect ratio. */
+const LOGO_W = 1538;
+const LOGO_H = 255;
 
 const BAND =
   "M5 38 L19 50 L22 38 L23 38 L37 50 L40 38 L41 38 L55 50 L58 38 L59 38 L59 14 L5 14 Z";
@@ -67,39 +74,37 @@ export function SawMeisterMark({
 }
 
 export function SawMeisterLogo({
-  size = 32,
   tone = "brand",
-  tagline = false,
-  className = "",
+  /**
+   * Sized by height, never by width — a 6:1 wordmark set to a width will
+   * collapse to nothing vertically. Defaults to the header's own scale, which
+   * matches the ТЕХНОЛЕС mark beside it so the two markets read the same.
+   */
+  className = "h-8 w-auto md:h-9",
+  priority = false,
 }: {
-  size?: number;
-  tone?: Tone;
-  /** "Innovation sharpened to perfection" — omit it below ~28px, it turns to grey mush. */
-  tagline?: boolean;
+  /**
+   * Narrower than the mark's Tone on purpose: the artwork exists in two
+   * versions, so promising "mono" or "dark" here would be promising a file
+   * that does not exist. Use SawMeisterMark where a single-colour brand
+   * element is needed.
+   */
+  tone?: "brand" | "light";
   className?: string;
+  priority?: boolean;
 }) {
-  const text =
-    tone === "light" ? "text-white" : tone === "mono" ? "text-current" : "text-ink";
-
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <SawMeisterMark size={size} tone={tone} />
-      <span className="inline-flex flex-col justify-center leading-none">
-        <span
-          className={`font-display font-bold tracking-[-0.02em] ${text}`}
-          style={{ fontSize: size * 0.5 }}
-        >
-          SAW<span className="text-orange">-</span>MEISTER
-        </span>
-        {tagline && (
-          <span
-            className={`font-mono uppercase ${tone === "light" ? "text-white/50" : "text-ink-50"}`}
-            style={{ fontSize: size * 0.2, letterSpacing: "0.14em", marginTop: size * 0.09 }}
-          >
-            Innovation sharpened to perfection
-          </span>
-        )}
-      </span>
-    </span>
+    <Image
+      src={
+        tone === "light"
+          ? "/images/brands/saw-meister-logo-light.png"
+          : "/images/brands/saw-meister-logo.png"
+      }
+      alt="Saw-Meister"
+      width={LOGO_W}
+      height={LOGO_H}
+      priority={priority}
+      className={`max-w-full ${className}`}
+    />
   );
 }

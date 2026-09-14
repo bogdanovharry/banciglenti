@@ -280,11 +280,23 @@ export const BREAD_BLADES: BladeConfig[] = [
   { width: 12, thickness: 0.45, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 5.09, welding: 0, sharpening: 0, heatTreatment: 0, setting: 0 },
 ];
 
-// Textile/paper blades
+/**
+ * Band knives for soft materials — foam, textile, rubber, leather, paper.
+ *
+ * Every row here is a smooth-ground knife edge. That is not a new decision:
+ * it is what these five widths have always been, and the pitch used to read
+ * "—" only because the column had nowhere to put "no teeth at all". Storing
+ * the profile properly lets the configurator name it, draw it, and say what it
+ * is for, instead of showing a dash.
+ *
+ * The wave, scallop and V-tooth grinds for the same materials are described in
+ * the configurator but are not orderable here — they have no price in this
+ * table yet. See MATERIAL_EDGE_GUIDE in lib/blade-guide.ts.
+ */
 export const TEXTILE_BLADES: BladeConfig[] = [
-  { width: 10, thickness: 0.45, pitch: "—", brand: "Tehnoles", pricePerMeter: 2.09, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 15, thickness: 0.50, pitch: "—", brand: "Tehnoles", pricePerMeter: 1.53, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 20, thickness: 0.60, pitch: "—", brand: "Tehnoles", pricePerMeter: 1.64, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 25, thickness: 0.60, pitch: "—", brand: "Tehnoles", pricePerMeter: 1.84, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 30, thickness: 0.70, pitch: "—", brand: "Tehnoles", pricePerMeter: 1.99, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 10, thickness: 0.45, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 2.09, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 15, thickness: 0.50, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.53, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.60, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.64, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 25, thickness: 0.60, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.84, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 30, thickness: 0.70, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.99, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
 ];

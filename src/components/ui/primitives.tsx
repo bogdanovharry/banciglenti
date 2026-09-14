@@ -154,7 +154,10 @@ export function Btn({
 
   return (
     <button
-      className={`tl-btn inline-flex items-center justify-center gap-2 font-semibold tracking-tight border border-transparent cursor-pointer transition-all whitespace-nowrap ${sizeClasses[size]} ${variantClasses[variant]} ${fullWidth ? "w-full" : ""} ${className ?? ""}`}
+      // A disabled button has to look disabled. Btn already forwarded the
+      // attribute, so the click was blocked — but it kept full colour and a
+      // pointer cursor, which reads as "broken" rather than "not yet".
+      className={`tl-btn inline-flex items-center justify-center gap-2 font-semibold tracking-tight border border-transparent cursor-pointer transition-all whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100 ${sizeClasses[size]} ${variantClasses[variant]} ${fullWidth ? "w-full" : ""} ${className ?? ""}`}
       {...props}
     >
       {icon}

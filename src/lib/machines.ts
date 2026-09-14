@@ -30,6 +30,10 @@ export const MACHINES: Machine[] = [
   // ---------- Wood ----------
   // These four are already served by the existing catalogue; the lengths come
   // from the product names ТЕХНОЛЕС already sells them under.
+  // Einhell specify 6–12 mm; the catalogue has sold a 13 mm for this saw for
+  // years without complaint, and the workshop is content that one millimetre
+  // over makes no difference on this class of machine. Recorded so the gap
+  // between the spec sheet and the shelf is a decision, not an oversight.
   { brand: "Einhell", model: "TC-SB 200/1", industry: "wood", length: 1400, thickness: 0.65, source: "catalogue", verified: true },
   { brand: "Parkside", model: "PBS 350", industry: "wood", length: 1400, thickness: 0.65, source: "catalogue", verified: true },
   { brand: "Raider", model: "RD-BSW18", industry: "wood", length: 1400, thickness: 0.65, source: "catalogue", verified: true },
@@ -38,7 +42,10 @@ export const MACHINES: Machine[] = [
   {
     brand: "Scheppach", model: "Basato 3 / Basa 3", industry: "wood", length: 2360,
     source: "https://www.probois-machinoutils.com/en/263-blade-of-band-saw-for-kity-673-scheppach-basa",
-    verified: true,
+    // Downgraded: the source is a blade dealer, not Scheppach. 2360 also sits
+    // 8 mm from the Record BS300E's 2368, and the two are not interchangeable —
+    // exactly the confusion that sells somebody the wrong loop.
+    verified: false,
   },
   {
     brand: "Holzmann", model: "HBS300J", industry: "wood", length: 2240,
@@ -48,7 +55,10 @@ export const MACHINES: Machine[] = [
   {
     brand: "Record Power", model: "BS300", industry: "wood", length: 2370,
     source: "https://www.manualslib.com/manual/1759280/Record-Power-Bs300.html",
-    verified: true,
+    // Downgraded: blade specialists list the BS300E at 2368 mm, the manual at
+    // 2370. Two figures in circulation is not a confirmed length, and 2 mm on
+    // a loop is the difference between fitting and not.
+    verified: false,
   },
   {
     brand: "Record Power", model: "BS250", industry: "wood", length: 1790,
@@ -59,6 +69,55 @@ export const MACHINES: Machine[] = [
     brand: "Record Power", model: "BS350", industry: "wood", length: 2629,
     source: "https://www.scosarg.com/record-power-14-bandsaw-free-delivery",
     verified: false, // dealer listing, not the manual
+  },
+
+  // The lengths the catalogue was missing entirely. 1425 mm is the gap that
+  // mattered most: Güde GBS 200 and Raider RD-BSW17 are both shop staples in
+  // Bulgaria and Romania, and neither had a single blade listed for it.
+  {
+    brand: "Güde", model: "GBS 200", industry: "wood", length: 1425, width: 10, thickness: 0.65,
+    source: "https://www.endress-elektro.de/Shop/Guede-Saegeband-zu-Bandsaege-GBS-200--1425-x-10-mm--6-Z-.html",
+    verified: true, // Güde's own accessory part numbers 83816/83817
+  },
+  {
+    brand: "Raider", model: "RD-BSW17", industry: "wood", length: 1425, width: 6,
+    source: "https://www.raider.bg/c/lenti-295/lenta-za-bancig-6h1425mm-za-rd-bsw17-576",
+    verified: true, // Raider's own parts listing
+  },
+  {
+    brand: "Scheppach", model: "HBS261", industry: "wood", length: 1790, width: 13, thickness: 0.65,
+    source: "https://scheppach.bg/product/банциг-hbs261-scheppach-5901514901-550-w-1790-мм/",
+    verified: true, // official Bulgarian distributor
+  },
+  {
+    brand: "Holzmann", model: "HBS230HQ / HBS230ECO", industry: "wood", length: 1575, width: 10, thickness: 0.5,
+    source: "https://www.holzmann-maschinen.at/EN/wood-bandsaw-2209",
+    verified: true,
+  },
+  {
+    brand: "Bernardo", model: "HBS 230", industry: "wood", length: 1575, width: 10, thickness: 0.5,
+    source: "https://www.bernardo-shop.com/en/bandsaw-blades-wood-bandsaws-bernardo-bandsaw-blade-1575-x-6-35-x-0-5-10-tpi-for-hbs-230.html",
+    verified: true,
+  },
+  {
+    brand: "Scheppach", model: "Basa 1 / Basato 1", industry: "wood", length: 1490, width: 13, thickness: 0.5,
+    source: "https://www.stokker.com/en/sawblades/73220701&SCHEP/scheppach-band-saw-blade-basa-1-1490-x-12-x-036-mm-4-tpi",
+    verified: false, // dealer listing
+  },
+  {
+    brand: "Einhell", model: "TC-SB 305 U", industry: "wood", length: 2320, width: 13, thickness: 0.65,
+    source: "https://www.conrad.com/ce/en/product/1493249/Einhell----TC-SB-305-U----Band-saw----750-W----2320-mm",
+    verified: true, // matches the kwb-by-Einhell accessory blade
+  },
+  {
+    brand: "Metabo", model: "BAS 318 Precision", industry: "wood", length: 2240, width: 20, thickness: 0.65,
+    source: "https://www.metabo.com/com/en/tools/sawing/band-saws/bas-318-precision-wnb-619009180-band-saw.html",
+    verified: true,
+  },
+  {
+    brand: "Makita", model: "LB1200F", industry: "wood", length: 2240, width: 16, thickness: 0.5,
+    source: "https://www.makitauk.com/product/lb1200f.html",
+    verified: true,
   },
 
   // ---------- Metal ----------

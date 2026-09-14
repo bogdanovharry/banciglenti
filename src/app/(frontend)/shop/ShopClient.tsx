@@ -185,6 +185,32 @@ export function ShopClient({
       .sort((a, b) => a.value.localeCompare(b.value));
   }, [inCategory]);
 
+  /**
+   * The loop lengths actually stocked, as one-click values.
+   *
+   * The from–to boxes above them are right for someone browsing and wrong for
+   * everyone else: a buyer does not want blades between 3 500 and 4 200 mm,
+   * they want 4 013 because that is what their mill takes. Typing the same
+   * number into two boxes to say so is a chore, and mistyping it returns an
+   * empty grid that looks like "we do not stock it".
+   */
+  const lengthFacets = useMemo(() => {
+    const counts = new Map<number, number>();
+    for (const p of inCategory) {
+      const l = p.specs?.length;
+      if (typeof l === "number" && Number.isFinite(l)) counts.set(l, (counts.get(l) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([value, count]) => ({ value, count }))
+      .sort((a, b) => a.value - b.value);
+  }, [inCategory]);
+
+  const pickLength = (mm: number) => {
+    const already = lengthMin === String(mm) && lengthMax === String(mm);
+    setLengthMin(already ? "" : String(mm));
+    setLengthMax(already ? "" : String(mm));
+  };
+
   const filtered = useMemo(() => {
     const num = (s: string) => (s === "" ? null : Number(s));
     const inRange = (v: unknown, min: number | null, max: number | null) => {
@@ -395,6 +421,30 @@ export function ShopClient({
               Намери по дължина
             </h4>
             <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">Обиколка на контура в мм.</p>
+
+            {lengthFacets.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {lengthFacets.map((f) => {
+                  const on = lengthMin === String(f.value) && lengthMax === String(f.value);
+                  return (
+                    <button
+                      key={f.value}
+                      onClick={() => pickLength(f.value)}
+                      aria-pressed={on}
+                      className={`px-2 py-1 border font-mono text-[11px] tabular-nums cursor-pointer transition-colors ${
+                        on
+                          ? "bg-ink text-white border-ink"
+                          : "bg-white text-ink-70 border-ink-15 hover:border-ink"
+                      }`}
+                    >
+                      {f.value.toLocaleString("bg-BG")}
+                      <span className={`ml-1 ${on ? "text-white/50" : "text-ink-30"}`}>{f.count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             <div className="flex gap-2 items-center">
               <input
                 type="number"
@@ -487,6 +537,15 @@ export function ShopClient({
             facets={brandFacets}
             selected={brands}
             onToggle={(v) => toggle(brands, setBrands, v)}
+          />
+          {/* Machines. The facet was being computed and then thrown away — it
+              was never rendered, so the one filter that answers "will this fit
+              my mill?" did not exist on screen. */}
+          <FacetGroup
+            title="Пасва на машина"
+            facets={machineFacets}
+            selected={machines}
+            onToggle={(v) => toggle(machines, setMachines, v)}
           />
 
           <label className="flex items-center gap-2.5 mb-6 pb-6 border-b border-ink-15 cursor-pointer font-sans text-[13px] text-ink-70">

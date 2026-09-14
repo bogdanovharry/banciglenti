@@ -1,5 +1,9 @@
 import { SVGProps } from "react";
 
+// Type-only, so it is erased at build and the price tables behind blade-guide
+// never reach a bundle that only wanted an arrow icon.
+import type { EdgeKind } from "@/lib/blade-guide";
+
 interface IconProps extends SVGProps<SVGSVGElement> {
   size?: number;
 }
@@ -111,4 +115,64 @@ export function IconRuler(p: IconProps) {
 }
 export function IconDoc(p: IconProps) {
   return <Icon {...p}><path d="M7 3h7l5 5v13H7z" /><path d="M14 3v5h5M10 13h6M10 17h6" /></Icon>;
+}
+
+// ===== Blade edge profiles =====
+//
+// A tooth profile is a shape, and "Изпъкнала вълна" is a shape described in
+// words. Drawing it is the shorter sentence: a buyer scanning the profile list
+// can see that a scallop has points and a wave does not, without translating
+// the name into a picture in their head first.
+//
+// Wide rather than square, because the thing being shown is a length of edge.
+// The faint line along the top is the back of the band, so the profile reads as
+// an edge and not as an abstract squiggle.
+
+function Edge({ size = 44, children, ...props }: IconProps & { children: React.ReactNode }) {
+  return (
+    <svg
+      width={size}
+      height={size * (14 / 48)}
+      viewBox="0 0 48 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.3}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ display: "inline-block", flexShrink: 0, verticalAlign: "middle" }}
+      {...props}
+    >
+      <path d="M0 3h48" opacity={0.3} />
+      {children}
+    </svg>
+  );
+}
+
+/** The edge geometry itself, one path per profile. */
+const EDGE_PATH: Record<Exclude<EdgeKind, "none">, string> = {
+  // A plain ground bevel: no teeth, no set, nothing removed from the line.
+  straight: "M0 9h48",
+  // Smooth crests, no points — undulates in the plane of the band.
+  wave: "M0 9q3-4 6 0t6 0t6 0t6 0t6 0t6 0t6 0t6 0",
+  // Concave crescents ground out, leaving a point where two arcs meet.
+  scallop: "M0 9a4 4 0 0 0 8 0a4 4 0 0 0 8 0a4 4 0 0 0 8 0a4 4 0 0 0 8 0a4 4 0 0 0 8 0a4 4 0 0 0 8 0",
+  // Rounded lobes bulging into the cut — the gentler half of the pair.
+  convex: "M0 7a4 4 0 0 1 8 0a4 4 0 0 1 8 0a4 4 0 0 1 8 0a4 4 0 0 1 8 0a4 4 0 0 1 8 0a4 4 0 0 1 8 0",
+  // Two cutting teeth (8 units each), then a raker drawn short of the cutting
+  // line — it clears the gullet rather than cutting. Group of 24, three fit.
+  cleaner: "M0 10l1.5-5q2.5-1 5 0l1.5 5l1.5-5q2.5-1 5 0l1.5 5h4v-3h4v3M24 10l1.5-5q2.5-1 5 0l1.5 5l1.5-5q2.5-1 5 0l1.5 5h4v-3h4v3",
+  // 8 units per tooth, six teeth across.
+  "teeth-coarse": "M0 10l1.5-5q2.5-1 5 0l1.5 5l1.5-5q2.5-1 5 0l1.5 5l1.5-5q2.5-1 5 0l1.5 5l1.5-5q2.5-1 5 0l1.5 5l1.5-5q2.5-1 5 0l1.5 5l1.5-5q2.5-1 5 0l1.5 5",
+  // 4 units per tooth, twelve teeth across — same span, three times the count.
+  "teeth-fine":
+    "M0 10l1-3.5q1-.6 2 0l1 3.5l1-3.5q1-.6 2 0l1 3.5l1-3.5q1-.6 2 0l1 3.5l1-3.5q1-.6 2 0l1 3.5l1-3.5q1-.6 2 0l1 3.5l1-3.5q1-.6 2 0l1 3.5l1-3.5q1-.6 2 0l1 3.5l1-3.5q1-.6 2 0l1 3.5l1-3.5q1-.6 2 0l1 3.5l1-3.5q1-.6 2 0l1 3.5l1-3.5q1-.6 2 0l1 3.5l1-3.5q1-.6 2 0l1 3.5",
+  // One big tooth then one small — the whole point of a variable pitch, made
+  // visible. Group of 16, three across.
+  "teeth-variable":
+    "M0 10l2-5q3-1 6 0l2 5l1.2-3.5q1.8-.7 3.6 0l1.2 3.5M16 10l2-5q3-1 6 0l2 5l1.2-3.5q1.8-.7 3.6 0l1.2 3.5M32 10l2-5q3-1 6 0l2 5l1.2-3.5q1.8-.7 3.6 0l1.2 3.5",
+};
+
+export function IconEdge({ kind, ...p }: IconProps & { kind: EdgeKind }) {
+  if (kind === "none") return null;
+  return <Edge {...p}><path d={EDGE_PATH[kind]} /></Edge>;
 }

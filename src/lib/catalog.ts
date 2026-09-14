@@ -44,6 +44,8 @@ export type CatalogProduct = ProductCardData & {
   specs: { width?: number; thickness?: number; length?: number; material?: string }
   /** Machines this size fits — "Holzmann BS128HDR". Drives the machine filter. */
   machines: string[]
+  /** One line per blade in a mixed set; empty for everything else. */
+  setContents: string[]
 }
 
 const getClient = cache(async () => getPayload({ config }))
@@ -96,7 +98,7 @@ const BLADE_CATEGORIES = new Set([
  */
 const SERIES_IMAGE: Record<SeriesKey, string> = {
   softcut: '/images/products/kodiak.png',
-  hardcut: '/images/products/mastergold.png',
+  procut: '/images/products/mastergold.png',
   vector: '/images/products/kodiak.png',
   flexcut: '/images/products/hardback_fixed.png',
   finecut: '/images/products/hardback_fixed.png',
@@ -201,6 +203,16 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
   const brandName = relationName(doc.brand)
   const series = isSeriesKey(doc.series) ? doc.series : null
 
+  // What is in a mixed set. Empty for singles and for boxes of one blade,
+  // where the name already says everything there is to say.
+  const setContents = (Array.isArray(doc.setContents) ? doc.setContents : [])
+    .map((row) =>
+      row && typeof row === 'object' && 'label' in row
+        ? String((row as { label?: unknown }).label ?? '')
+        : '',
+    )
+    .filter(Boolean)
+
   // An image uploaded in /admin takes precedence; the mapping is only a stand-in
   // until per-SKU photography exists.
   const uploaded = Array.isArray(doc.images) ? doc.images[0] : undefined
@@ -226,6 +238,7 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
     shortDescription: typeof doc.shortDescription === 'string' ? doc.shortDescription : undefined,
     specs,
     machines,
+    setContents,
   }
 }
 
@@ -239,12 +252,28 @@ export const getProducts = cache(
     const payload = await getClient()
     const categories = await getCategories()
 
+    /**
+     * Withdrawn products stay out of the shop.
+     *
+     * The status field has existed since the collection was written and was
+     * never queried, so marking a product inactive in /admin changed nothing —
+     * it kept listing and kept selling. That surfaced when a batch of blades at
+     * an unconfirmed loop length was retired and carried on appearing.
+     *
+     * `out_of_stock` is deliberately still listed: it is a real state a buyer
+     * should see, and the card already says "Изчерпан". Only `inactive` means
+     * "this is not a product any more".
+     */
+    const notRetired = { status: { not_equals: 'inactive' } }
+
     const result = await payload.find({
       collection: 'products',
       limit: 500,
       depth: 1,
       sort: 'name',
-      where: categorySlug ? { 'categories.slug': { equals: categorySlug } } : undefined,
+      where: categorySlug
+        ? { and: [{ 'categories.slug': { equals: categorySlug } }, notRetired] }
+        : notRetired,
     })
 
     return result.docs.map((doc) => toCatalogProduct(doc as Record<string, unknown>, categories))

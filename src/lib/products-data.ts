@@ -1,5 +1,9 @@
 // Complete product catalog from banciglenti.com
 
+import { MACHINES } from './machines'
+import { BLADE_SETS, PACK_TIERS } from './packs'
+import { HORIZONTAL_WOOD_BLADES, METAL_CARBON_BLADES } from './pricing'
+
 export interface ProductData {
   name: string;
   slug: string;
@@ -8,9 +12,30 @@ export interface ProductData {
   stock: number;
   featured: boolean;
   topProduct: boolean;
+
+  /**
+   * Set only on generated rows, where the values are known exactly.
+   *
+   * The original catalogue rows carry their dimensions inside the name and are
+   * parsed back out at seed time. Generated blades do not need guessing at —
+   * they were built from a price-table row, so the numbers are carried instead
+   * of re-derived from a string.
+   */
+  series?: string;
+  width?: number;
+  thickness?: number;
+  length?: number;
+  /** Blades per box. Absent or 1 means a single blade. */
+  packQty?: number;
+  /** Mills this loop length fits — drives the "Пасва на машина" filter. */
+  machines?: string[];
+  /** Teeth per inch, bare — matches METAL_CARBON_BLADES' key format. */
+  pitch?: string;
+  /** One line per blade in a mixed set; absent on singles and boxes. */
+  setContents?: string[];
 }
 
-export const ALL_PRODUCTS: ProductData[] = [
+export const CATALOGUE_PRODUCTS: ProductData[] = [
   // === ХОРИЗОНТАЛНИ БАНЦИЗИ / ГАТЕРИ ===
   { name: "Банцигова лента MASTER GOLD 32x1.1", slug: "master-gold-32x1-1", category: "horizontalni-bantsizi", price: 22.09, stock: 20, featured: false, topProduct: false },
   { name: "Банцигова лента MASTER GOLD 35х1.1", slug: "master-gold-35x1-1", category: "horizontalni-bantsizi", price: 23.31, stock: 20, featured: false, topProduct: false },
@@ -142,3 +167,364 @@ export const ALL_PRODUCTS: ProductData[] = [
   { name: "Комплект гърбици профил N стъпка 15mm 20mm 25mm", slug: "garbici-n-15-20-25", category: "konsumativi", price: 26.08, stock: 20, featured: false, topProduct: false },
   { name: "Уред за измерване на чапраз", slug: "ured-chapraz", category: "konsumativi", price: 171.79, stock: 20, featured: false, topProduct: false },
 ];
+
+// ---------------------------------------------------------------------------
+// Ready-made sawmill blades — ProCut and SoftCut, welded to length
+// ---------------------------------------------------------------------------
+
+/**
+ * The mills these are cut for.
+ *
+ * Wood-Mizer first because it is the machine actually in the yards: it runs its
+ * own Bulgarian and Romanian subsidiaries (woodmizer.bg, woodmizer.ro), which
+ * no other mill brand in either market does. The rest are the mills whose loop
+ * length is published and checkable.
+ *
+ * Metabo is deliberately not here, though it was asked for. A BAS 261 is a
+ * 1712 mm workshop bandsaw taking an 8–13 mm blade; ProCut starts at 32 mm and
+ * physically will not go on it. The catalogue already carries the right blade
+ * for that machine under Хоби банциг.
+ *
+ * IMPORTANT — a wrong loop length is a blade the customer cannot fit. Every
+ * figure below carries its source. Confirm against the customer's own machine
+ * before a first order, exactly as src/lib/machines.ts warns.
+ */
+export type SawmillFit = {
+  /** Goes in the product name, so the buyer recognises their machine. */
+  label: string
+  /** Loop length in mm. */
+  length: number
+  source: string
+  /** Confirmed against the manufacturer's own documentation. */
+  verified: boolean
+}
+
+export const SAWMILL_FITS: SawmillFit[] = [
+  {
+    label: 'Wood-Mizer LT15 / LT20 / LT40',
+    length: 4013, // 158" exactly = 4013.2 mm
+    source: 'https://thebandsawshop.com/products/wood-mizer-lt15-classic-4013mm-158-wood-cutting-bandsaw-blade/',
+    verified: false, // dealer listing; Logosol sells the same fit rounded to 4000
+  },
+  {
+    label: 'Norwood LM Pro / HD36',
+    length: 4246, // 167"
+    source: 'https://www.logosol.com/us/accessories/bandsaw-blades/5-bandsaw-blades-standard-4246-x-33-x-1-1-mm.html',
+    verified: false,
+  },
+  {
+    label: 'Logosol B701 / B751',
+    length: 3843, // 151"
+    source: 'https://www.logosol.com/us/sawmills/band-sawmills/b751-band-sawmill',
+    verified: false,
+  },
+  {
+    label: 'Serra / Jonsered',
+    length: 3570, // 140"
+    source: 'https://www.logosol.com/us/accessories/bandsaw-blades/',
+    verified: false,
+  },
+]
+
+/**
+ * Which price-table row backs each ready-made blade.
+ *
+ * Not a new price list. Every figure is computed from HORIZONTAL_WOOD_BLADES —
+ * the same table the configurator quotes from and the same one the order route
+ * re-prices against — so a shelf product and the same blade configured by hand
+ * cannot drift apart. Change the price per metre in one place and both move.
+ */
+const READY_BLADES = [
+  { series: 'ProCut', brand: 'MasterGold', width: 32, thickness: 1.1, pitch: '22.2' },
+  { series: 'ProCut', brand: 'MasterGold', width: 35, thickness: 1.1, pitch: '22.2' },
+  { series: 'SoftCut', brand: 'Kodiak', width: 35, thickness: 0.9, pitch: '22.2' },
+  { series: 'SoftCut', brand: 'Kodiak', width: 38, thickness: 1.14, pitch: '22.2' },
+] as const
+
+const round2 = (n: number) => Math.round(n * 100) / 100
+const slugPart = (n: number) => String(n).replace('.', '-')
+
+function buildReadyBlades(): ProductData[] {
+  const out: ProductData[] = []
+
+  for (const spec of READY_BLADES) {
+    const row = HORIZONTAL_WOOD_BLADES.find(
+      (b) =>
+        b.brand === spec.brand &&
+        b.width === spec.width &&
+        b.thickness === spec.thickness &&
+        b.pitch === spec.pitch,
+    )
+    // A spec with no row would silently become a zero-priced product, so it is
+    // dropped instead. Loudly, because it means the two files disagree.
+    if (!row) {
+      console.warn(`[products] no price row for ${spec.brand} ${spec.width}×${spec.thickness} ${spec.pitch}`)
+      continue
+    }
+
+    for (const fit of SAWMILL_FITS) {
+      const unit = round2(row.pricePerMeter * (fit.length / 1000) + row.welding)
+      const dims = `${spec.width}×${spec.thickness}`
+      const base = `saw-meister-${spec.series.toLowerCase()}-${slugPart(spec.width)}x${slugPart(spec.thickness)}-l${fit.length}`
+
+      for (const { qty, discount } of PACK_TIERS) {
+        const price = round2(unit * qty * (1 - discount))
+        const isBox = qty > 1
+        const pct = Math.round(discount * 100)
+
+        out.push({
+          name: isBox
+            ? `Saw-Meister ${spec.series} ${dims} L=${fit.length}мм — кутия ${qty} бр.${pct ? ` (−${pct}%)` : ''}`
+            : `Saw-Meister ${spec.series} ${dims} L=${fit.length}мм — ${fit.label}`,
+          slug: isBox ? `${base}-x${qty}` : base,
+          category: 'horizontalni-bantsizi',
+          price,
+          stock: isBox ? 10 : 20,
+          // One flagship on the shelf, not sixty-four. ProCut 32×1.1 at the
+          // Wood-Mizer length is the single most likely thing a yard needs.
+          featured: !isBox && spec.series === 'ProCut' && spec.width === 32 && fit.length === 4013,
+          topProduct: !isBox && spec.series === 'ProCut',
+          series: spec.series.toLowerCase(),
+          width: spec.width,
+          thickness: spec.thickness,
+          length: fit.length,
+          packQty: qty,
+          // Boxes carry it too — a yard filtering by its mill wants the box.
+          machines: [fit.label],
+        })
+      }
+    }
+  }
+
+  return out
+}
+
+export const READY_SAWMILL_BLADES: ProductData[] = buildReadyBlades()
+
+// ---------------------------------------------------------------------------
+// Hobby bandsaw blades — by machine, by tooth pitch, plus mixed sets
+// ---------------------------------------------------------------------------
+
+/**
+ * Widths with a real price row behind them. 16 and 19 mm appear in the
+ * configurator's placeholder list but exist in no price table, so they are not
+ * sold here — an option that cannot be priced is not an option.
+ */
+const HOBBY_WIDTHS = [6, 8, 10, 13, 20] as const
+
+/**
+ * The range is 0.65 mm and stays 0.65 mm.
+ *
+ * Machines with Ø200–250 mm wheels are usually specified for 0.35–0.5 mm, and
+ * 0.65 fatigue-cracks sooner on them. That is a known and accepted trade: the
+ * workshop does not stock 0.5 mm strip, so the alternative is not a thinner
+ * blade, it is no blade. Do not "fix" this by adding a 0.5 mm row without a
+ * price behind it — a size that cannot be made is worse than a compromise that
+ * can. Revisit if 0.5 mm ever enters the price list.
+ */
+const HOBBY_THICKNESS = 0.65
+
+/** The three pitches stocked across the range. 6 mm also exists at 6 TPI. */
+const HOBBY_PITCHES = ['4', '8', '14'] as const
+
+/** The pitch a blade is assumed to be when the product predates pitch. */
+const LEGACY_PITCH = '8'
+
+/**
+ * Loop lengths worth stocking, taken from the machine registry rather than
+ * from a second hand-kept list.
+ *
+ * Sawmill blades needed their own SAWMILL_FITS because no mill was in
+ * machines.ts. Hobby machines are all there, so the lengths are derived: add a
+ * machine to the registry and its length is stocked, with no change here.
+ * Anything above 2400 mm is a floor-standing saw, not hobby.
+ */
+function hobbyLengths(): { length: number; machines: string[] }[] {
+  const byLength = new Map<number, { machines: string[]; verified: boolean }>()
+
+  for (const m of MACHINES) {
+    // Meat saws share the length range and nothing else. A carbon wood blade
+    // on a Bizerba is the wrong steel for food contact and the wrong tooth for
+    // bone, so industry has to be filtered, not just the length.
+    if (m.industry === 'meat') continue
+    if (m.length > 2400) continue
+
+    const entry = byLength.get(m.length) ?? { machines: [], verified: false }
+    entry.machines.push(`${m.brand} ${m.model}`)
+    entry.verified = entry.verified || m.verified
+    byLength.set(m.length, entry)
+  }
+
+  return (
+    [...byLength.entries()]
+      /**
+       * A length nobody has confirmed does not get stocked.
+       *
+       * The three the workshop could not vouch for all had two figures in
+       * circulation — Record BS300E at 2368 or 2370, Scheppach Basato 3 at
+       * 2360, Ryobi RBS904 at 1505 or 1575 — and the difference between them
+       * is a blade that will not go on the machine. Everything here needs at
+       * least one entry confirmed against the manufacturer's own documentation;
+       * `verified: false` means "found on a dealer listing", which is exactly
+       * the standard of evidence that produces the wrong length.
+       *
+       * Add the source to machines.ts and flip the flag, and the size appears
+       * here on the next run with no change to this file.
+       */
+      .filter(([, e]) => e.verified)
+      .map(([length, e]) => ({ length, machines: e.machines }))
+      .sort((a, b) => a.length - b.length)
+  )
+}
+
+/**
+ * Which width/length pairs the catalogue already sells.
+ *
+ * Those rows predate tooth pitch, so they are treated as the 8 TPI general
+ * blade — see enrichLegacyHobby below. Generating an 8 TPI SKU for the same
+ * size would put the identical blade on the shelf twice under two slugs, so
+ * those combinations are skipped.
+ */
+function legacyHobbyCoverage(): Set<string> {
+  const seen = new Set<string>()
+  for (const p of CATALOGUE_PRODUCTS) {
+    if (p.category !== 'hobi-bantsig') continue
+    const size = /(\d+)\s*[хx]\s*0[.,]65/.exec(p.name)
+    const len = /L=(\d+)/.exec(p.name)
+    if (size && len) seen.add(`${size[1]}x${len[1]}`)
+  }
+  return seen
+}
+
+const priceOf = (width: number, pitch: string, length: number) => {
+  const row = METAL_CARBON_BLADES.find(
+    (b) => b.width === width && b.pitch === pitch,
+  )
+  return row ? round2(row.pricePerMeter * (length / 1000) + row.welding) : null
+}
+
+/** What each pitch is for, in the words a hobby buyer uses. */
+const PITCH_JOB: Record<string, string> = {
+  '4': 'разбичване и дебел материал',
+  '6': 'бърз рез в мек материал',
+  '8': 'универсална',
+  '14': 'завои и чист срез',
+}
+
+function buildHobbyBlades(): ProductData[] {
+  const out: ProductData[] = []
+  const legacy = legacyHobbyCoverage()
+
+  for (const { length, machines } of hobbyLengths()) {
+    for (const width of HOBBY_WIDTHS) {
+      for (const pitch of HOBBY_PITCHES) {
+        // Already on the shelf without a stated pitch — do not duplicate it.
+        if (pitch === LEGACY_PITCH && legacy.has(`${width}x${length}`)) continue
+
+        const price = priceOf(width, pitch, length)
+        if (price === null) continue // no price row for this width/pitch
+
+        out.push({
+          name: `Saw-Meister FlexCut ${width}×0.65 ${pitch} TPI L=${length}мм — ${PITCH_JOB[pitch]}`,
+          slug: `flexcut-${width}x0-65-${pitch}t-l${length}`,
+          category: 'hobi-bantsig',
+          price,
+          stock: 20,
+          featured: false,
+          topProduct: false,
+          series: 'flexcut',
+          width,
+          thickness: HOBBY_THICKNESS,
+          length,
+          pitch,
+          machines,
+        })
+      }
+    }
+  }
+  return out
+}
+
+/**
+ * The mixed sets, one per stocked length.
+ *
+ * Priced as the sum of their members, so a set can never quietly cost more
+ * than buying the blades separately — which is the failure mode that makes a
+ * customer stop trusting bundles.
+ */
+function buildHobbySets(): ProductData[] {
+  const out: ProductData[] = []
+
+  for (const { length, machines } of hobbyLengths()) {
+    for (const set of BLADE_SETS) {
+      const prices = set.members.map((m) => priceOf(m.width, m.pitch, length))
+      // A set is all-or-nothing: one unpriceable member and it is not offered.
+      if (prices.some((p) => p === null)) continue
+
+      const full = round2((prices as number[]).reduce((s, p) => s + p, 0))
+      const contents = set.members.map((m) => `${m.width} мм · ${m.pitch} TPI — ${m.job}`)
+
+      out.push({
+        name: `Saw-Meister FlexCut — комплект „${set.name}" ${set.members.length} бр. L=${length}мм`,
+        slug: `flexcut-l${length}-set-${set.key}`,
+        category: 'hobi-bantsig',
+        price: round2(full * (1 - set.discount)),
+        stock: 10,
+        featured: set.key === 'start' && length === 1400,
+        topProduct: set.key === 'start',
+        series: 'flexcut',
+        thickness: HOBBY_THICKNESS,
+        length,
+        packQty: set.members.length,
+        setContents: contents,
+        machines,
+      })
+    }
+  }
+  return out
+}
+
+/**
+ * Gives the pre-existing hobby rows the metadata the new ones carry.
+ *
+ * They keep their slug and their price — the URLs are indexed and the figures
+ * are the ones actually being charged. What they gain is the pitch they always
+ * were, plus the series, dimensions and machine list that make them filterable
+ * alongside everything else.
+ */
+function enrichLegacyHobby(rows: ProductData[]): ProductData[] {
+  const machinesFor = new Map(hobbyLengths().map((l) => [l.length, l.machines]))
+
+  return rows.map((p) => {
+    if (p.category !== 'hobi-bantsig' || p.pitch) return p
+
+    const size = /(\d+)\s*[хx]\s*0[.,]65/.exec(p.name)
+    const len = /L=(\d+)/.exec(p.name)
+    if (!size || !len) return p
+
+    const width = Number(size[1])
+    const length = Number(len[1])
+    return {
+      ...p,
+      series: 'flexcut',
+      width,
+      thickness: HOBBY_THICKNESS,
+      length,
+      pitch: LEGACY_PITCH,
+      machines: machinesFor.get(length) ?? p.machines,
+    }
+  })
+}
+
+export const HOBBY_BLADES: ProductData[] = buildHobbyBlades()
+export const HOBBY_SETS: ProductData[] = buildHobbySets()
+
+/** Legacy hobby rows, now carrying a pitch. Same slugs, same prices. */
+export const CATALOGUE_ENRICHED: ProductData[] = enrichLegacyHobby(CATALOGUE_PRODUCTS)
+
+export const ALL_PRODUCTS: ProductData[] = [
+  ...CATALOGUE_ENRICHED,
+  ...READY_SAWMILL_BLADES,
+  ...HOBBY_BLADES,
+  ...HOBBY_SETS,
+]
