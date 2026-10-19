@@ -154,7 +154,8 @@ export async function POST(request: Request) {
             basePrice: p.basePrice,
             series: 'vector',
             ...(sawMeisterId ? { brand: sawMeisterId } : {}),
-            stock: 0, // made to order — the workshop sets real stock in /admin
+            stock: 0,
+            madeToOrder: true, // cut when ordered: there is no stock to run out of
             status: 'active',
             featured: false,
             topProduct: false,

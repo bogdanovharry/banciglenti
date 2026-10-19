@@ -326,6 +326,27 @@ export default async function OrderPage({
             </section>
           )}
 
+          {/* Asked for at checkout: the invoice goes to the company, not to the
+              person who typed the order. Shown in full because it is what the
+              accountant needs, and it prints with the work order. */}
+          {order.billing && (
+            <section className="px-4 sm:px-6 py-3 border-t border-ink-15 border-l-[3px] border-l-blue">
+              <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mb-1">
+                Фактура на фирма
+              </div>
+              <div className="text-[13.5px]">
+                <strong>{order.billing.company}</strong>
+                <span className="text-ink-70">
+                  {order.billing.taxId && ` · ЕИК/CUI ${order.billing.taxId}`}
+                  {order.billing.vatNumber && ` · ДДС ${order.billing.vatNumber}`}
+                </span>
+              </div>
+              {order.billing.address && (
+                <div className="text-[13px] text-ink-70 whitespace-pre-line mt-0.5">{order.billing.address}</div>
+              )}
+            </section>
+          )}
+
           <section className="tl-no-print px-4 sm:px-6 py-4 border-t border-ink-15">
             <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mb-3">
               Добави ред

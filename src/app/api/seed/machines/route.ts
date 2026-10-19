@@ -113,7 +113,8 @@ export async function POST(request: Request) {
           slug: p.slug,
           shortDescription: p.shortDescription,
           basePrice: p.basePrice,
-          stock: 0, // made to order — the workshop sets real stock in /admin
+          stock: 0,
+          madeToOrder: true, // cut when ordered: there is no stock to run out of
           status: 'active',
           featured: false,
           topProduct: false,

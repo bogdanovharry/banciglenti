@@ -47,6 +47,9 @@ export type OrderDetail = {
     vatNumber: string | null
   }
 
+  /** Invoice details, when the buyer asked for an invoice to a company. */
+  billing: { company: string | null; taxId: string | null; vatNumber: string | null; address: string | null } | null
+
   lines: OrderLine[]
 
   subtotal: number
@@ -135,6 +138,14 @@ type RawOrder = {
     address?: string | null
   } | null
   notes?: string | null
+  contact?: { name?: string | null; company?: string | null; email?: string | null; phone?: string | null } | null
+  billing?: {
+    invoice?: boolean | null
+    company?: string | null
+    taxId?: string | null
+    vatNumber?: string | null
+    address?: string | null
+  } | null
   log?: { note?: string | null; at?: string | null; author?: unknown }[] | null
 }
 
@@ -213,15 +224,28 @@ export async function getOrder(id: number): Promise<OrderDetail | null> {
     createdAt: doc.createdAt ?? null,
     updatedAt: doc.updatedAt ?? null,
 
+    // What the buyer typed on this order, ahead of what the customer record
+    // says today: the record may belong to a returning customer who has since
+    // changed number, or been edited by someone. Orders from before the snapshot
+    // existed fall back to the record.
     customer: {
       id: c?.id ?? null,
-      name: c?.name ?? null,
-      company: c?.company ?? null,
-      phone: c?.phone ?? null,
-      email: c?.email ?? null,
-      taxId: c?.taxId ?? null,
-      vatNumber: c?.vatNumber ?? null,
+      name: doc.contact?.name || c?.name || null,
+      company: doc.contact?.company || c?.company || null,
+      phone: doc.contact?.phone || c?.phone || null,
+      email: doc.contact?.email || c?.email || null,
+      taxId: doc.billing?.invoice ? (doc.billing.taxId ?? null) : (c?.taxId ?? null),
+      vatNumber: doc.billing?.invoice ? (doc.billing.vatNumber ?? null) : (c?.vatNumber ?? null),
     },
+
+    billing: doc.billing?.invoice
+      ? {
+          company: doc.billing.company ?? null,
+          taxId: doc.billing.taxId ?? null,
+          vatNumber: doc.billing.vatNumber ?? null,
+          address: doc.billing.address ?? null,
+        }
+      : null,
 
     lines,
 

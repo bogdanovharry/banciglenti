@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 
 import { MARKETS, DEFAULT_MARKET, type Market, type MarketCode } from '@/lib/market'
+import { DOMAIN_MARKET } from '@/lib/domains'
 
 /**
  * Which market a request belongs to, resolved from the domain it arrived on.
@@ -20,30 +21,6 @@ import { MARKETS, DEFAULT_MARKET, type Market, type MarketCode } from '@/lib/mar
  * or nothing. For a business selling into three countries under three brands,
  * that is the correct behaviour anyway.
  */
-
-/**
- * Set a domain here as each market goes live.
- *
- * The `*.localhost` entries make every market openable in a browser without
- * touching hosts files or DNS: browsers resolve any `*.localhost` name to the
- * loopback address on their own. Testing on http://ro.localhost:3000 therefore
- * exercises the *same* hostname lookup that production will, rather than a
- * development-only branch that could hide a bug until launch day.
- */
-const DOMAIN_MARKET: Record<string, MarketCode> = {
-  // Bulgaria — live
-  'banciglenti.com': 'bg',
-  'www.banciglenti.com': 'bg',
-  'tehnoles.com': 'bg',
-  'www.tehnoles.com': 'bg',
-
-  // Romania — launches first. Add the domain and its www. form once bought.
-
-  // Local development
-  'bg.localhost': 'bg',
-  'ro.localhost': 'ro',
-  'gr.localhost': 'gr',
-}
 
 function isMarketCode(v: string | undefined | null): v is MarketCode {
   return typeof v === 'string' && v in MARKETS

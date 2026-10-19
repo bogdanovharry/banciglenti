@@ -185,6 +185,25 @@ export const Products: CollectionConfig = {
       admin: { position: 'sidebar' },
     },
     {
+      /**
+       * Cut to order, so there is no stock to run out of.
+       *
+       * Without this a product with no stock was "Изчерпан" and could not be
+       * bought — which was every Vector and machine-size blade the seeds
+       * created with `stock: 0, // made to order`. Ticked, the product is always
+       * orderable and the shop says it is made to order instead of showing a
+       * count. Left unticked, a product at zero stock is refused at checkout.
+       */
+      name: 'madeToOrder',
+      type: 'checkbox',
+      label: 'Изработва се по поръчка',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Винаги може да се поръча. Наличността не се показва и не се проверява.',
+      },
+    },
+    {
       name: 'featured',
       type: 'checkbox',
       label: 'Препоръчан продукт',

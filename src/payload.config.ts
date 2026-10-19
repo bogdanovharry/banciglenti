@@ -1,4 +1,4 @@
-import { buildConfig, type Plugin } from 'payload'
+import { buildConfig, type EmailAdapter, type Plugin } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
@@ -17,6 +17,8 @@ import { Articles } from './payload/collections/Articles'
 import { Pages } from './payload/collections/Pages'
 import { Media } from './payload/collections/Media'
 import { Users } from './payload/collections/Users'
+import { emailConfigured, sendEmail } from './lib/email'
+import { PRODUCTION_ORIGINS } from './lib/domains'
 
 /**
  * Fail loudly rather than booting a second market with a publicly-known secret
@@ -71,8 +73,64 @@ function storagePlugins(): Plugin[] {
   ]
 }
 
+/**
+ * Payload's own emails — a staff member's password reset, mainly — through the
+ * same provider the shop's order emails use.
+ *
+ * Without an adapter Payload writes the message to the server console, so a
+ * reset link goes to a log nobody reads. Only installed once the provider is
+ * configured; until then the default stays, which is right for development.
+ */
+function emailAdapter(): EmailAdapter | undefined {
+  if (!emailConfigured()) return undefined
+
+  const from = process.env.EMAIL_FROM as string
+  const match = /^(.*)<(.+)>$/.exec(from)
+  const defaultFromName = match ? match[1].trim().replace(/^"|"$/g, '') : 'Saw-Meister'
+  const defaultFromAddress = match ? match[2].trim() : from
+
+  const adapter: EmailAdapter = () => ({
+    name: 'resend',
+    defaultFromAddress,
+    defaultFromName,
+    sendEmail: async (message) => {
+      const list = (v: unknown): string[] =>
+        (Array.isArray(v) ? v : [v])
+          .map((x) => (typeof x === 'string' ? x : ((x as { address?: string } | null)?.address ?? '')))
+          .filter(Boolean)
+      const result = await sendEmail({
+        to: list(message.to),
+        subject: String(message.subject ?? ''),
+        html: String(message.html ?? message.text ?? ''),
+        text: String(message.text ?? ''),
+      })
+      // A reset email that silently did not go is worse than an error the
+      // person sees, so a refusal is thrown; "not configured" cannot reach here.
+      if (!result.ok) throw new Error('email was not sent')
+      return result
+    },
+  })
+  return adapter
+}
+
+/**
+ * The admin's own address, for the links in its emails, and the origins allowed
+ * to use it. Production only: locally Payload works the origin out from the
+ * request, and an allow-list of real domains would only get in the way.
+ *
+ * Every market's domain is listed, because staff open the admin from whichever
+ * they are working on, and Payload ignores a session cookie sent from an origin
+ * that is not on the list — a login that works and then never sticks.
+ */
+const production = process.env.NODE_ENV === 'production'
+const serverURL = production ? process.env.NEXT_PUBLIC_SITE_URL : undefined
+const csrf = production ? [...new Set([...(serverURL ? [serverURL] : []), ...PRODUCTION_ORIGINS])] : undefined
+
 export default buildConfig({
   secret: required('PAYLOAD_SECRET'),
+  ...(serverURL ? { serverURL } : {}),
+  ...(csrf ? { csrf } : {}),
+  email: emailAdapter(),
   admin: {
     user: Users.slug,
     meta: {

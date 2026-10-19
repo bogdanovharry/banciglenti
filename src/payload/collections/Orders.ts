@@ -104,6 +104,21 @@ export const Orders: CollectionConfig = {
       unique: true,
       admin: { hidden: true },
     },
+    /**
+     * Made by the checkout page when it opens, and sent with the order.
+     *
+     * A request that times out after the order was written looks, to the buyer,
+     * like a failure — so they press the button again, and a second identical
+     * order exists. The same key on a retry returns the order already made. It
+     * is unique, and null for orders that did not come through the checkout.
+     */
+    {
+      name: 'clientKey',
+      type: 'text',
+      unique: true,
+      index: true,
+      admin: { hidden: true },
+    },
     {
       name: 'customer',
       type: 'relationship',
@@ -261,6 +276,63 @@ export const Orders: CollectionConfig = {
         // Full width: it is an address, and it is also in the summary card, so
         // it is here only for correcting a typo before dispatch.
         { name: 'address', type: 'textarea', label: 'Адрес за доставка' },
+      ],
+    },
+    /**
+     * Who ordered, exactly as typed at checkout.
+     *
+     * The order used to hold only a pointer to the customer record, and a
+     * returning customer's checkout details were dropped in favour of whatever
+     * the record already said — so the workshop rang the number from three
+     * years ago, and editing a customer later rewrote the contact block of
+     * every order they had ever placed. The order keeps its own copy now; the
+     * admin shows this, falling back to the customer for older orders.
+     */
+    {
+      name: 'contact',
+      type: 'group',
+      label: 'Контакт при поръчката',
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            { name: 'name', type: 'text', label: 'Име' },
+            { name: 'company', type: 'text', label: 'Фирма' },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            { name: 'email', type: 'email', label: 'Имейл' },
+            { name: 'phone', type: 'text', label: 'Телефон' },
+          ],
+        },
+      ],
+    },
+    /**
+     * Who the invoice is made out to, as given at checkout.
+     *
+     * A sawmill or a workshop needs the invoice in the company's name, with its
+     * registration and VAT numbers, and the order is the only place that can
+     * keep what was typed — the customer record holds one set, and a company
+     * may order for another. Empty when the buyer did not ask for one.
+     */
+    {
+      name: 'billing',
+      type: 'group',
+      label: 'Фактура',
+      admin: { description: 'Данните, въведени при поръчката за фактура на фирма.' },
+      fields: [
+        { name: 'invoice', type: 'checkbox', label: 'Иска фактура на фирма', defaultValue: false },
+        {
+          type: 'row',
+          fields: [
+            { name: 'company', type: 'text', label: 'Фирма' },
+            { name: 'taxId', type: 'text', label: 'ЕИК / CUI' },
+            { name: 'vatNumber', type: 'text', label: 'ДДС номер' },
+          ],
+        },
+        { name: 'address', type: 'textarea', label: 'Седалище' },
       ],
     },
     // The three money fields sit in the sidebar, read-only, because /api/checkout

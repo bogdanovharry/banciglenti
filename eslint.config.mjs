@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Written by Payload's migration generator and not meant to be edited.
+    "src/migrations/**",
   ]),
 ]);
 
