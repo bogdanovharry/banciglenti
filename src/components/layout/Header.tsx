@@ -178,7 +178,7 @@ export function Header() {
               className="h-8 w-auto md:h-9"
             />
           ) : (
-            <SawMeisterLogo tone="brand" priority />
+            <SawMeisterLogo priority />
           )}
           <div className="font-mono text-[9px] md:text-[10px] tracking-[0.14em] text-ink-50 mt-1.5 uppercase whitespace-nowrap">
             {tCommon("tagline")}

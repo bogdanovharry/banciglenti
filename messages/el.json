@@ -2,7 +2,7 @@
   "_note": "DRAFT — not reviewed by a native Greek speaker, and Greece is not launching until Romania has proved out. Note also that src/fonts/inter-latin-cyrillic.woff2 carries no Greek glyphs, so this text currently falls back to a system font. A Greek subset is needed before launch.",
   "common": {
     "brand": "Saw-Meister",
-    "tagline": "Innovation sharpened to perfection.",
+    "tagline": "Master Every Cut.",
     "home": "Αρχική",
     "catalogue": "Κατάλογος",
     "configurator": "Διαμορφωτής",
