@@ -1,0 +1,72 @@
+{
+  "siteHeader": {
+    "allProducts": "Toate produsele",
+    "search": "Caută",
+    "phoneCall": "Sunați-ne: {number}"
+  },
+  "pageHeader": {
+    "breadcrumb": "Navigare"
+  },
+  "siteFooter": {
+    "colProducts": "Produse",
+    "pHorizontal": "Ferăstraie orizontale",
+    "pVertical": "Ferăstraie verticale",
+    "pBimetal": "Pânze bimetalice",
+    "pCircular": "Pânze circulare",
+    "pPlaner": "Cuțite de rindea",
+    "pMachines": "Utilaje",
+    "colIndustries": "Industrii",
+    "iWood": "Prelucrarea lemnului",
+    "iMetal": "Prelucrarea metalului",
+    "iFood": "Industria alimentară",
+    "iHobby": "Ateliere hobby",
+    "colCompany": "Companie",
+    "cAbout": "Despre noi",
+    "cContact": "Contact",
+    "colCustomers": "Clienți",
+    "uDelivery": "Livrare și plată",
+    "uWarranty": "Garanție",
+    "uTerms": "Termeni și condiții",
+    "uPrivacy": "Confidențialitate",
+    "headlineA": "Unelte de tăiere,",
+    "headlineB": "făcute exact.",
+    "factFounded": "fondată",
+    "factWorkshop": "atelier și depozit",
+    "factWidth": "mm lățime",
+    "factDelivery": "livrare",
+    "blurb": "De peste 30 de ani livrăm pânze de panglică, pânze circulare și consumabile pentru prelucrarea lemnului, prelucrarea metalului și industria alimentară, în România.",
+    "ctaCustom": "Comandă la dimensiune",
+    "ctaAdvice": "Consultanță tehnică",
+    "office": "Sediul central",
+    "addressLine": "{postalCode} {city}",
+    "vatNo": "Cod TVA {number}",
+    "site": ""
+  },
+  "notFound": {
+    "metaTitle": "Pagina nu a fost găsită",
+    "eyebrow": "Pagina nu există",
+    "title": "Această pagină nu există.",
+    "description": "Poate a fost mutată sau adresa este greșită. Iată de unde puteți continua.",
+    "catalogueTitle": "Catalogul",
+    "catalogueText": "Filtrați după utilaj, lungime, lățime sau marcă.",
+    "browse": "Vezi catalogul",
+    "customTitle": "La dimensiune",
+    "customText": "Introduceți dimensiunile și vedeți imediat prețul, conform listei de prețuri în vigoare.",
+    "askTitle": "Întrebați un inginer",
+    "askText": "Dacă nu știți ce dimensiune vă trebuie, sunați-ne. Consultanța este gratuită.",
+    "backHome": "← Înapoi la pagina principală"
+  },
+  "errorPage": {
+    "eyebrow": "Eroare tehnică",
+    "title": "Ceva nu a mers bine.",
+    "text": "Pagina nu a putut fi încărcată. Încercați din nou — dacă problema persistă, sunați-ne și preluăm comanda telefonic.",
+    "retry": "Încearcă din nou",
+    "home": "Spre pagina principală",
+    "phoneOrders": "Comenzi telefonice · {hours}",
+    "hours": "Lun–Vin 8:00–17:30",
+    "code": "Cod: {digest}"
+  },
+  "loadingPage": {
+    "text": "Se încarcă…"
+  }
+}

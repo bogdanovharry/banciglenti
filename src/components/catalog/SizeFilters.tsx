@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 /**
  * Loop length and machine fit — the two questions a buyer of these parts
@@ -56,6 +57,8 @@ export function useSizeFilters<T extends Filterable>(products: T[]) {
   );
 
   const active = (length !== null ? 1 : 0) + machines.length;
+  /** False for a category of machines or consumables: nothing to filter on. */
+  const hasFilters = lengthFacets.length > 0 || machineFacets.length > 0;
   const clear = () => {
     setLength(null);
     setMachines([]);
@@ -76,7 +79,7 @@ export function useSizeFilters<T extends Filterable>(products: T[]) {
     />
   );
 
-  return { filtered, panel, active, clear };
+  return { filtered, panel, active, clear, hasFilters };
 }
 
 function SizeFilterPanel({
@@ -98,6 +101,8 @@ function SizeFilterPanel({
   active: number;
   onClear: () => void;
 }) {
+  const t = useTranslations("catalog");
+  const locale = useLocale();
   // Nothing to filter on means no empty panel taking up a column.
   if (!lengthFacets.length && !machineFacets.length) return null;
 
@@ -108,17 +113,17 @@ function SizeFilterPanel({
           onClick={onClear}
           className="mb-5 font-mono text-[10px] tracking-[0.1em] uppercase text-orange bg-transparent border-none cursor-pointer p-0 hover:text-ink"
         >
-          Изчисти филтрите ({active})
+          {t("filters.clearCount", { count: active })}
         </button>
       )}
 
       {lengthFacets.length > 0 && (
         <div className="mb-6 pb-6 border-b border-ink-15">
           <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
-            Дължина на контура
+            {t("filters.loopLength")}
           </h4>
           <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">
-            Трябва да съвпадне точно с машината.
+            {t("filters.loopLengthHint")}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {lengthFacets.map((f) => {
@@ -132,7 +137,7 @@ function SizeFilterPanel({
                     on ? "bg-ink text-white border-ink" : "bg-white text-ink-70 border-ink-15 hover:border-ink"
                   }`}
                 >
-                  {f.value.toLocaleString("bg-BG")}
+                  {f.value.toLocaleString(locale)}
                   <span className={`ml-1 ${on ? "text-white/50" : "text-ink-30"}`}>{f.count}</span>
                 </button>
               );
@@ -144,7 +149,7 @@ function SizeFilterPanel({
       {machineFacets.length > 0 && (
         <div className="mb-6 pb-6 border-b border-ink-15">
           <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-3 font-semibold">
-            Пасва на машина
+            {t("filters.fitsMachine")}
           </h4>
           <ul className="list-none p-0 m-0 flex flex-col gap-2">
             {machineFacets.map((f) => (

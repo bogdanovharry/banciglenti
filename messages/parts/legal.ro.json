@@ -1,0 +1,214 @@
+{
+  "_note": "DRAFT for review by a Romanian lawyer before launch. Legal pages (terms, privacy, delivery) translated from the Bulgarian baseline and adapted to Romanian law (OUG 34/2014, OUG 140/2021, GDPR). Not yet reviewed.",
+  "legal": {
+    "common": {
+      "home": "Acasă",
+      "updated": "Ultima actualizare:"
+    },
+    "terms": {
+      "meta": {
+        "title": "Termeni și condiții",
+        "description": "Termeni și condiții de vânzare ale {name} — încheierea contractului, prețuri, livrare, dreptul de retragere, garanție și reclamații."
+      },
+      "eyebrowNumber": "№ 11",
+      "eyebrowLabel": "Informații juridice",
+      "title": "Termeni și condiții",
+      "lead": "Condițiile de vânzare pentru comenzile plasate prin acest site.",
+      "s01": {
+        "title": "Părți și domeniu de aplicare",
+        "p1": "Acești termeni și condiții reglementează vânzarea de bunuri și servicii prin acest site de către <b>{name}</b>, cod de TVA {vat}, număr de înregistrare (EIK) {eik}, înmatriculată în Registrul Comercial din Bulgaria (Commercial Register), cu sediul în {address} („Vânzătorul”, „noi”), către persoana care plasează o comandă („Cumpărătorul”, „dumneavoastră”).",
+        "p2": "Prin confirmarea comenzii acceptați acești termeni în forma în vigoare la momentul comenzii."
+      },
+      "s02": {
+        "title": "Încheierea contractului",
+        "p1": "Informațiile de pe site reprezintă o invitație de a face o ofertă, nu o ofertă ferm. Contractul se consideră încheiat atunci când confirmăm comanda dumneavoastră.",
+        "p2": "Ne rezervăm dreptul de a refuza o comandă dacă articolul nu este disponibil, dacă combinația de dimensiuni solicitată nu poate fi fabricată sau dacă s-a strecurat o eroare evidentă de preț."
+      },
+      "s03": {
+        "title": "Prețuri",
+        "p1": "Prețurile sunt exprimate în lei (RON) și sunt afișate cu TVA și fără TVA. Aplicăm TVA de {vatPercent}%, afișat separat înainte de confirmarea comenzii.",
+        "rate": "Prețurile sunt stabilite în euro și afișate în lei la un curs fix de 1 € = {rate} {symbol}.",
+        "p2": "Prețul unui produs la comandă se calculează după lista noastră de prețuri în vigoare. Suma se recalculează în momentul confirmării comenzii, de aceea prețul afișat anterior în coș este orientativ până în acel moment."
+      },
+      "s04": {
+        "title": "Plata și livrarea",
+        "p1": "{methods, select, both {Acceptăm transfer bancar și plata ramburs.} other {Acceptăm numai plata ramburs (plata către curier la livrare).}} Condițiile, termenele și costurile de livrare sunt descrise pe pagina <delivery>Livrare și plată</delivery> și fac parte din acești termeni și condiții."
+      },
+      "s05": {
+        "title": "Dreptul de retragere la cumpărăturile online",
+        "p1": "Dacă sunteți <b>consumator</b> (persoană fizică ce cumpără în afara activității sale comerciale sau profesionale), aveți dreptul să vă retrageți din contract în termen de <b>14 zile</b> de la primirea bunurilor, fără a fi nevoit să indicați vreun motiv.",
+        "p2": "Anunțați-ne la <mail>{email}</mail> sau la telefon <tel>{phone}</tel>. Puteți folosi formularul-tip din secțiunea {formSection}, dar nu este obligatoriu. Bunurile se returnează în stare comercială, iar contravaloarea lor se rambursează în termen de cel mult 14 zile de la primirea notificării. Costurile directe de returnare sunt suportate de dumneavoastră.",
+        "refund": "În cazul unei retrageri valabile, vă rambursăm și costul livrării inițiale (livrarea standard), dacă l-ați achitat dumneavoastră. Costurile suplimentare generate de alegerea unui alt mod de livrare decât cel standard nu se rambursează.",
+        "exTitle": "Excepție pentru produsele la comandă",
+        "exP1": "Dreptul de retragere <b>nu se aplică</b> produselor confecționate după specificațiile consumatorului sau personalizate în mod clar (art. 16 lit. c din OUG nr. 34/2014). Este cazul pânzei configurate — realizată la lungimea, lățimea sau la alți parametri solicitați de dumneavoastră și sudată în buclă: aceasta este „confecționată pe măsura dumneavoastră — nu se poate returna” și nu poate fi oferită altui client. Excepția nu privește articolele standard din catalog, care sunt doar sudate la cerere.",
+        "exP2": "De aceea confirmăm dimensiunile cu dumneavoastră înainte de producție. Dacă nu sunteți sigur ce dimensiune vă trebuie, sunați-ne înainte de a comanda — consultanța este gratuită."
+      },
+      "s06": {
+        "title": "Formular-tip de retragere",
+        "intro": "Dacă doriți să vă retrageți din contract, completați acest formular și trimiteți-l la <mail>{email}</mail>. Utilizarea lui nu este obligatorie — este suficientă și orice altă declarație lipsită de echivoc.",
+        "to": "Către {name}, {address}, {email}:",
+        "body": "Prin prezenta vă informez că mă retrag din contractul meu de vânzare a următoarelor bunuri: ……………………………………………",
+        "ordered": "Comandat la data de (*) / primit la data de (*): ……………………………",
+        "consumerName": "Numele consumatorului: ……………………………",
+        "consumerAddress": "Adresa consumatorului: ……………………………",
+        "sign": "Semnătura consumatorului (numai dacă formularul este pe hârtie): ……………………………",
+        "date": "Data: ……………………………",
+        "note": "(*) A se șterge mențiunea inutilă."
+      },
+      "s07": {
+        "title": "Conformitate și reclamații",
+        "p1": "În cazul cumpărării de către un <b>consumator</b>, răspundem pentru lipsa de conformitate a bunului cu contractul în termenul legal de <b>doi ani</b> de la livrare. În acest termen aveți dreptul la reparare, înlocuire, reducerea prețului sau rezoluțiunea contractului, în condițiile Ordonanței de urgență nr. 140/2021 privind anumite aspecte referitoare la contractele de vânzare de bunuri.",
+        "p2": "Uzura naturală a muchiei de tăiere în utilizarea normală nu este un defect. Pânza de panglică este un consumabil — durata ei de viață depinde de material, de regimul de tăiere și de reglajul mașinii, de aceea nu garantăm o durată de exploatare. Nu sunt acoperite daunele cauzate de tensionare incorectă, de o dimensiune necorespunzătoare mașinii, de un regim de tăiere nepotrivit sau de deteriorări mecanice.",
+        "seamTitle": "Garanția sudurii",
+        "seamP1": "Pentru pânzele pe care le sudăm răspundem de <b>calitatea sudurii</b>. Dacă pânza se rupe în locul sudurii, iar nu din cauza uzurii sau a utilizării necorespunzătoare, o înlocuim.",
+        "seamP2": "Aceasta este garanția noastră comercială pentru lucrarea executată de noi și nu limitează drepturile dumneavoastră legale de consumator prevăzute în secțiunea de mai sus.",
+        "claim": "Reclamația se transmite la <mail>{email}</mail>, cu numărul comenzii și descrierea problemei. Dacă este posibil, atașați o fotografie a pânzei și a locului ruperii — aceasta ne permite adesea să stabilim cauza și să vă sfătuim cum s-o evitați."
+      },
+      "s08": {
+        "title": "Cumpărături efectuate de profesioniști",
+        "p1": "Regulile din secțiunile {withdrawal} și {conformity} privind dreptul de retragere și termenul de doi ani se aplică consumatorilor. În cazul cumpărării de către o persoană juridică sau de către un profesionist în cadrul activității sale, se aplică dispozițiile de drept comun privind contractul de vânzare."
+      },
+      "s09": {
+        "title": "Legea aplicabilă și litigii",
+        "p1": "Acestor termeni li se aplică legea bulgară, fără a aduce atingere dispozițiilor imperative de protecție a consumatorilor din țara dumneavoastră de reședință. Litigiile se soluționează pe cale amiabilă, iar dacă acest lucru nu este posibil, de instanța competentă; ca consumator, puteți sesiza și instanța din România de la domiciliul dumneavoastră, în condițiile normelor europene aplicabile.",
+        "p2": "Ca consumator, vă puteți adresa <anpc>Autorității Naționale pentru Protecția Consumatorilor (ANPC)</anpc> sau puteți folosi procedura gratuită de soluționare alternativă a litigiilor (SAL) a ANPC, disponibilă la <sal>anpc.ro/sal</sal>."
+      },
+      "s10": {
+        "title": "Modificări",
+        "p1": "Putem modifica acești termeni. Unui contract deja încheiat i se aplică forma în vigoare la momentul comenzii. Data ultimei actualizări este indicată mai jos."
+      }
+    },
+    "privacy": {
+      "meta": {
+        "title": "Politica de confidențialitate",
+        "description": "Ce date personale colectează {name} prin acest site, în ce temei, cine le primește și ce drepturi aveți."
+      },
+      "eyebrowNumber": "№ 12",
+      "eyebrowLabel": "Informații juridice",
+      "title": "Politica de confidențialitate",
+      "lead": "Ce date colectăm, de ce, cine le vede și cum le puteți controla.",
+      "s01": {
+        "title": "Cine prelucrează datele dumneavoastră",
+        "p1": "Operatorul datelor cu caracter personal este <b>{name}</b>, cod de TVA {vat}, număr de înregistrare (EIK) {eik} (Registrul Comercial din Bulgaria), {address}.",
+        "p2": "Pentru întrebări legate de datele dumneavoastră personale, scrieți-ne la <mail>{email}</mail> sau sunați la <tel>{phone}</tel>."
+      },
+      "s02": {
+        "title": "Ce date colectăm",
+        "orderTitle": "La comandă",
+        "order": "Nume, e-mail, telefon, denumirea firmei (dacă o completați), adresa de livrare, datele pentru factură (denumirea firmei, cod de identificare fiscală, cod de TVA, adresă — dacă solicitați factură), conținutul comenzii și mențiunile pe care le adăugați.",
+        "inquiryTitle": "La o solicitare",
+        "inquiry": "Nume, e-mail, telefon și textul mesajului dumneavoastră, pentru a vă putea răspunde.",
+        "autoTitle": "Automat",
+        "auto1": "Conținutul coșului este păstrat <b>în browserul dumneavoastră</b> (localStorage), nu pe un server al nostru, pentru a nu dispărea la reîncărcarea paginii. Se șterge atunci când ștergeți datele site-ului din browser.",
+        "auto2": "Platforma noastră de găzduire păstrează jurnale tehnice standard (adresa IP, ora cererii), necesare pentru securitatea și funcționarea site-ului.",
+        "payment": "{methods, select, both {Plata se face numai prin transfer bancar sau ramburs — nu prelucrăm date ale cardurilor bancare.} other {Plata se face numai ramburs, către curier — nu prelucrăm date ale cardurilor bancare.}}"
+      },
+      "s03": {
+        "title": "În ce temei",
+        "contract": "Executarea contractului",
+        "contractText": "Prelucrăm datele comenzii și ale livrării pentru a vă onora comanda — fără ele aceasta nu poate fi îndeplinită.",
+        "legal": "Obligație legală",
+        "legalText": "Păstrăm documentele contabile și fiscale pentru că legea ne obligă.",
+        "interest": "Interes legitim",
+        "interestText": "Răspundem solicitărilor și menținem securitatea site-ului."
+      },
+      "s04": {
+        "title": "Cine primește datele",
+        "lead": "Transmitem doar minimul necesar și numai către:",
+        "courier": "<b>Firma de curierat</b> ({couriers}) — nume, adresă și telefon, pentru a livra coletul.",
+        "hosting": "<b>Furnizorii de găzduire și de bază de date</b> care întrețin site-ul.",
+        "email": "<b>Furnizorul serviciului de trimitere a e-mailurilor</b>, prin care vă scriem în legătură cu comanda sau solicitarea dumneavoastră.",
+        "accounting": "<b>Contabilitatea și autoritățile statului</b>, atunci când legea o cere.",
+        "noSale": "Nu vindem și nu cedăm datele dumneavoastră unor terți în scopuri de marketing."
+      },
+      "s05": {
+        "title": "Transferuri în afara UE",
+        "p1": "Unii dintre furnizorii noștri sunt societăți cu sediul în SUA. Atunci când datele sunt transferate în afara Spațiului Economic European, transferul se bazează pe garanțiile standard prevăzute de dreptul Uniunii Europene."
+      },
+      "s06": {
+        "title": "Cookie-uri și urmărire",
+        "p1": "<b>Acest site nu folosește cookie-uri de analiză sau de publicitate.</b> Nu am inclus Google Analytics, Meta Pixel sau instrumente similare.",
+        "p2": "Folosim exclusiv mecanisme tehnic necesare: stocare locală pentru coșul dumneavoastră și un cookie de sesiune pentru autentificarea în panoul de administrare, care privește doar angajații noștri.",
+        "p3": "Dacă pe viitor vom activa instrumente de analiză, vă vom cere acordul în prealabil și vom actualiza această pagină."
+      },
+      "s07": {
+        "title": "Cât timp păstrăm datele",
+        "p1": "Păstrăm datele comenzilor pe durata cerută de legislația contabilă și fiscală. Solicitările care nu duc la o comandă le păstrăm cât timp este necesar pentru a răspunde și a urmări comunicarea. În general, păstrăm datele atât timp cât este necesar scopurilor descrise mai sus și cât cere legea contabilă."
+      },
+      "s08": {
+        "title": "Drepturile dumneavoastră",
+        "lead": "Potrivit Regulamentului general privind protecția datelor (GDPR), aveți dreptul:",
+        "r1": "de acces la datele pe care le păstrăm despre dumneavoastră;",
+        "r2": "de a cere rectificarea datelor inexacte;",
+        "r3": "de a cere ștergerea datelor, atunci când nu există un temei legal pentru păstrarea lor;",
+        "r4": "de a cere restricționarea prelucrării;",
+        "r5": "de a primi datele într-un format structurat, utilizat în mod curent și care poate fi citit automat;",
+        "r6": "de a vă opune prelucrării întemeiate pe interesul legitim.",
+        "write": "Scrieți-ne la <mail>{email}</mail>. Răspundem în cel mult o lună.",
+        "noAuto": "Nu luăm decizii automatizate și nu facem profilare."
+      },
+      "s09": {
+        "title": "Plângeri",
+        "p1": "Dacă apreciați că vă prelucrăm datele în mod nelegal, puteți depune o plângere la autoritatea competentă pentru operatorul nostru din Bulgaria, <b>Comisia pentru Protecția Datelor cu Caracter Personal (CPDP)</b> — <cpdp>cpdp.bg</cpdp>, sau, ca persoană din România, la <b>Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP)</b> — <dp>dataprotection.ro</dp>."
+      }
+    },
+    "delivery": {
+      "meta": {
+        "title": "Livrare și plată",
+        "description": "Modalități de livrare și plată, termene și costuri la comanda de pânze de panglică și scule de tăiere de la {name}."
+      },
+      "eyebrowNumber": "№ 10",
+      "eyebrowLabel": "Condiții",
+      "title": "Livrare și plată",
+      "lead": "Cum ajung la dumneavoastră pânzele comandate și cum se plătesc.",
+      "s01": {
+        "title": "Modalități de livrare",
+        "p1": "Livrăm prin curier la adresa indicată sau la un punct al firmei de curierat, pe teritoriul României. Colaborăm cu {couriers} — curierul se alege la procesarea comenzii, în funcție de adresa dumneavoastră.",
+        "pickup": "Puteți ridica comanda și personal din atelierul nostru: {address}. Vă sunăm când pânza este gata. Ridicarea personală este gratuită."
+      },
+      "s02": {
+        "title": "Costul livrării",
+        "standard": "Livrare standard",
+        "standardText": "{cost}, prin curier la adresă sau la punct",
+        "free": "Livrare gratuită",
+        "freeText": "pentru comenzi de peste {amount} fără TVA",
+        "pickupLabel": "Ridicare personală",
+        "pickupText": "gratuită, din atelierul din {city}",
+        "auto": "Costul livrării se calculează automat în coș și este vizibil înainte de confirmarea comenzii.",
+        "collect": "Taxa de livrare este stabilită de firma de curierat în funcție de greutatea coletului și se achită curierului la primirea coletului. Ea nu este inclusă în totalul comenzii și nu există un prag pentru livrare gratuită."
+      },
+      "s03": {
+        "title": "Termene",
+        "stock": "<b>Articolele din stoc</b> sunt expediate după confirmarea comenzii.",
+        "custom": "<b>Pânzele la comandă</b> se taie și se sudează la dimensiunea solicitată de dumneavoastră. Termenul de execuție este confirmat de un inginer al nostru la procesarea comenzii, deoarece depinde de dimensiune, de material și de încărcarea curentă a atelierului.",
+        "courier": "Termenul curierului se adaugă la termenul de execuție și depinde de firma de curierat aleasă și de localitate."
+      },
+      "s04": {
+        "title": "Modalități de plată",
+        "bankTitle": "Transfer bancar",
+        "bank": "După confirmarea comenzii primiți datele pentru transfer. Comanda intră în producție după ce suma ajunge în cont.",
+        "payee": "Beneficiar",
+        "bankName": "Banca",
+        "iban": "IBAN",
+        "bic": "BIC",
+        "reason": "Explicații plată",
+        "reasonText": "numărul comenzii dumneavoastră",
+        "codTitle": "Plata ramburs",
+        "cod": "Plătiți curierului la primirea coletului. Comisionul de ramburs este stabilit de firma de curierat și se achită de destinatar.",
+        "cardTitle": "Plata cu cardul",
+        "card": "Plata cu cardul bancar urmează să fie activată. Între timp acceptăm transfer bancar și plata ramburs."
+      },
+      "s05": {
+        "title": "Prețuri și TVA",
+        "p1": "Toate prețurile de pe site sunt exprimate în lei (RON) și sunt afișate <b>cu TVA și fără TVA</b>. TVA aplicat este de {vatPercent}% și este afișat separat în coș și în confirmarea comenzii.",
+        "rate": "Prețurile sunt stabilite în euro și afișate în lei la un curs fix de 1 € = {rate} {symbol}.",
+        "p2": "Prețul unei pânze la comandă se calculează după lista noastră de prețuri în vigoare, în funcție de lungime, lățime, grosime, material și operațiunile alese (sudare, ceaprazuire, ascuțire, tratament termic). Suma se recalculează la confirmarea comenzii după lista de prețuri valabilă în acel moment."
+      },
+      "s06": {
+        "title": "Verificarea la primire",
+        "p1": "Verificați coletul în prezența curierului. În cazul unei deteriorări vizibile a ambalajului sau al unei neconcordanțe, menționați acest lucru în documentul de transport și anunțați-ne imediat la <tel>{phone}</tel> sau <mail>{email}</mail>.",
+        "p2": "Condițiile de returnare și de reclamație sunt descrise în <terms>Termenii și condițiile</terms>."
+      }
+    }
+  }
+}

@@ -1,14 +1,27 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-import { LegalPage, LegalSection } from "@/components/layout/LegalPage";
-import { COMPANY, formattedAddress } from "@/lib/company";
-import { DEFAULT_MARKET } from "@/lib/market";
+import { LegalPage, LegalSection, legalTags } from "@/components/layout/LegalPage";
+import { COMPANY, addressLine, companyFor, termsFor } from "@/lib/company";
+import { getMarket } from "@/i18n/locale";
+import { absoluteUrl } from "@/lib/site-url";
 
-export const metadata: Metadata = {
-  title: "Политика за поверителност",
-  description:
-    `Какви лични данни събира ${COMPANY.legalName} през този сайт, на какво основание, кой ги получава и какви права имате.`,
-};
+/*
+ * DRAFT for review by a Romanian lawyer before the Romanian store goes live.
+ * The owner must also set real retention periods (section 07 deliberately
+ * names none) and confirm where the database is hosted.
+ * Strings live in messages/parts/legal.{bg,ro}.json under `legal.privacy`.
+ */
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("legal.privacy.meta");
+  const market = await getMarket();
+  return {
+    title: t("title"),
+    description: t("description", { name: companyFor(market.locale).legalName }),
+    alternates: { canonical: await absoluteUrl("/privacy") },
+  };
+}
 
 /**
  * Describes what this codebase actually does, not a template.
@@ -19,141 +32,110 @@ export const metadata: Metadata = {
  * which is not happening is as wrong as one that hides tracking which is.
  * When analytics are switched on this section has to be revised and a consent
  * banner added first.
+ *
+ * Processors are named by category (hosting, database, email, couriers) and the
+ * couriers come from the market registry.
  */
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const t = await getTranslations("legal.privacy");
+  const market = await getMarket();
+  const co = companyFor(market.locale);
+  const terms = termsFor(market);
+
+  const tags = legalTags(
+    { email: co.email, telHref: co.phone.office.href },
+    { cpdp: "https://www.cpdp.bg", dp: "https://www.dataprotection.ro" },
+  );
+  const values = {
+    name: co.legalName,
+    vat: COMPANY.vatNumber,
+    eik: COMPANY.eik,
+    address: addressLine(market.locale),
+    email: co.email,
+    phone: co.phone.office.display,
+    couriers: terms.couriers.join(market.locale.startsWith("bg") ? " или " : " sau "),
+    methods: terms.bankTransfer ? "both" : "other",
+  };
+  const rich = (key: string) => t.rich(key, { ...values, ...tags });
+
   return (
     <LegalPage
-      eyebrowNumber="№ 12"
-      eyebrowLabel="Правна информация"
-      title="Политика за поверителност"
-      description="Какви данни събираме, защо, кой ги вижда и как да ги контролирате."
-      updated="2026-08-06"
+      eyebrowNumber={t("eyebrowNumber")}
+      eyebrowLabel={t("eyebrowLabel")}
+      title={t("title")}
+      description={t("lead")}
+      updated="2026-10-19"
     >
-      <LegalSection n="01" title="Кой обработва данните ви">
-        <p>
-          Администратор на личните данни е <strong>{COMPANY.legalName}</strong>, ДДС №{" "}
-          {COMPANY.vatNumber}, {formattedAddress()}.
-        </p>
-        <p>
-          По въпроси, свързани с личните ви данни, пишете на{" "}
-          <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a> или се обадете на{" "}
-          <a href={COMPANY.phone.office.href}>{COMPANY.phone.office.display}</a>.
-        </p>
+      <LegalSection n="01" title={t("s01.title")}>
+        <p>{rich("s01.p1")}</p>
+        <p>{rich("s01.p2")}</p>
       </LegalSection>
 
-      <LegalSection n="02" title="Какви данни събираме">
-        <h3>При поръчка</h3>
-        <p>
-          Име, имейл, телефон, наименование на фирма (ако попълните такова), адрес за
-          доставка, съдържание на поръчката и бележка към нея, ако сте оставили.
-        </p>
+      <LegalSection n="02" title={t("s02.title")}>
+        <h3>{t("s02.orderTitle")}</h3>
+        <p>{t("s02.order")}</p>
 
-        <h3>При запитване</h3>
-        <p>
-          Име, имейл, телефон и текста на съобщението ви, за да можем да отговорим.
-        </p>
+        <h3>{t("s02.inquiryTitle")}</h3>
+        <p>{t("s02.inquiry")}</p>
 
-        <h3>Автоматично</h3>
-        <p>
-          Съдържанието на количката се пази <strong>в браузъра ви</strong> (localStorage),
-          не на наш сървър, за да не изчезва при презареждане. Изчиства се, когато изчистите
-          данните на сайта в браузъра си.
-        </p>
-        <p>
-          Хостинг платформата ни води стандартни технически логове (IP адрес, време на
-          заявката), необходими за сигурността и работата на сайта.
-        </p>
+        <h3>{t("s02.autoTitle")}</h3>
+        <p>{rich("s02.auto1")}</p>
+        <p>{t("s02.auto2")}</p>
+        <p>{t("s02.payment", values)}</p>
       </LegalSection>
 
-      <LegalSection n="03" title="На какво основание">
+      <LegalSection n="03" title={t("s03.title")}>
         <dl>
-          <dt>Изпълнение на договор</dt>
-          <dd>
-            Данните за поръчка и доставка обработваме, за да изпълним поръчката ви — без тях
-            тя не може да бъде изпълнена.
-          </dd>
-          <dt>Законово задължение</dt>
-          <dd>
-            Счетоводните и данъчните документи съхраняваме, защото законът го изисква.
-          </dd>
-          <dt>Легитимен интерес</dt>
-          <dd>
-            Отговаряме на запитвания и поддържаме сигурността на сайта.
-          </dd>
+          <dt>{t("s03.contract")}</dt>
+          <dd>{t("s03.contractText")}</dd>
+          <dt>{t("s03.legal")}</dt>
+          <dd>{t("s03.legalText")}</dd>
+          <dt>{t("s03.interest")}</dt>
+          <dd>{t("s03.interestText")}</dd>
         </dl>
       </LegalSection>
 
-      <LegalSection n="04" title="Кой получава данните">
-        <p>Предаваме само необходимия минимум и само на:</p>
+      <LegalSection n="04" title={t("s04.title")}>
+        <p>{t("s04.lead")}</p>
         <ul>
-          <li>
-            <strong>Куриерската фирма</strong> ({DEFAULT_MARKET.couriers.join(" или ")}) — име, адрес и телефон, за
-            да достави пратката.
-          </li>
-          <li>
-            <strong>Доставчиците на хостинг и база данни</strong>, които поддържат сайта.
-            Базата данни се съхранява на сървъри в Европейския съюз.
-          </li>
-          <li>
-            <strong>Счетоводство и държавни органи</strong>, когато законът го изисква.
-          </li>
+          <li>{rich("s04.courier")}</li>
+          <li>{rich("s04.hosting")}</li>
+          <li>{rich("s04.email")}</li>
+          <li>{rich("s04.accounting")}</li>
         </ul>
-        <p>Не продаваме и не отдаваме данните ви на трети лица за маркетингови цели.</p>
+        <p>{t("s04.noSale")}</p>
       </LegalSection>
 
-      <LegalSection n="05" title="Бисквитки и проследяване">
-        <p>
-          <strong>Този сайт не използва бисквитки за анализ или реклама.</strong> Не сме
-          включили Google Analytics, Meta Pixel или подобни инструменти.
-        </p>
-        <p>
-          Използваме единствено технически необходими механизми: локално съхранение за
-          количката ви и сесийна бисквитка за вход в административния панел, която засяга
-          само наши служители.
-        </p>
-        <p>
-          Ако в бъдеще включим инструменти за анализ, ще поискаме съгласието ви предварително
-          и ще обновим тази страница.
-        </p>
+      <LegalSection n="05" title={t("s05.title")}>
+        <p>{t("s05.p1")}</p>
       </LegalSection>
 
-      <LegalSection n="06" title="Колко дълго пазим данните">
-        <p>
-          Данните за поръчки пазим за срока, изискван от счетоводното и данъчното
-          законодателство. Запитвания, които не водят до поръчка, пазим за времето, нужно да
-          отговорим и да проследим комуникацията.
-        </p>
+      <LegalSection n="06" title={t("s06.title")}>
+        <p>{rich("s06.p1")}</p>
+        <p>{t("s06.p2")}</p>
+        <p>{t("s06.p3")}</p>
       </LegalSection>
 
-      <LegalSection n="07" title="Вашите права">
-        <p>Съгласно Общия регламент относно защитата на данните (GDPR) имате право да:</p>
+      <LegalSection n="07" title={t("s07.title")}>
+        <p>{t("s07.p1")}</p>
+      </LegalSection>
+
+      <LegalSection n="08" title={t("s08.title")}>
+        <p>{t("s08.lead")}</p>
         <ul>
-          <li>получите достъп до данните, които съхраняваме за вас;</li>
-          <li>поискате коригиране на неточни данни;</li>
-          <li>поискате изтриване, когато няма законово основание да ги пазим;</li>
-          <li>поискате ограничаване на обработването;</li>
-          <li>получите данните си в машинно четим формат;</li>
-          <li>възразите срещу обработване на основание легитимен интерес.</li>
+          <li>{t("s08.r1")}</li>
+          <li>{t("s08.r2")}</li>
+          <li>{t("s08.r3")}</li>
+          <li>{t("s08.r4")}</li>
+          <li>{t("s08.r5")}</li>
+          <li>{t("s08.r6")}</li>
         </ul>
-        <p>
-          Пишете ни на <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>. Отговаряме в
-          срок до един месец.
-        </p>
-        <p>
-          Не вземаме автоматизирани решения и не извършваме профилиране.
-        </p>
+        <p>{rich("s08.write")}</p>
+        <p>{t("s08.noAuto")}</p>
       </LegalSection>
 
-      <LegalSection n="08" title="Жалби">
-        <p>
-          Ако смятате, че обработваме данните ви неправомерно, можете да подадете жалба до{" "}
-          <strong>Комисията за защита на личните данни</strong> — гр. София 1592, бул.
-          „Проф. Цветан Лазаров“ 2,{" "}
-          <a href="https://www.cpdp.bg" target="_blank" rel="noopener noreferrer">
-            cpdp.bg
-          </a>
-          .
-        </p>
+      <LegalSection n="09" title={t("s09.title")}>
+        <p>{rich("s09.p1")}</p>
       </LegalSection>
     </LegalPage>
   );

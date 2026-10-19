@@ -3,13 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import {
   IconSearch, IconCart, IconPhone, IconMail, IconMenu,
   IconChevron, IconWood, IconMetal, IconHobby, IconFood, IconMachine, IconRuler, IconClose,
 } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
-import { COMPANY } from "@/lib/company";
+import { companyFor } from "@/lib/company";
 import { SawMeisterLogo } from "@/components/layout/SawMeisterLogo";
 import { SAW_MEISTER } from "@/lib/series";
 import { useLocale, useTranslations } from "next-intl";
@@ -110,6 +110,9 @@ export function Header() {
   const router = useRouter();
   const locale = useLocale();
   const isBulgaria = locale.startsWith("bg");
+  const company = companyFor(locale);
+  const menuId = useId();
+  const tSite = useTranslations("siteHeader");
   const tCommon = useTranslations("common");
   const tHeader = useTranslations("header");
   const tNav = useTranslations("nav");
@@ -142,11 +145,17 @@ export function Header() {
             <span className="opacity-60">{tHeader("customWelding")}</span>
           </div>
           <div className="flex gap-5 items-center ml-auto">
-            <a href={COMPANY.phone.office.href} className="flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
-              <IconPhone size={12} /> <span className="hidden sm:inline tabular-nums">{COMPANY.phone.office.display}</span>
+            {/* Below 640px only the icon shows, so the link carries its own name
+                and a 40px tap target. */}
+            <a
+              href={company.phone.office.href}
+              aria-label={tSite("phoneCall", { number: company.phone.office.display })}
+              className="flex items-center justify-center gap-1.5 min-w-10 h-10 text-inherit no-underline hover:text-white transition-colors"
+            >
+              <IconPhone size={12} /> <span className="hidden sm:inline tabular-nums">{company.phone.office.display}</span>
             </a>
-            <a href={`mailto:${COMPANY.email}`} className="hidden md:flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
-              <IconMail size={12} /> {COMPANY.email}
+            <a href={`mailto:${company.email}`} className="hidden md:flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
+              <IconMail size={12} /> {company.email}
             </a>
           </div>
         </div>
@@ -166,19 +175,19 @@ export function Header() {
         <Link
           href="/"
           className="flex flex-col items-start justify-center no-underline text-ink shrink-0"
-          aria-label={`${isBulgaria ? "ТЕХНОЛЕС" : SAW_MEISTER} — ${tCommon("home")}`}
+          aria-label={`${isBulgaria ? tCommon("brand") : SAW_MEISTER} — ${tCommon("home")}`}
         >
           {isBulgaria ? (
             <Image
               src="/images/hero/tehnoles-logo.png"
-              alt="ТЕХНОЛЕС"
+              alt={tCommon("brand")}
               width={1177}
               height={210}
               preload
               className="h-8 w-auto md:h-9"
             />
           ) : (
-            <SawMeisterLogo priority />
+            <SawMeisterLogo preload />
           )}
           <div className="font-mono text-[9px] md:text-[10px] tracking-[0.14em] text-ink-50 mt-1.5 uppercase whitespace-nowrap">
             {tCommon("tagline")}
@@ -207,7 +216,7 @@ export function Header() {
             type="submit"
             className="px-5 bg-ink text-white font-mono text-[10px] tracking-[0.12em] uppercase cursor-pointer border-none hover:bg-orange transition-colors"
           >
-            Търси
+            {tSite("search")}
           </button>
         </form>
 
@@ -219,6 +228,8 @@ export function Header() {
             className="md:hidden p-2 ml-2"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? tCommon("closeMenu") : tCommon("openMenu")}
+            aria-expanded={mobileOpen}
+            aria-controls={menuId}
           >
             {mobileOpen ? <IconClose size={24} /> : <IconMenu size={24} />}
           </button>
@@ -226,22 +237,30 @@ export function Header() {
       </div>
 
       {/* Category nav — desktop */}
-      <nav className="hidden md:block border-t border-b border-ink-05" aria-label={tCommon("mainNav")} onMouseLeave={() => setOpen(null)}>
+      <nav className="hidden md:block border-t border-b border-ink-05" aria-label={tCommon("mainNav")} onMouseLeave={() => setOpen(null)} onKeyDown={(e) => { if (e.key === "Escape") setOpen(null); }}>
         <div className="max-w-[1440px] mx-auto px-10 flex items-stretch gap-0">
           <Link
             href="/shop"
             className="flex items-center gap-2.5 px-5 cursor-pointer font-sans text-[13px] font-semibold text-white bg-navy tracking-tight no-underline hover:brightness-110 transition-all"
           >
-            <IconMenu size={16} /> Всички продукти
+            <IconMenu size={16} /> {tSite("allProducts")}
           </Link>
 
           {NAV_CATS.map((cat) => {
             const CatIcon = cat.Icon;
             const isOpen = open === cat.name;
             return (
-              <div key={cat.name} className="relative" onMouseEnter={() => setOpen(cat.name)}>
+              <div
+                key={cat.name}
+                className="relative"
+                onMouseEnter={() => setOpen(cat.name)}
+                onFocus={() => setOpen(cat.name)}
+                onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(null); }}
+              >
                 <Link
                   href={cat.href}
+                  aria-haspopup={cat.children ? "true" : undefined}
+                  aria-expanded={cat.children ? isOpen : undefined}
                   className={`flex items-center gap-2 px-[18px] h-12 font-sans text-[13px] font-medium text-ink no-underline transition-colors hover:text-blue ${isOpen ? "border-b-2 border-orange" : "border-b-2 border-transparent"}`}
                 >
                   <CatIcon size={16} /> {tNav(cat.name)}
@@ -275,23 +294,20 @@ export function Header() {
           })}
 
           <Link href="/configurator" className="flex items-center gap-2 px-[18px] h-12 font-sans text-[13px] font-medium text-orange no-underline hover:brightness-110 transition-all">
-            <IconRuler size={16} /> Конфигуратор
+            <IconRuler size={16} /> {tCommon("configurator")}
           </Link>
 
           <div className="flex-1" />
 
-          <Link href="/blog" className="flex items-center px-4 h-12 font-sans text-[13px] text-ink-70 no-underline hover:text-ink transition-colors">
-            Блог
-          </Link>
           <Link href="/contact" className="flex items-center px-4 h-12 font-sans text-[13px] text-ink-70 no-underline hover:text-ink transition-colors">
-            Контакти
+            {tCommon("contact")}
           </Link>
         </div>
       </nav>
 
       {/* Mobile nav */}
       {mobileOpen && (
-        <nav className="md:hidden bg-white border-t border-ink-05 shadow-lg max-h-[80vh] overflow-y-auto" aria-label={tCommon("mobileNav")}>
+        <nav id={menuId} className="md:hidden bg-white border-t border-ink-05 shadow-lg max-h-[80vh] overflow-y-auto" aria-label={tCommon("mobileNav")}>
           {/* Same handler as the desktop field — this used to be an inert box. */}
           <form onSubmit={handleSearch} role="search" className="p-4 border-b border-ink-05 flex items-stretch gap-2">
             <div className="relative flex-1">
@@ -309,11 +325,11 @@ export function Header() {
               type="submit"
               className="px-4 bg-ink text-white font-mono text-[10px] tracking-[0.1em] uppercase cursor-pointer border-none"
             >
-              Търси
+              {tSite("search")}
             </button>
           </form>
           <Link href="/shop" className="flex items-center gap-3 px-4 py-3 font-semibold text-white bg-navy no-underline" onClick={() => setMobileOpen(false)}>
-            <IconMenu size={16} /> Всички продукти
+            <IconMenu size={16} /> {tSite("allProducts")}
           </Link>
           {NAV_CATS.map((cat) => {
             const CatIcon = cat.Icon;
@@ -339,8 +355,7 @@ export function Header() {
               </div>
             );
           })}
-          <Link href="/blog" className="block px-4 py-3 text-ink-70 no-underline border-t border-ink-05" onClick={() => setMobileOpen(false)}>{tCommon("blog")}</Link>
-          <Link href="/contact" className="block px-4 py-3 text-ink-70 no-underline border-b border-ink-05" onClick={() => setMobileOpen(false)}>{tCommon("contact")}</Link>
+          <Link href="/contact" className="block px-4 py-3 text-ink-70 no-underline border-t border-b border-ink-05" onClick={() => setMobileOpen(false)}>{tCommon("contact")}</Link>
         </nav>
       )}
     </header>

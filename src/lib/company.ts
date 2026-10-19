@@ -1,4 +1,4 @@
-import { MARKETS } from './market'
+import { MARKETS, type Market } from './market'
 
 /**
  * The selling entity. One Bulgarian company sells into every market, so this
@@ -12,6 +12,13 @@ export const COMPANY = {
   legalName: 'ТЕХНОЛЕС ООД',
   tradeName: 'ТЕХНОЛЕС',
   vatNumber: 'BG817088234',
+  /**
+   * Company registration number (ЕИК), Търговски регистър / Commercial Register
+   * of Bulgaria. DERIVED from the VAT number — for a Bulgarian ООД the ЕИК is
+   * the nine digits after "BG". It was NOT read from the register: the owner
+   * must confirm it before the legal pages go live.
+   */
+  eik: '817088234',
   foundedYear: 1993,
 
   address: {
@@ -107,3 +114,37 @@ export const TERMS = {
   /** Below this we do not weld; above it there is no upper limit. */
   customLengthMin: 1000,
 } as const
+
+/** "ul. Negenska 2, 5300 Gabrovo, Bulgaria" for Latin-script markets; Cyrillic via formattedAddress(). */
+export function addressLine(locale: string): string {
+  if (locale.startsWith('bg')) return formattedAddress()
+  const a = COMPANY_LATIN.address
+  return `${a.street}, ${a.postalCode} ${a.city}, ${a.country}`
+}
+
+/** "5,2567" — the fixed EUR rate in the market's own number format. */
+export function rateLabel(market: Market): string {
+  return new Intl.NumberFormat(market.locale, { maximumFractionDigits: 4 }).format(market.exchangeRate)
+}
+
+/**
+ * The commercial terms of one market, read from the market registry so the
+ * legal pages cannot disagree with what checkout charges. Amounts are in EUR,
+ * the authored currency; format them with formatPrice(amount, market).
+ */
+export function termsFor(market: Market) {
+  return {
+    vatPercent: Math.round(market.vatRate * 100),
+    currency: market.displayCurrency,
+    exchangeRate: market.exchangeRate,
+    /** 'collect' = the courier bills its own fee at the door. */
+    carriage: market.carriage,
+    shippingCost: market.shippingCost,
+    freeShippingThreshold: market.freeShippingThreshold,
+    couriers: market.couriers,
+    pickup: market.pickup,
+    cod: market.paymentMethods.includes('cod'),
+    bankTransfer: market.paymentMethods.includes('bank_transfer'),
+    customLengthMin: TERMS.customLengthMin,
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "home": {
+    "facts": {
+      "profiles": "profile de dinți"
+    },
+    "ticker": {
+      "specs": "● {specs} de specificații de pânze",
+      "widths": "● {widths} lățimi · {profiles} profile și pași",
+      "lengthRange": "● Sudăm de la {min} mm la ∞"
+    },
+    "best": {
+      "eyebrow": "Recomandate"
+    },
+    "about": {
+      "title1": "Scule de tăiere",
+      "title2": "la dimensiune, din atelier propriu",
+      "title3": "în Gabrovo.",
+      "lede": "De peste 30 de ani livrăm scule de tăiere fabricilor de prelucrare a lemnului, atelierelor de metal și producătorilor din industria alimentară."
+    },
+    "services": {
+      "title1": "Nu doar vindem.",
+      "title2": "Prelucrăm."
+    },
+    "support": {
+      "eyebrow": "№ 07 — Suport tehnic"
+    }
+  },
+  "homepage": {
+    "metaTitle": "Pânze de panglică și scule de tăiere",
+    "metaDescription": "Pânze de panglică la dimensiune, pânze circulare, cuțite de rindea și abrazivi. Tăiem și sudăm de la {min} mm în sus, fără limită superioară. Atelier în Gabrovo din {year}.",
+    "tickerLabel": "Pe scurt",
+    "tickerPause": "Oprește mișcarea",
+    "tickerPlay": "Pornește mișcarea",
+    "itemCount": "{count, plural, one {# articol} few {# articole} other {# de articole}}",
+    "quoteSpecs": "{count} de specificații",
+    "quoteLength": "de la {min} mm · fără limită superioară",
+    "bestTitle1": "Selecție",
+    "bestTitle2": "pentru profesioniști.",
+    "expertiseSpecs": "specificații de pânze",
+    "expertiseWidths": "lățimi de la {min} la {max} mm",
+    "expertiseProfiles": "profile și pași",
+    "expertiseFounded": "anul înființării",
+    "servicesCaption": "Aduceți pânza. O puneți din nou la treabă."
+  },
+  "aboutPage": {
+    "metaTitle": "Despre noi",
+    "metaDescription": "{name} — producție și sudare de pânze de panglică la dimensiune, din {year}. Atelier în {city}.",
+    "eyebrow": "Tehnoles Ltd. · din {year}",
+    "title": "Despre noi",
+    "description": "Scule de tăiere la dimensiune, din atelier propriu în Gabrovo.",
+    "s1": "Ce facem",
+    "p1": "{name} livrează pânze de panglică, pânze circulare, cuțite de rindea, abrazivi și mașini de ascuțit pentru prelucrarea lemnului, prelucrarea metalelor și industria alimentară.",
+    "p2": "Activitatea noastră principală este <strong>execuția la dimensiune</strong>: tăiem pânza la lungimea cerută de dumneavoastră și o sudăm în buclă, astfel încât să se potrivească exact pe utilajul dumneavoastră. Sudăm bucle de la {min} mm în sus, fără limită superioară.",
+    "p3": "În atelier oferim și prelucrarea pânzelor deja cumpărate — ascuțire, ceaprazuire, tratament termic. O pânză ascuțită taie ca una nouă, la o fracțiune din prețul unei pânze noi.",
+    "s2": "Date despre companie",
+    "name": "Denumire",
+    "vat": "Cod TVA",
+    "address": "Sediu și atelier",
+    "founded": "Înființată",
+    "foundedValue": "{year} · {years, plural, one {# an} few {# ani} other {# de ani}} de activitate",
+    "s3": "Contact",
+    "phone": "Telefon",
+    "mobile": "Mobil",
+    "email": "E-mail",
+    "hoursLabel": "Program",
+    "hours": "Lu–Vi 8:00–17:30",
+    "contact": "Pentru alegerea pânzei, diagnosticarea unei probleme de tăiere sau dimensionarea după un utilaj vechi, fără marcaj — sunați-ne sau <link>trimiteți o solicitare</link>. Consultanța este gratuită."
+  }
+}

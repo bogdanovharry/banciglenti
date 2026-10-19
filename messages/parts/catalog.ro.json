@@ -1,0 +1,290 @@
+{
+  "catalog": {
+    "unit": {
+      "mm": "mm",
+      "otherIndustry": "Altele"
+    },
+    "card": {
+      "loopLength": "lungimea conturului",
+      "widthTimesThickness": "lățime × grosime",
+      "addAria": "Adaugă {name} în coș",
+      "unavailable": "Indisponibil",
+      "add": "Adaugă"
+    },
+    "pack": {
+      "pieces": "{qty} buc.",
+      "perPiece": "{amount} {symbol}/buc.",
+      "differentBlades": "{qty} pânze diferite"
+    },
+    "product": {
+      "notFoundTitle": "Produsul nu a fost găsit",
+      "piecesShort": "{count} buc",
+      "widthDiameter": "Lățime / Ø",
+      "thickness": "Grosime",
+      "material": "Material",
+      "series": "Serie",
+      "type": "Tip",
+      "brand": "Marcă",
+      "availability": "Disponibilitate",
+      "materialLower": "material",
+      "widthDiameterLower": "lățime / Ø",
+      "thicknessLower": "grosime",
+      "otherSize": "Aveți nevoie de altă dimensiune?",
+      "openConfigurator": "Deschideți configuratorul →",
+      "inTheBox": "În set · {count, plural, one {# pânză} few {# pânze} other {# de pânze}}",
+      "boxSaving": "Cutie de {qty} buc. — economisiți",
+      "setPrice": "Preț pe set · {qty} buc.",
+      "boxPrice": "Preț pe cutie · {qty} buc.",
+      "unitPrice": "Preț unitar",
+      "differentInSet": "{qty} pânze diferite în set",
+      "insteadOf": "în loc de {amount} {symbol}",
+      "qtyDecrease": "Micșorați cantitatea",
+      "qty": "Cantitate",
+      "qtyIncrease": "Măriți cantitatea",
+      "added": "✓ Adăugat!",
+      "addToCart": "Adaugă în coș · {price}",
+      "courierDelivery": "Livrare prin curier",
+      "courierCollect": "{couriers} · în funcție de greutate, plătit curierului",
+      "freeOver": "gratuită peste {threshold}",
+      "weldWarranty": "Garanția sudurii",
+      "weldWarrantyNote": "dacă se rupe cordonul — înlocuim pânza",
+      "techAdvice": "Sfat tehnic",
+      "techAdviceNote": "sunați-ne",
+      "specification": "Specificații",
+      "dimensions": "Dimensiuni",
+      "construction": "Execuție",
+      "fitsMachines": "Se potrivește pentru"
+    },
+    "meta": {
+      "productDescription": "{name} — {gross} {incVat} ({net} {exVat}). Livrare prin curier la adresa dvs. sau la un punct de ridicare.",
+      "shopTitle": "Catalog",
+      "shopDescription": "Catalog complet de pânze pentru ferăstrău panglică, pânze circulare, cuțite de rindea și abrazivi. Filtrați după categorie sau comandați la dimensiunea dorită.",
+      "categoryNotFound": "Categoria nu a fost găsită",
+      "categoryDescription": "{name} — produse și prețuri cu și fără TVA.",
+      "configuratorTitle": "Configurator",
+      "configuratorDescription": "Alegeți tipul de pânză, stabiliți dimensiunile și aflați prețul pe loc — conform listei de prețuri actuale. Termenul de execuție se confirmă la procesarea comenzii."
+    },
+    "configurator": {
+      "heroAlt": "Pânză de ferăstrău panglică în lucru pe un gater",
+      "titleLine1": "Comandați pânza",
+      "titleLine2": "la dimensiunea dvs.",
+      "description": "Alegeți tipul de pânză, stabiliți dimensiunile și aflați prețul pe loc — conform listei de prețuri actuale. Termenul de execuție se confirmă la procesarea comenzii.",
+      "unavailable": "indisponibil",
+      "setting": "Avoiere",
+      "weldingIncluded": "Sudura — inclusă în preț"
+    },
+    "category": {
+      "eyebrow": "Categorie",
+      "items": "articole",
+      "productCount": "{count, plural, one {# produs} few {# produse} other {# de produse}}",
+      "cantFindTitle": "Nu găsiți dimensiunea dvs.?",
+      "cantFindHint": "Comandați o pânză la dimensiuni personalizate prin configurator",
+      "emptyTitle": "Nu există produse în această categorie",
+      "emptyHint": "Încercați configuratorul pentru o comandă la dimensiune.",
+      "noMatchTitle": "Niciun produs nu corespunde filtrului",
+      "noMatchHint": "Ștergeți filtrele sau comandați la dimensiune."
+    },
+    "filters": {
+      "close": "Închide filtrele",
+      "clearCount": "Ștergeți filtrele ({count})",
+      "clearAll": "Ștergeți filtrele",
+      "loopLength": "Lungimea conturului",
+      "loopLengthHint": "Trebuie să corespundă exact cu utilajul.",
+      "fitsMachine": "Se potrivește pe utilaj",
+      "button": "Filtre",
+      "title": "Filtre",
+      "show": "{count, plural, one {Afișați # produs} few {Afișați # produse} other {Afișați # de produse}}"
+    },
+    "shop": {
+      "sortBy": "Sortare",
+      "chipQuery": "„{q}”",
+      "chipWidth": "Lățime {min}–{max} {unit}",
+      "chipLength": "Lungime {min}–{max} {unit}",
+      "inStockOnly": "Doar în stoc",
+      "findByMachine": "Căutați după utilaj",
+      "findByMachineHint": "Marca și modelul ferăstrăului dvs. panglică.",
+      "pickMachine": "Alegeți utilajul",
+      "pickMachineOption": "— alegeți utilajul —",
+      "findByLength": "Căutați după lungime",
+      "findByLengthHint": "Lungimea conturului, în mm.",
+      "from": "de la",
+      "to": "până la",
+      "lengthMinAria": "Lungime minimă în mm",
+      "lengthMaxAria": "Lungime maximă în mm",
+      "findByWidth": "Căutați după lățime",
+      "findByWidthHint": "Lățimea pânzei, în mm.",
+      "widthMinAria": "Lățime minimă în mm",
+      "widthMaxAria": "Lățime maximă în mm",
+      "category": "Categorie",
+      "allCategories": "Toate",
+      "series": "Serie",
+      "material": "Material",
+      "brand": "Marcă",
+      "sideCardText": "Nu găsiți dimensiunea dvs.? Comandați o pânză la dimensiuni personalizate.",
+      "sideCardCta": "Deschideți configuratorul",
+      "heroAlt": "Ferăstrău panglică în lucru",
+      "titleLead": "Toate",
+      "titleAccent": "produsele",
+      "description": "Filtrați după lățime, material sau marcă. Nu găsiți dimensiunea dvs. — configuratorul realizează pânza la comandă.",
+      "modeStock": "Produse gata făcute",
+      "modeStockHint": "{count} dimensiuni în catalog",
+      "modeCustom": "La dimensiunea dvs.",
+      "modeCustomHint": "Sudăm pe lungimea dumneavoastră",
+      "count": "{shown} din {total} {total, plural, one {produs} few {produse} other {de produse}}",
+      "clearAll": "Ștergeți tot",
+      "noMatches": "Nicio potrivire",
+      "emptyTitle": "Această dimensiune nu este în catalog — dar o putem realiza.",
+      "emptyText": "Sudăm pânze pentru ferăstrău panglică la dimensiuni personalizate, de la {min} mm în sus, fără limită superioară.",
+      "emptyCta": "Configurați pânza",
+      "bannerTitle": "Comandați pânza la dimensiunea dvs.",
+      "bannerHint": "{types} tipuri de pânze · Lungime de la {min} mm în sus"
+    },
+    "series": {
+      "procut": {
+        "type": "Orizontal",
+        "application": "Lemn de esențe mixte",
+        "description": "Pânza fanion Saw-Meister și cea mai vândută — pânză profesională universală pentru gaterele orizontale standard. Profilul 10/30° este făcut pentru material mixt: taie la fel de sigur în lemn de rășinoase și de foioase, fără să schimbați pânza când schimbați buștenul. Oferă echilibrul dintre viteza de tăiere și netezimea tăieturii — nu este cea mai rapidă în pin și nu este cea mai fină în stejar, dar este cea mai bună alegere atunci când prin gater trece de toate."
+      },
+      "softcut": {
+        "type": "Orizontal",
+        "application": "Lemn moale",
+        "description": "Pânză pentru tăierea cu viteză mare a lemnului moale — pin, molid, brad, plop și material rășinos. Unghiul frontal mai mare, de 14°, face dintele mult mai agresiv: mușcă singur și permite o avansare mult mai rapidă, fără ca golul dintre dinți să se înfunde cu rumegușul voluminos și umed pe care îl dă lemnul moale. În material tare și uscat, aceeași agresivitate lucrează împotriva dvs. — acolo este ProCut."
+      },
+      "vector": {
+        "type": "Vertical",
+        "application": "Atelier și producție de mobilă",
+        "description": "Serie pentru ferăstraiele panglică verticale din clasa profesională și industrială medie — peste nivelul hobby. Lățimi de la 15 la 60 mm. Se execută din același oțel ca ProCut, dar cu pași ai dinților gândiți pentru atelier și producție de mobilă, nu pentru debitarea buștenilor. De aici vine și diferența de rezultat: stabilitate, precizie și o tăietură curată la prelucrarea pieselor."
+      },
+      "flexcut": {
+        "type": "Oțel carbon Flexback",
+        "application": "Lemn, plastic, metale neferoase",
+        "description": "Pânză flexibilă cu dinte călit și spate flexibil (flexback) — pentru lemn, plastic și metale neferoase, inclusiv aluminiu. Spatele flexibil suportă îndoiri repetate fără să crape, ceea ce o face rezistentă la oboseala metalului și la ruperea sudurii. Este și pânza pentru tăieturi curbe și contururi complicate, unde o pânză mai rigidă s-ar îndoi în tăietură."
+      },
+      "finecut": {
+        "type": "Alimentară",
+        "application": "Carne, pește și produse alimentare",
+        "description": "Serie specializată pentru industria alimentară — pentru tăierea cărnii cu și fără os, a peștelui, a oaselor și a blocurilor congelate. Execuția este din oțel inoxidabil, apt pentru contactul cu alimentele și pentru spălare și dezinfectare zilnică. Accentul cade pe precizia tăieturii, pe curățenia ei — fără pierderi și rupturi — și pe igienă."
+      }
+    },
+    "pitch": {
+      "cleaner-tooth": "Dinte cu curățitor",
+      "concave-wave": "Val concav",
+      "convex-wave": "Val convex",
+      "smooth-ground": "Ascuțit neted",
+      "wave": "Val"
+    },
+    "guide": {
+      "pitch": {
+        "constantCoarse": "Pas mare — pentru material gros și moale: aluminiu, alamă, plastic, lemn. Golul adânc evacuează așchia voluminoasă, în loc să o îndese. Cel puțin 3 dinți în tăietură înseamnă o secțiune de aproximativ {minMm} mm în sus.",
+        "constantUniversal": "Pas universal — cel mai larg aplicabil pentru profil mediu și material dens, până la aproximativ 25 mm. Cel puțin 3 dinți în tăietură înseamnă o secțiune de aproximativ {minMm} mm în sus.",
+        "constantFine": "Pas fin — pentru tablă subțire, țeavă cu perete subțire și secțiune mică. Dă o tăietură mai netedă, dar golul se umple repede în material gros. Materialul sub aproximativ {minMm} mm rămâne între dinți și îi rupe.",
+        "variable": {
+          "1_4-2": "Cel mai mare pas — secțiune plină Ø 120 – 400 mm. Golul mare duce așchia pe toată lungimea tăieturii; pe material subțire dintele este prea mare și se rupe.",
+          "2-3": "Pas mare — secțiune plină Ø 80 – 200 mm și profil structural greu. Puțini dinți în tăietură, mult loc pentru așchii.",
+          "3-4": "Pas mare — secțiune plină Ø 60 – 120 mm, arbore, șină groasă și bloc plin.",
+          "4-6": "Pas mediu — secțiune plină Ø 35 – 70 mm, țevi cu perete gros și profil plin. Cel mai universal pas pentru atelier.",
+          "5-8": "Pas mediu-fin — secțiune plină Ø 25 – 40 mm și profil cu perete mediu.",
+          "6-10": "Pas fin — secțiune plină Ø 16 – 30 mm, țevi și profile cu perete mai subțire.",
+          "8-12": "Pas fin — secțiune plină Ø 8 – 20 mm, țeavă cu perete subțire și profil subțire.",
+          "10-14": "Pas foarte fin — secțiune plină Ø 2 – 15 mm și țeavă cu perete subțire. Peretele trebuie să cuprindă cel puțin 3 dinți, altfel dinții se rup.",
+          "12-16": "Cel mai fin dinte — tablă, profil cu perete subțire și secțiune mică, unde tăietura trebuie să iasă curată și fără bavură."
+        },
+        "variableCoarse": "Pas mare — pentru profil plin și secțiune mare.",
+        "variableMedium": "Pas mediu — țevi cu perete gros și material plin.",
+        "variableFine": "Pas fin — țevi și profile cu perete subțire. Cel puțin 3 dinți trebuie să fie în tăietură.",
+        "woodFine": "Pas fin ({mm} mm) — pentru tăiere puțin adâncă, material subțire și o suprafață curată direct de pe pânză.",
+        "woodMedium": "Pas mediu ({mm} mm) — universal pentru debitarea scândurilor și pentru tăiere longitudinală mai puțin adâncă.",
+        "woodMediumCoarse": "Pas mediu-mare ({mm} mm) — pentru scânduri groase și grinzi, unde dintele fin se umple deja.",
+        "woodCoarse": "Pas mare ({mm} mm) — pasul cu care se lucrează de obicei în tăieturi adânci: golul duce așchia pe toată lungimea tăieturii, fără să o îndese.",
+        "woodCoarsest": "Cel mai mare pas ({mm} mm) — pentru cea mai adâncă tăietură, pentru material ud și pentru viteză mare de avans. Așchia voluminoasă înfundă orice dinte mai fin."
+      },
+      "food": {
+        "profile": {
+          "3_TPI": "Dinte universal pentru porc, vită și miel congelate și refrigerate, și pentru despicarea peștelui congelat adânc. Dintele mai mare îndepărtează mai puțin material în tăietură și rezistă la os la viteză mare de avans.",
+          "4_TPI": "Dintele mai fin lasă o tăietură mai netedă pe carne proaspătă și refrigerată, pasăre și pește — acolo unde aspectul tăieturii face parte din produs. Pe un bloc congelat adânc se tocește mai repede decât 3 TPI.",
+          "cleaner-tooth": "Dintele cu curățitor este pentru despicarea carcaselor proaspete și congelate. Curățitorul scoate pasta de os din gol, în loc să o îndese acolo — pânza nu se înfundă, taie mai curat și lucrează mai silențios.",
+          "concave-wave": "Valul concav mușcă cu vârfurile coaja, membrana și pielea alunecoasă, iar semiluna dintre ele taie. Pentru pește, mezeluri, brânză și legume, și pentru pâine cu crustă tare.",
+          "convex-wave": "Valul convex este pentru tăierea și filetarea peștelui proaspăt, necongelat, și pentru secționarea oaselor subțiri. Muchia rotunjită intră prin piele fără să rupă fibra de sub ea.",
+          "smooth-ground": "Muchia ascuțită neted nu are dinte și nu are avoiere — taie, în loc să zgârie. Cea mai curată tăietură posibilă pe pește și carne dezosate, fără firimituri și fără rupturi; nu se folosește pe os.",
+          "wave": "Muchia ondulată taie prin alunecare și nu strivește produsul de sub ea — felii perfecte, cu un minim de firimituri, la pâine și produse de panificație, și o alegere sigură la pește și produse din pește."
+        },
+        "breadConcaveWave": "Valul concav mușcă cu vârfurile crusta tare, iar semiluna dintre ele taie miezul. Pentru pâine rustică și integrală cu crustă tare, unde valul obișnuit alunecă, în loc să intre.",
+        "steel": "Execuția este din oțel inoxidabil, apt pentru contactul cu alimentele și pentru spălare și dezinfectare zilnică.",
+        "baseTextile": "Cuțit-bandă pentru materiale moi — burete și spumă poliuretanică, textile în straturi, piele, hârtie, carton și plută. Lucrează pe o mașină de debitat cu bandă și ascuțire integrată: muchia se reînnoiește din mers, de aceea ultimul metru din pachet iese ca primul.",
+        "baseBread": "Cuțit-bandă pentru mașina de feliat pâine. Muchia ondulată taie crusta, în loc să o rupă — de aici vin feliile egale și puținele firimituri. {steel}",
+        "baseToothed": "Ferăstrău-bandă pentru carne cu os și pentru bloc congelat. Dintele este călit și avoiat, ca să taie osul fără ca golul să se înfunde cu pastă de os. {steel}",
+        "baseCleaner": "Ferăstrău-bandă cu curățitor pentru despicarea carcaselor. Curățitorul merge în urma dinților tăietori și curăță golul, ceea ce ține pânza în linie dreaptă prin toată carcasa. {steel}",
+        "baseWave": "Cuțit-bandă cu muchie ondulată — taie, în loc să zgârie, de aceea nu degajă rumeguș și nu rupe fibra produsului. Pentru carne dezosată, pește și produse din pește. {steel}",
+        "basePlain": "Cuțit-bandă cu muchie ascuțită neted, fără dinte și fără avoiere — pentru produs dezosat, unde tăietura trebuie să fie curată și fără firimituri. {steel}",
+        "appTextile": "Burete, textile, cauciuc",
+        "appBread": "Pâine și produse de panificație",
+        "appToothed": "Carne cu os și congelată",
+        "appCleaner": "Despicarea carcaselor",
+        "appWave": "Carne dezosată și pește",
+        "appPlain": "Filetare"
+      },
+      "edge": {
+        "smooth-ground": {
+          "name": "Ascuțit neted",
+          "materials": "Burete moale și spumă poliuretanică, textile în straturi, piele, hârtie, carton, plută",
+          "note": "Muchie dreaptă, ascuțită, fără dinte. Nu îndepărtează material și nu face praf — trece prin pachet ca un cuțit prin unt și lasă o tăietură perpendiculară. Prima alegere pentru tot ce este moale și cu densitate mică; în material dens alunecă și deviază."
+        },
+        "wave": {
+          "name": "Val",
+          "materials": "Spumă poliuretanică flexibilă, fetru, materiale fibroase și elastice, furtunuri",
+          "note": "Creste line, fără vârfuri ascuțite. Prinde mai bine decât muchia netedă, dar taie fibra, în loc să o tragă așa cum o face dintele — de aceea este alegerea pentru fetru și pentru spuma care fuge din fața lamei. Face praf minim."
+        },
+        "concave-wave": {
+          "name": "Val concav (scalop)",
+          "materials": "Spumă mai densă, cauciuc și furtunuri de cauciuc, carton și straturi mai dure",
+          "note": "Semilune decupate, cu un vârf clar între ele. Mai agresiv decât valul și mai controlat decât dintele — vârfurile străpung materialul dens, iar semiluna termină tăietura. Poziția de mijloc, care face cea mai multă treabă."
+        },
+        "v-tooth": {
+          "name": "Zimțat (dinte în V)",
+          "materials": "Spumă tare și de densitate mare, plastic semidur, carton dens",
+          "note": "Dinte ascuțit, crestat, care roade materialul în îmbucături mici. În spumă tare și plastic dă cea mai curată tăietură dintre cele patru, dar degajă praf și rupe muchia în material moale."
+        }
+      },
+      "width": {
+        "mill1": "La {width} mm pânza este pentru gaterele mai mici și mobile — merge și pe volanți mai mici, dar în tăietură adâncă deviază mai ușor spre noduri.",
+        "mill2": "{width} mm este lățimea de lucru a majorității gaterelor — suficient de rigidă ca să țină linia prin tot buștenul, fără să ceară o mașină mare.",
+        "mill3": "La {width} mm pânza rezistă mult mai bine la deviere în material gros și dă o scândură mai dreaptă. În schimb cere un diametru mare al volanților și o tensionare mai mare.",
+        "mill4": "{width} mm este o lățime pentru gatere de producție cu volanți mari — rigiditate maximă la tăierea adâncă prin bușteni groși.",
+        "vertical1": "La {width} mm pânza este pentru tăiere curbă: raza minimă pe care o ține este de aproximativ {radius} mm. O pânză mai îngustă intră într-o curbă mai strânsă, dar păstrează mai greu linia dreaptă.",
+        "vertical2": "{width} mm este lățimea universală pentru mașina verticală — taie drept și încă face curbe, dar nu sub o rază de aproximativ {radius} mm.",
+        "vertical3": "La {width} mm pânza este pentru debitare dreaptă și tăiere longitudinală — suficient de rigidă ca să nu se încovoaie în tăietură. Pentru curbe este deja prea lată.",
+        "vertical4": "La {width} mm pânza este pentru tăierea longitudinală a materialului înalt: pânza lată ține tensionarea și merge drept, dar nu face curbe.",
+        "flexbackWood": "La {width} mm pânza este pentru tăiere curbă în atelier: raza minimă pe care o ține este de aproximativ {radius} mm.",
+        "metal1": "{width} × {thickness} mm este pentru mașini de debitat mici și portabile și pentru contur scurt.",
+        "metal2": "{width} × {thickness} mm este lățimea ferăstraielor panglică de atelier și a semiautomatelor mai mici.",
+        "metal3": "{width} × {thickness} mm este standardul pentru mașinile de debitat semiautomate compacte.",
+        "metal4": "{width} × {thickness} mm este pânza cea mai răspândită pentru mașinile de debitat semiautomate — echilibrul dintre rigiditate și preț pe metru.",
+        "metal5": "{width} × {thickness} mm este pentru semiautomatele și automatele mari: spatele mai gros ține tensionarea necesară ca tăietura să iasă dreaptă în secțiune mare.",
+        "metal6": "{width} × {thickness} mm este o lățime de producție — pentru automate și secțiune mare plină, unde orice abatere a tăieturii costă material.",
+        "metalCs": "La {width} mm pânza face curbe cu o rază de aproximativ {radius} mm în sus; una mai lată ține o linie mai dreaptă, dar nu virează la fel de strâns.",
+        "food1": "La {width} × {thickness} mm cuțitul este îngust și subțire — lama subțire trece prin felie fără să o strivească în fața ei și îndepărtează mai puțin din pâinea însăși.",
+        "food2Toothed": "La {width} mm pânza urmărește mai strâns conturul — mai potrivită pentru tăierea în jurul oaselor și pentru mașinile de masă mai mici.",
+        "food2Smooth": "La {width} mm cuțitul este suficient de îngust ca să ocolească conturul la filetare și suficient de rigid pentru o tăietură dreaptă.",
+        "food3": "La {width} mm cuțitul este mai rigid și ține o linie mai dreaptă — pentru despicare, pentru bloc congelat și pentru mașinile mai mari.",
+        "textile1": "La {width} mm cuțitul este pentru tăiere de figuri — intră în cele mai ascuțite contururi, dar într-un bloc gros se curbează dacă grăbiți avansul.",
+        "textile2": "{width} mm este lățimea universală — taie contur și linie dreaptă la fel de bine și se potrivește pe majoritatea mașinilor.",
+        "textile3": "La {width} × {thickness} mm cuțitul este pentru tăiere dreaptă și debitarea unui bloc gros: lama mai lată și mai groasă nu deviază în jos prin pachet, dar nu ocolește contururile."
+      },
+      "identity": {
+        "bimetalMillName": "Pânză bimetalică pentru gater",
+        "bimetalType": "Bimetal",
+        "woodMill": "Lemn — gater",
+        "bimetalMillBase": "Pânză de gater cu dinte bimetalic: oțel rapid sudat pe un spate elastic. Își păstrează tăișul de multe ori mai mult decât pânza din oțel carbon și suportă material abraziv sau murdar — scoarță cu nisip, buștean vechi și uscat, noduri interioare. Prețul pe metru este mai mare, dar între două ascuțiri se taie considerabil mai mult.",
+        "bimetalBlade": "Pânză bimetalică",
+        "alloyStainless": "Oțeluri aliate și inoxidabile",
+        "metalGeneral": "Metal — uz general",
+        "bimetalPremiumBase": "Pânză bimetalică de debitat cu oțel rapid mai înalt aliat în dinte, sudat pe un spate elastic. Se cumpără pentru oțel inoxidabil, aliat și greu de prelucrat, unde M42 standard se tocește repede.",
+        "bimetalStandardBase": "Pânză bimetalică de debitat: dinți din oțel rapid călit, sudați pe un spate elastic. Rezistă la viteză mai mare și la material mai dur decât pânza din oțel carbon, dar este și mai scumpă — se alege pentru tăierea în serie a metalului.",
+        "bandsawBlade": "Pânză pentru ferăstrău panglică",
+        "carbonType": "Oțel carbon",
+        "carbonBase": "Pânză pentru ferăstrău panglică din oțel carbon pentru bandă, călit, pentru gater. Corpul rămâne tenace, iar doar dintele este călit, așa că pânza suportă avoiere și ascuțire pe toată durata vieții.",
+        "bandKnife": "Cuțit-bandă"
+      }
+    }
+  }
+}

@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconClose, IconRuler, IconArrowRight } from "@/components/ui/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ConfiguratorPanel } from "@/components/configurator/ConfiguratorPanel";
+import { FilterDrawer } from "@/components/catalog/FilterDrawer";
 import { SERIES, isSeriesKey, type SeriesKey } from "@/lib/series";
-import { SORT_OPTIONS, compareBy, type SortKey } from "@/lib/catalog-ui";
+import { SORT_OPTIONS, compareBy, formatInt, type SortKey } from "@/lib/catalog-ui";
+import { CATALOG_FACTS } from "@/lib/catalog-facts";
 
 export type ShopFilter = { slug: string; label: string; count: number };
 
@@ -89,6 +92,8 @@ function FacetGroup({
   );
 }
 
+type Mode = "stock" | "custom";
+
 export function ShopClient({
   products,
   filters,
@@ -96,17 +101,23 @@ export function ShopClient({
   products: ShopProduct[];
   filters: ShopFilter[];
 }) {
+  const t = useTranslations("catalog");
+  const tc = useTranslations("common");
+  const tSort = useTranslations("sort");
+  const locale = useLocale();
+
   // Deep links land pre-filtered: /shop?brand=Einhell&category=hobi-bantsig.
-  // Read once as the initial state so the controls stay the source of truth
-  // afterwards and a user's clicks are never overwritten by the URL.
+  // The URL is read as the initial state, and again whenever it changes — a
+  // search typed into the header while this page is already open is a new
+  // `?q=` on the same route, which must take effect. Between URL changes the
+  // controls are the source of truth, so a click is never overwritten.
   const params = useSearchParams();
+  const paramsKey = params.toString();
 
   // Ready stock and made-to-order are the same decision for a buyer — "can I get
   // this size?" — so they live on one page rather than behind separate routes.
   // ?mode=custom deep-links straight into the configurator.
-  const [mode, setMode] = useState<"stock" | "custom">(() =>
-    params.get("mode") === "custom" ? "custom" : "stock",
-  );
+  const [mode, setMode] = useState<Mode>(() => (params.get("mode") === "custom" ? "custom" : "stock"));
 
   const [sort, setSort] = useState<SortKey>("popularity");
   const [query, setQuery] = useState(() => params.get("q") ?? "");
@@ -122,6 +133,27 @@ export function ShopClient({
   const [widthMax, setWidthMax] = useState("");
   const [lengthMin, setLengthMin] = useState(() => params.get("lengthMin") ?? "");
   const [lengthMax, setLengthMax] = useState(() => params.get("lengthMax") ?? "");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Follow the URL: when it changes, take its filters (and drop the ones it does
+  // not carry). Done while rendering, not in an effect, so the first paint
+  // after navigation already shows the new results.
+  const [seenParams, setSeenParams] = useState(paramsKey);
+  if (seenParams !== paramsKey) {
+    setSeenParams(paramsKey);
+    setMode(params.get("mode") === "custom" ? "custom" : "stock");
+    setQuery(params.get("q") ?? "");
+    setActiveCategory(params.get("category") ?? "");
+    setMaterials(params.getAll("material"));
+    setBrands(params.getAll("brand"));
+    setSeries(params.getAll("series").filter(isSeriesKey));
+    setMachines(params.getAll("machine"));
+    setInStockOnly(false);
+    setWidthMin("");
+    setWidthMax("");
+    setLengthMin(params.get("lengthMin") ?? "");
+    setLengthMax(params.get("lengthMax") ?? "");
+  }
 
   const toggle = (list: string[], set: (v: string[]) => void, value: string) =>
     set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
@@ -160,9 +192,9 @@ export function ShopClient({
         value: k,
         count: counts.get(k)!,
         label: SERIES[k as SeriesKey].name,
-        sublabel: SERIES[k as SeriesKey].application,
+        sublabel: t(`series.${k}.application`),
       }));
-  }, [inCategory]);
+  }, [inCategory, t]);
 
   const brandFacets = useMemo(() => {
     const counts = new Map<string, number>();
@@ -255,8 +287,8 @@ export function ShopClient({
     return list;
   }, [filtered, sort]);
 
-  const activeChips = [
-    ...(query.trim() ? [{ label: `„${query.trim()}"`, clear: () => setQuery("") }] : []),
+  const mm = t("unit.mm");
+  const filterChips = [
     ...(activeCategory ? [{ label: filters.find((f) => f.slug === activeCategory)?.label ?? activeCategory, clear: () => setActiveCategory("") }] : []),
     ...materials.map((m) => ({ label: m, clear: () => toggle(materials, setMaterials, m) })),
     ...brands.map((b) => ({ label: b, clear: () => toggle(brands, setBrands, b) })),
@@ -264,13 +296,19 @@ export function ShopClient({
       .filter(isSeriesKey)
       .map((s) => ({ label: SERIES[s].name, clear: () => toggle(series, setSeries, s) })),
     ...machines.map((m) => ({ label: m, clear: () => toggle(machines, setMachines, m) })),
-    ...(inStockOnly ? [{ label: "Само налични", clear: () => setInStockOnly(false) }] : []),
+    ...(inStockOnly ? [{ label: t("shop.inStockOnly"), clear: () => setInStockOnly(false) }] : []),
     ...(widthMin || widthMax
-      ? [{ label: `Широчина ${widthMin || "0"}–${widthMax || "∞"} мм`, clear: () => { setWidthMin(""); setWidthMax(""); } }]
+      ? [{ label: t("shop.chipWidth", { min: widthMin || "0", max: widthMax || "∞", unit: mm }), clear: () => { setWidthMin(""); setWidthMax(""); } }]
       : []),
     ...(lengthMin || lengthMax
-      ? [{ label: `Дължина ${lengthMin || "0"}–${lengthMax || "∞"} мм`, clear: () => { setLengthMin(""); setLengthMax(""); } }]
+      ? [{ label: t("shop.chipLength", { min: lengthMin || "0", max: lengthMax || "∞", unit: mm }), clear: () => { setLengthMin(""); setLengthMax(""); } }]
       : []),
+  ];
+  // The search text is shown as a chip too, but it is not one of the panel's
+  // filters, so it does not count towards the badge on the "Filters" button.
+  const activeChips = [
+    ...(query.trim() ? [{ label: t("shop.chipQuery", { q: query.trim() }), clear: () => setQuery("") }] : []),
+    ...filterChips,
   ];
 
   const clearAll = () => {
@@ -278,6 +316,7 @@ export function ShopClient({
     setActiveCategory("");
     setMaterials([]);
     setBrands([]);
+    setSeries([]);
     setMachines([]);
     setInStockOnly(false);
     setWidthMin("");
@@ -286,28 +325,231 @@ export function ShopClient({
     setLengthMax("");
   };
 
+  const lengthMinLabel = formatInt(CATALOG_FACTS.lengthMin, locale);
+
+  /** The whole filter panel — one copy in the sidebar, one in the phone sheet. */
+  const filterPanel: ReactNode = (
+    <>
+      {/* Find by machine — a buyer knows their machine before they know a
+          blade size, so this sits above the dimensional filters. */}
+      {machineFacets.length > 0 && (
+        <div className="mb-6 pb-6 border-b border-ink-15">
+          <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
+            {t("shop.findByMachine")}
+          </h4>
+          <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">{t("shop.findByMachineHint")}</p>
+          <select
+            value=""
+            onChange={(e) => { if (e.target.value) toggle(machines, setMachines, e.target.value); }}
+            aria-label={t("shop.pickMachine")}
+            className="w-full h-10 px-2.5 border border-ink-15 bg-white font-sans text-[13px] text-ink outline-none focus:border-blue cursor-pointer"
+          >
+            <option value="">{t("shop.pickMachineOption")}</option>
+            {machineFacets
+              .filter((f) => !machines.includes(f.value))
+              .map((f) => (
+                <option key={f.value} value={f.value}>{f.value} ({f.count})</option>
+              ))}
+          </select>
+          {machines.length > 0 && (
+            <ul className="list-none m-0 mt-2 p-0 flex flex-wrap gap-1.5">
+              {machines.map((m) => (
+                <li key={m}>
+                  <button
+                    onClick={() => toggle(machines, setMachines, m)}
+                    className="inline-flex items-center gap-1.5 px-2 py-1 bg-ink text-white font-mono text-[10px] cursor-pointer border-none"
+                  >
+                    {m} <IconClose size={10} className="text-white/60" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* Loop length — the figure that must match the machine exactly */}
+      <div className="mb-6 pb-6 border-b border-ink-15">
+        <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
+          {t("shop.findByLength")}
+        </h4>
+        <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">{t("shop.findByLengthHint")}</p>
+
+        {lengthFacets.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {lengthFacets.map((f) => {
+              const on = lengthMin === String(f.value) && lengthMax === String(f.value);
+              return (
+                <button
+                  key={f.value}
+                  onClick={() => pickLength(f.value)}
+                  aria-pressed={on}
+                  className={`px-2 py-1 border font-mono text-[11px] tabular-nums cursor-pointer transition-colors ${
+                    on
+                      ? "bg-ink text-white border-ink"
+                      : "bg-white text-ink-70 border-ink-15 hover:border-ink"
+                  }`}
+                >
+                  {f.value.toLocaleString(locale)}
+                  <span className={`ml-1 ${on ? "text-white/50" : "text-ink-30"}`}>{f.count}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="flex gap-2 items-center">
+          <input
+            type="number"
+            inputMode="numeric"
+            value={lengthMin}
+            onChange={(e) => setLengthMin(e.target.value)}
+            placeholder={t("shop.from")}
+            aria-label={t("shop.lengthMinAria")}
+            className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
+          />
+          <span className="font-mono text-ink-30 text-xs">–</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={lengthMax}
+            onChange={(e) => setLengthMax(e.target.value)}
+            placeholder={t("shop.to")}
+            aria-label={t("shop.lengthMaxAria")}
+            className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Width */}
+      <div className="mb-6 pb-6 border-b border-ink-15">
+        <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
+          {t("shop.findByWidth")}
+        </h4>
+        <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">{t("shop.findByWidthHint")}</p>
+        <div className="flex gap-2 items-center">
+          <input
+            type="number"
+            inputMode="numeric"
+            value={widthMin}
+            onChange={(e) => setWidthMin(e.target.value)}
+            placeholder={t("shop.from")}
+            aria-label={t("shop.widthMinAria")}
+            className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
+          />
+          <span className="font-mono text-ink-30 text-xs">–</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={widthMax}
+            onChange={(e) => setWidthMax(e.target.value)}
+            placeholder={t("shop.to")}
+            aria-label={t("shop.widthMaxAria")}
+            className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Category */}
+      <div className="mb-6 pb-6 border-b border-ink-15">
+        <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-3.5 font-semibold">{t("shop.category")}</h4>
+        <ul className="list-none m-0 p-0 flex flex-col gap-1">
+          {filters.map((cat) => (
+            <li key={cat.slug}>
+              <button
+                onClick={() => setActiveCategory(cat.slug)}
+                aria-pressed={activeCategory === cat.slug}
+                className={`w-full text-left px-2.5 py-1.5 font-sans text-[13px] border-none cursor-pointer transition-colors flex justify-between items-center gap-2 ${
+                  activeCategory === cat.slug ? "bg-ink text-white" : "bg-transparent text-ink-70 hover:bg-paper"
+                }`}
+              >
+                <span className="truncate">{cat.slug === "" ? t("shop.allCategories") : cat.label}</span>
+                <span className={`font-mono text-[11px] tabular-nums shrink-0 ${activeCategory === cat.slug ? "text-white/60" : "text-ink-50"}`}>
+                  {cat.count}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <FacetGroup
+        title={t("shop.series")}
+        facets={seriesFacets}
+        selected={series}
+        onToggle={(v) => toggle(series, setSeries, v)}
+      />
+      <FacetGroup
+        title={t("shop.material")}
+        facets={materialFacets}
+        selected={materials}
+        onToggle={(v) => toggle(materials, setMaterials, v)}
+      />
+      <FacetGroup
+        title={t("shop.brand")}
+        facets={brandFacets}
+        selected={brands}
+        onToggle={(v) => toggle(brands, setBrands, v)}
+      />
+      {/* Machines. The facet was being computed and then thrown away — it
+          was never rendered, so the one filter that answers "will this fit
+          my mill?" did not exist on screen. */}
+      <FacetGroup
+        title={t("filters.fitsMachine")}
+        facets={machineFacets}
+        selected={machines}
+        onToggle={(v) => toggle(machines, setMachines, v)}
+      />
+
+      <label className="flex items-center gap-2.5 mb-6 pb-6 border-b border-ink-15 cursor-pointer font-sans text-[13px] text-ink-70">
+        <input
+          type="checkbox"
+          checked={inStockOnly}
+          onChange={(e) => setInStockOnly(e.target.checked)}
+          className="w-3.5 h-3.5 accent-orange"
+        />
+        {t("shop.inStockOnly")}
+      </label>
+    </>
+  );
+
+  const configuratorCard = (
+    <Link href="/configurator" className="block no-underline mb-6">
+      <div className="bg-ink text-white p-5 hover:bg-ink-80 transition-colors">
+        <div className="flex items-center gap-3 mb-3">
+          <IconRuler size={24} className="text-orange" />
+          <div className="font-display text-lg font-bold">{tc("configurator")}</div>
+        </div>
+        <p className="font-sans text-[13px] text-white/70 m-0 mb-4">{t("shop.sideCardText")}</p>
+        <div className="flex items-center gap-2 font-mono text-[11px] tracking-[0.08em] uppercase text-orange">
+          {t("shop.sideCardCta")} <IconArrowRight size={12} />
+        </div>
+      </div>
+    </Link>
+  );
+
   return (
     <>
       <PageHeader
         eyebrowNumber="№ 05"
-        eyebrowLabel="Каталог"
+        eyebrowLabel={tc("catalogue")}
         image="/images/hero/craftsman-using-bandsaw-for-splitting-wood-plank-i-2023-11-27-05-19-15-utc-2.avif"
-        imageAlt="Банциг в работа"
-        crumbs={[{ label: "Начало", href: "/" }, { label: "Каталог" }]}
+        imageAlt={t("shop.heroAlt")}
+        crumbs={[{ label: tc("home"), href: "/" }, { label: tc("catalogue") }]}
         title={
           <>
-            Всички <span className="text-orange-light">продукти</span>
+            {t("shop.titleLead")} <span className="text-orange-light">{t("shop.titleAccent")}</span>
           </>
         }
-        description="Филтрирайте по широчина, материал или марка. Не намирате размера си — конфигураторът изработва лента по поръчка."
+        description={t("shop.description")}
       />
 
       {/* Mode switch */}
       <div className="border-b border-ink-15 bg-paper">
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 flex gap-0">
           {([
-            ["stock", "Готови продукти", `${products.length} размера на склад`],
-            ["custom", "По твой размер", "Заваряваме на вашата дължина"],
+            ["stock", t("shop.modeStock"), t("shop.modeStockHint", { count: products.length })],
+            ["custom", t("shop.modeCustom"), t("shop.modeCustomHint")],
           ] as const).map(([key, label, hint]) => (
             <button
               key={key}
@@ -332,12 +574,27 @@ export function ShopClient({
         <ConfiguratorPanel />
       ) : (
       <>
-      {/* Toolbar */}
-      <div className="border-b border-ink-15 bg-white sticky top-[168px] z-30">
+      {/* Toolbar. Sticks under the header: 169-173px is the tablet/desktop header (utility
+          bar + brand row + nav); a phone's header is the shorter one-row
+          version, so the offset is smaller there. */}
+      <div className="border-b border-ink-15 bg-white sticky top-[114px] md:top-[169px] lg:top-[173px] z-30">
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 min-h-14 py-2 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Below 1024px the sidebar is not shown; the same panel opens as a sheet. */}
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              className="lg:hidden inline-flex items-center gap-2 h-9 px-3 border border-ink-15 bg-white font-mono text-[11px] uppercase tracking-[0.08em] text-ink cursor-pointer hover:border-ink transition-colors"
+            >
+              {t("filters.button")}
+              {filterChips.length > 0 && (
+                <span className="min-w-5 h-5 px-1 inline-flex items-center justify-center bg-orange text-white text-[10px] tabular-nums">
+                  {filterChips.length}
+                </span>
+              )}
+            </button>
             <span className="font-mono text-[11px] text-ink-50 tabular-nums">
-              {sorted.length} от {products.length} продукта
+              {t("shop.count", { shown: sorted.length, total: products.length })}
             </span>
             {activeChips.map((chip) => (
               <button
@@ -353,12 +610,12 @@ export function ShopClient({
                 onClick={clearAll}
                 className="font-mono text-[11px] text-orange underline cursor-pointer bg-transparent border-none"
               >
-                Изчисти всички
+                {t("shop.clearAll")}
               </button>
             )}
           </div>
           <label className="flex items-center gap-2 font-mono text-[11px] text-ink-50">
-            Подреди
+            {t("shop.sortBy")}
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
@@ -366,7 +623,7 @@ export function ShopClient({
             >
               {SORT_OPTIONS.map((o) => (
                 <option key={o.key} value={o.key}>
-                  {o.label}
+                  {tSort(o.msg)}
                 </option>
               ))}
             </select>
@@ -377,221 +634,28 @@ export function ShopClient({
       {/* Grid */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-10 pb-20 md:pb-[120px] grid grid-cols-1 lg:grid-cols-[264px_1fr] gap-10">
         <aside className="hidden lg:block">
-          {/* Find by machine — a buyer knows their machine before they know a
-              blade size, so this sits above the dimensional filters. */}
-          {machineFacets.length > 0 && (
-            <div className="mb-6 pb-6 border-b border-ink-15">
-              <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
-                Намери по машина
-              </h4>
-              <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">Марка и модел на вашия банциг.</p>
-              <select
-                value=""
-                onChange={(e) => { if (e.target.value) toggle(machines, setMachines, e.target.value); }}
-                aria-label="Избери машина"
-                className="w-full h-10 px-2.5 border border-ink-15 bg-white font-sans text-[13px] text-ink outline-none focus:border-blue cursor-pointer"
-              >
-                <option value="">— избери машина —</option>
-                {machineFacets
-                  .filter((f) => !machines.includes(f.value))
-                  .map((f) => (
-                    <option key={f.value} value={f.value}>{f.value} ({f.count})</option>
-                  ))}
-              </select>
-              {machines.length > 0 && (
-                <ul className="list-none m-0 mt-2 p-0 flex flex-wrap gap-1.5">
-                  {machines.map((m) => (
-                    <li key={m}>
-                      <button
-                        onClick={() => toggle(machines, setMachines, m)}
-                        className="inline-flex items-center gap-1.5 px-2 py-1 bg-ink text-white font-mono text-[10px] cursor-pointer border-none"
-                      >
-                        {m} <IconClose size={10} className="text-white/60" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-
-          {/* Loop length — the figure that must match the machine exactly */}
-          <div className="mb-6 pb-6 border-b border-ink-15">
-            <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
-              Намери по дължина
-            </h4>
-            <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">Обиколка на контура в мм.</p>
-
-            {lengthFacets.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {lengthFacets.map((f) => {
-                  const on = lengthMin === String(f.value) && lengthMax === String(f.value);
-                  return (
-                    <button
-                      key={f.value}
-                      onClick={() => pickLength(f.value)}
-                      aria-pressed={on}
-                      className={`px-2 py-1 border font-mono text-[11px] tabular-nums cursor-pointer transition-colors ${
-                        on
-                          ? "bg-ink text-white border-ink"
-                          : "bg-white text-ink-70 border-ink-15 hover:border-ink"
-                      }`}
-                    >
-                      {f.value.toLocaleString("bg-BG")}
-                      <span className={`ml-1 ${on ? "text-white/50" : "text-ink-30"}`}>{f.count}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            <div className="flex gap-2 items-center">
-              <input
-                type="number"
-                inputMode="numeric"
-                value={lengthMin}
-                onChange={(e) => setLengthMin(e.target.value)}
-                placeholder="от"
-                aria-label="Минимална дължина в мм"
-                className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
-              />
-              <span className="font-mono text-ink-30 text-xs">–</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={lengthMax}
-                onChange={(e) => setLengthMax(e.target.value)}
-                placeholder="до"
-                aria-label="Максимална дължина в мм"
-                className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Width */}
-          <div className="mb-6 pb-6 border-b border-ink-15">
-            <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
-              Намери по широчина
-            </h4>
-            <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">Широчина на лентата в мм.</p>
-            <div className="flex gap-2 items-center">
-              <input
-                type="number"
-                inputMode="numeric"
-                value={widthMin}
-                onChange={(e) => setWidthMin(e.target.value)}
-                placeholder="от"
-                aria-label="Минимална широчина в мм"
-                className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
-              />
-              <span className="font-mono text-ink-30 text-xs">–</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={widthMax}
-                onChange={(e) => setWidthMax(e.target.value)}
-                placeholder="до"
-                aria-label="Максимална широчина в мм"
-                className="w-1/2 h-10 px-2.5 border border-ink-15 font-mono text-xs tabular-nums focus:border-blue outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Category */}
-          <div className="mb-6 pb-6 border-b border-ink-15">
-            <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-3.5 font-semibold">Категория</h4>
-            <ul className="list-none m-0 p-0 flex flex-col gap-1">
-              {filters.map((cat) => (
-                <li key={cat.slug}>
-                  <button
-                    onClick={() => setActiveCategory(cat.slug)}
-                    aria-pressed={activeCategory === cat.slug}
-                    className={`w-full text-left px-2.5 py-1.5 font-sans text-[13px] border-none cursor-pointer transition-colors flex justify-between items-center gap-2 ${
-                      activeCategory === cat.slug ? "bg-ink text-white" : "bg-transparent text-ink-70 hover:bg-paper"
-                    }`}
-                  >
-                    <span className="truncate">{cat.label}</span>
-                    <span className={`font-mono text-[11px] tabular-nums shrink-0 ${activeCategory === cat.slug ? "text-white/60" : "text-ink-50"}`}>
-                      {cat.count}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <FacetGroup
-            title="Серия"
-            facets={seriesFacets}
-            selected={series}
-            onToggle={(v) => toggle(series, setSeries, v)}
-          />
-          <FacetGroup
-            title="Материал"
-            facets={materialFacets}
-            selected={materials}
-            onToggle={(v) => toggle(materials, setMaterials, v)}
-          />
-          <FacetGroup
-            title="Марка"
-            facets={brandFacets}
-            selected={brands}
-            onToggle={(v) => toggle(brands, setBrands, v)}
-          />
-          {/* Machines. The facet was being computed and then thrown away — it
-              was never rendered, so the one filter that answers "will this fit
-              my mill?" did not exist on screen. */}
-          <FacetGroup
-            title="Пасва на машина"
-            facets={machineFacets}
-            selected={machines}
-            onToggle={(v) => toggle(machines, setMachines, v)}
-          />
-
-          <label className="flex items-center gap-2.5 mb-6 pb-6 border-b border-ink-15 cursor-pointer font-sans text-[13px] text-ink-70">
-            <input
-              type="checkbox"
-              checked={inStockOnly}
-              onChange={(e) => setInStockOnly(e.target.checked)}
-              className="w-3.5 h-3.5 accent-orange"
-            />
-            Само налични
-          </label>
-
-          <Link href="/configurator" className="block no-underline">
-            <div className="bg-ink text-white p-5 hover:bg-ink-80 transition-colors">
-              <div className="flex items-center gap-3 mb-3">
-                <IconRuler size={24} className="text-orange" />
-                <div className="font-display text-lg font-bold">Конфигуратор</div>
-              </div>
-              <p className="font-sans text-[13px] text-white/70 m-0 mb-4">
-                Не намирате вашия размер? Поръчайте лента по индивидуални размери.
-              </p>
-              <div className="flex items-center gap-2 font-mono text-[11px] tracking-[0.08em] uppercase text-orange">
-                Отвори конфигуратор <IconArrowRight size={12} />
-              </div>
-            </div>
-          </Link>
+          {filterPanel}
+          {configuratorCard}
         </aside>
 
-        <div>
+        <div className="min-w-0">
           {sorted.length === 0 ? (
             // An empty result is the single best moment to sell the configurator:
             // the buyer has just told us exactly what they could not find.
             <div className="border border-ink-15 bg-paper p-10 text-center">
-              <div className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink-50 mb-3">Няма съвпадения</div>
+              <div className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink-50 mb-3">{t("shop.noMatches")}</div>
               <h2 className="font-display text-2xl md:text-3xl font-bold text-ink tracking-tight m-0 mb-3">
-                Този размер не е в каталога — но можем да го изработим.
+                {t("shop.emptyTitle")}
               </h2>
               <p className="font-sans text-[15px] text-ink-70 max-w-[440px] mx-auto mb-7">
-                Заваряваме банцигови ленти по индивидуален размер от 1&nbsp;650 до 12&nbsp;000&nbsp;мм.
+                {t("shop.emptyText", { min: lengthMinLabel })}
               </p>
               <div className="flex gap-3 justify-center flex-wrap">
                 <Link href="/configurator">
-                  <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Конфигурирай лента</Btn>
+                  <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("shop.emptyCta")}</Btn>
                 </Link>
                 <button onClick={clearAll} className="bg-transparent border-none cursor-pointer">
-                  <Btn variant="ghost" size="lg">Изчисти филтрите</Btn>
+                  <Btn variant="ghost" size="lg">{t("filters.clearAll")}</Btn>
                 </button>
               </div>
             </div>
@@ -602,13 +666,13 @@ export function ShopClient({
                   <div className="flex items-center gap-4">
                     <IconRuler size={28} className="text-blue shrink-0" />
                     <div>
-                      <div className="font-display text-base font-bold text-ink">Поръчай лента по твоя размер</div>
+                      <div className="font-display text-base font-bold text-ink">{t("shop.bannerTitle")}</div>
                       <div className="font-mono text-[11px] text-ink-50 mt-0.5 tracking-[0.04em]">
-                        8 типа ленти · Дължина от 1 000 мм нагоре
+                        {t("shop.bannerHint", { types: 8, min: lengthMinLabel })}
                       </div>
                     </div>
                   </div>
-                  <Btn variant="primary" size="sm" iconRight={<IconArrowRight size={12} />}>Конфигуратор</Btn>
+                  <Btn variant="primary" size="sm" iconRight={<IconArrowRight size={12} />}>{tc("configurator")}</Btn>
                 </div>
               </Link>
 
@@ -621,6 +685,32 @@ export function ShopClient({
           )}
         </div>
       </div>
+
+      {drawerOpen && (
+        <FilterDrawer
+          title={t("filters.title")}
+          onClose={() => setDrawerOpen(false)}
+          footer={
+            <div className="flex flex-col gap-2">
+              <Btn variant="primary" size="lg" fullWidth onClick={() => setDrawerOpen(false)}>
+                {t("filters.show", { count: sorted.length })}
+              </Btn>
+              {filterChips.length > 0 && (
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="font-mono text-[11px] text-orange underline cursor-pointer bg-transparent border-none py-1"
+                >
+                  {t("shop.clearAll")}
+                </button>
+              )}
+            </div>
+          }
+        >
+          {filterPanel}
+          {configuratorCard}
+        </FilterDrawer>
+      )}
       </>
       )}
     </>

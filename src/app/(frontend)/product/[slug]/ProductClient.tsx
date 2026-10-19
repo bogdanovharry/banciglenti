@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Placeholder, Tag, Btn } from "@/components/ui/primitives";
-import { IconArrowRight, IconHeart, IconMinus, IconPlus, IconTruck, IconShield, IconWrench } from "@/components/ui/icons";
+import { IconArrowRight, IconMinus, IconPlus, IconTruck, IconShield, IconWrench } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { SAW_MEISTER, SERIES, type SeriesKey } from "@/lib/series";
 import { usePrices } from "@/lib/market-context";
 import { DualPrice } from "@/components/ui/DualPrice";
 import { packFromSlug, unitPriceInPack } from "@/lib/packs";
+import type { StockState } from "@/lib/catalog-ui";
 
 export type ProductView = {
   slug: string;
@@ -18,11 +20,17 @@ export type ProductView = {
   brand: string | null;
   shortDescription: string | null;
   stockCount: number;
+  /** in / low / out / order — what the page says and whether it can be bought. */
+  stock: StockState;
   topProduct: boolean;
   specs: { width?: number; thickness?: number; material?: string };
   series: SeriesKey | null;
   /** One line per blade in a mixed set; empty for everything else. */
   setContents?: string[];
+  /** "Holzmann BS128HDR" — machines this size is known to fit. */
+  machines?: string[];
+  /** Uploaded photo, or the representative one — same as the product card. */
+  image?: string | null;
   breadcrumb: { slug: string; name: string } | null;
 };
 
@@ -49,8 +57,20 @@ export function ProductClient({ product }: { product: ProductView }) {
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
   const { market, gross, amount, price, symbol } = usePrices();
+  const t = useTranslations("catalog");
+  const tc = useTranslations("common");
+  const tStock = useTranslations("stock");
 
-  const inStock = product.stockCount > 0;
+  // Made to order is always buyable; only a real zero in stock is refused.
+  const inStock = product.stock !== "out";
+  // A piece count is shown only when it is a warning. The number on an ordinary
+  // product is a placeholder, and on a made-to-order one it means nothing.
+  const stockText =
+    product.stock === "low"
+      ? `${tStock("low")} · ${t("product.piecesShort", { count: product.stockCount })}`
+      : tStock(product.stock);
+  const mm = t("unit.mm");
+  const machines = product.machines ?? [];
 
   const handleAddToCart = () => {
     addItem({
@@ -59,6 +79,7 @@ export function ProductClient({ product }: { product: ProductView }) {
       dim: product.dim,
       price: product.price,
       quantity: qty,
+      image: product.image ?? undefined,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -67,8 +88,8 @@ export function ProductClient({ product }: { product: ProductView }) {
   // Only the specs actually recorded for this product — machines and consumables
   // carry no dimensions, so the table shrinks rather than inventing rows.
   const dimensionRows: [string, string][] = [
-    ...(product.specs.width ? ([["Широчина / Ø", `${product.specs.width} мм`]] as [string, string][]) : []),
-    ...(product.specs.thickness ? ([["Дебелина", `${product.specs.thickness} мм`]] as [string, string][]) : []),
+    ...(product.specs.width ? ([[t("product.widthDiameter"), `${product.specs.width} ${mm}`]] as [string, string][]) : []),
+    ...(product.specs.thickness ? ([[t("product.thickness"), `${product.specs.thickness} ${mm}`]] as [string, string][]) : []),
   ];
 
   const series = product.series ? SERIES[product.series] : null;
@@ -84,10 +105,10 @@ export function ProductClient({ product }: { product: ProductView }) {
   const packSaving = pack ? Math.round((fullUnitPrice * pack.qty - product.price) * 100) / 100 : 0;
 
   const materialRows: [string, string][] = [
-    ...(product.specs.material ? ([["Материал", product.specs.material]] as [string, string][]) : []),
-    ...(series ? ([["Серия", `${SAW_MEISTER} ${series.name}`], ["Тип", series.type]] as [string, string][]) : []),
-    ...(product.brand && !series ? ([["Марка", product.brand]] as [string, string][]) : []),
-    ["Наличност", inStock ? `${product.stockCount} бр.` : "Изчерпан"],
+    ...(product.specs.material ? ([[t("product.material"), product.specs.material]] as [string, string][]) : []),
+    ...(series ? ([[t("product.series"), `${SAW_MEISTER} ${series.name}`], [t("product.type"), t(`series.${series.key}.type`)]] as [string, string][]) : []),
+    ...(product.brand && !series ? ([[t("product.brand"), product.brand]] as [string, string][]) : []),
+    [t("product.availability"), stockText],
   ];
 
   return (
@@ -95,7 +116,7 @@ export function ProductClient({ product }: { product: ProductView }) {
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-8 pb-20">
         {/* Breadcrumbs */}
         <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 flex gap-2 mb-10 flex-wrap">
-          <Link href="/" className="cursor-pointer no-underline text-ink-50 hover:text-ink">Начало</Link>
+          <Link href="/" className="cursor-pointer no-underline text-ink-50 hover:text-ink">{tc("home")}</Link>
           <span>/</span>
           {product.breadcrumb ? (
             <>
@@ -109,26 +130,36 @@ export function ProductClient({ product }: { product: ProductView }) {
             </>
           ) : (
             <>
-              <Link href="/shop" className="cursor-pointer no-underline text-ink-50 hover:text-ink">Каталог</Link>
+              <Link href="/shop" className="cursor-pointer no-underline text-ink-50 hover:text-ink">{tc("catalogue")}</Link>
               <span>/</span>
             </>
           )}
-          <span className="text-ink">{product.slug}</span>
+          <span className="text-ink">{product.name}</span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
           {/* Gallery */}
           <div>
-            <Placeholder tone="paper" ratio="1/1" caption={product.name} />
+            {product.image ? (
+              <Placeholder
+                tone="paper"
+                ratio="1/1"
+                src={product.image}
+                alt={product.name}
+                fit="contain"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                preload
+              />
+            ) : (
+              <Placeholder tone="paper" ratio="1/1" caption={product.name} />
+            )}
           </div>
 
           {/* Info */}
           <div>
             <div className="flex gap-2 mb-5 flex-wrap">
               {product.topProduct && <Tag tone="orange">TOP</Tag>}
-              <Tag tone={inStock ? "ok" : "outline"}>
-                {inStock ? `На склад · ${product.stockCount} бр` : "Изчерпан"}
-              </Tag>
+              <Tag tone={inStock ? "ok" : "outline"}>{stockText}</Tag>
             </div>
 
             <div className="font-mono text-[11px] text-ink-50 tracking-[0.1em] uppercase mb-2">
@@ -158,13 +189,13 @@ export function ProductClient({ product }: { product: ProductView }) {
             {series && (
               <div className="mb-8 border-l-2 border-orange pl-5">
                 <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-1.5">
-                  Серия · {series.type} · {series.application}
+                  {t("product.series")} · {t(`series.${series.key}.type`)} · {t(`series.${series.key}.application`)}
                 </div>
                 <div className="font-display text-xl font-bold text-ink mb-2 tracking-tight">
                   {SAW_MEISTER} {series.name}
                 </div>
                 <p className="font-sans text-[14px] leading-relaxed text-ink-70 m-0">
-                  {series.description}
+                  {t(`series.${series.key}.description`)}
                 </p>
               </div>
             )}
@@ -173,9 +204,9 @@ export function ProductClient({ product }: { product: ProductView }) {
             {(product.specs.material || product.specs.width || product.specs.thickness) && (
               <div className="flex gap-0 border border-ink-15 mb-8">
                 {[
-                  product.specs.material ? [product.specs.material, "материал"] : null,
-                  product.specs.width ? [`${product.specs.width} мм`, "широчина / Ø"] : null,
-                  product.specs.thickness ? [`${product.specs.thickness} мм`, "дебелина"] : null,
+                  product.specs.material ? [product.specs.material, t("product.materialLower")] : null,
+                  product.specs.width ? [`${product.specs.width} ${mm}`, t("product.widthDiameterLower")] : null,
+                  product.specs.thickness ? [`${product.specs.thickness} ${mm}`, t("product.thicknessLower")] : null,
                 ]
                   .filter((x): x is string[] => x !== null)
                   .map(([v, l], i, arr) => (
@@ -189,9 +220,9 @@ export function ProductClient({ product }: { product: ProductView }) {
 
             {/* Custom size CTA */}
             <div className="mb-8 p-4 border border-ink-15 flex items-center justify-between gap-4">
-              <div className="font-sans text-sm text-ink-70">Нужен ви е друг размер?</div>
+              <div className="font-sans text-sm text-ink-70">{t("product.otherSize")}</div>
               <Link href="/configurator" className="font-mono text-[11px] text-orange underline">
-                Отвори конфигуратора →
+                {t("product.openConfigurator")}
               </Link>
             </div>
 
@@ -202,7 +233,7 @@ export function ProductClient({ product }: { product: ProductView }) {
             {contents.length > 0 && (
               <div className="mb-6 border border-ink-15">
                 <div className="px-5 py-3 bg-ink text-white font-mono text-[10px] tracking-[0.12em] uppercase">
-                  В комплекта · {contents.length} ленти
+                  {t("product.inTheBox", { count: contents.length })}
                 </div>
                 <ul className="list-none m-0 p-0">
                   {contents.map((line, i) => {
@@ -238,7 +269,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                   </div>
                   <div className="bg-ink text-white px-4 py-3 flex-1 flex flex-col justify-center">
                     <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/60">
-                      Кутия {pack.qty} бр. — спестявате
+                      {t("product.boxSaving", { qty: pack.qty })}
                     </div>
                     <div className="font-display text-[18px] font-bold leading-none tabular-nums mt-1">
                       {amount(gross(packSaving))} {symbol}
@@ -251,10 +282,10 @@ export function ProductClient({ product }: { product: ProductView }) {
                 <div>
                   <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
                     {pack?.kind === "set"
-                      ? `Цена за комплект · ${pack.qty} бр.`
+                      ? t("product.setPrice", { qty: pack.qty })
                       : pack
-                        ? `Цена за кутия · ${pack.qty} бр.`
-                        : "Единична цена"}
+                        ? t("product.boxPrice", { qty: pack.qty })
+                        : t("product.unitPrice")}
                   </div>
                   <DualPrice net={product.price} size="lg" className="mt-1" />
                   {pack?.kind === "set" ? (
@@ -262,19 +293,19 @@ export function ProductClient({ product }: { product: ProductView }) {
                     // them, so the count is stated and the contents are listed
                     // in the spec table below.
                     <div className="font-mono text-[11px] mt-1.5 text-orange font-semibold">
-                      {pack.qty} различни ленти в комплекта
+                      {t("product.differentInSet", { qty: pack.qty })}
                     </div>
                   ) : pack ? (
                     // Per blade with VAT, like the headline figure above it, so
                     // the two can be compared without doing the tax in your head.
                     <div className="font-mono text-[11px] mt-1.5">
                       <span className="text-orange font-semibold">
-                        {amount(gross(unitPriceInPack(product.price, pack.qty)))} {symbol}/бр.
+                        {t("pack.perPiece", { amount: amount(gross(unitPriceInPack(product.price, pack.qty))), symbol })}
                       </span>
                       {pack.percent > 0 && (
                         <span className="text-ink-50">
                           {" "}
-                          · вместо {amount(gross(fullUnitPrice))} {symbol}
+                          · {t("product.insteadOf", { amount: amount(gross(fullUnitPrice)), symbol })}
                         </span>
                       )}
                     </div>
@@ -284,7 +315,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                   <button
                     onClick={() => setQty(Math.max(1, qty - 1))}
                     className="w-10 h-12 bg-transparent border-none cursor-pointer text-ink-70"
-                    aria-label="Намали количеството"
+                    aria-label={t("product.qtyDecrease")}
                   >
                     <IconMinus size={14} />
                   </button>
@@ -292,12 +323,12 @@ export function ProductClient({ product }: { product: ProductView }) {
                     value={qty}
                     onChange={(e) => setQty(Math.max(1, +e.target.value || 1))}
                     className="w-12 h-12 text-center border-none font-mono text-base font-semibold outline-none"
-                    aria-label="Количество"
+                    aria-label={t("product.qty")}
                   />
                   <button
                     onClick={() => setQty(qty + 1)}
                     className="w-10 h-12 bg-transparent border-none cursor-pointer text-ink-70"
-                    aria-label="Увеличи количеството"
+                    aria-label={t("product.qtyIncrease")}
                   >
                     <IconPlus size={14} />
                   </button>
@@ -314,18 +345,12 @@ export function ProductClient({ product }: { product: ProductView }) {
                     disabled={!inStock}
                   >
                     {!inStock
-                      ? "Изчерпан"
+                      ? tStock("out")
                       : added
-                        ? "✓ Добавено!"
-                        : `Добави в количка · ${price(gross(product.price * qty))}`}
+                        ? t("product.added")
+                        : t("product.addToCart", { price: price(gross(product.price * qty)) })}
                   </Btn>
                 </div>
-                <button
-                  className="w-14 h-14 border border-ink-15 bg-white cursor-pointer text-ink-70 flex items-center justify-center hover:text-ink transition-colors"
-                  aria-label="Добави в списък"
-                >
-                  <IconHeart size={18} />
-                </button>
               </div>
             </div>
 
@@ -334,14 +359,14 @@ export function ProductClient({ product }: { product: ProductView }) {
               {[
                 {
                   Icon: IconTruck,
-                  title: "Доставка с куриер",
+                  title: t("product.courierDelivery"),
                   desc:
                     market.carriage === "collect"
-                      ? `${market.couriers.join(" · ")} · по тегло, на куриера`
-                      : `безплатно над ${price(market.freeShippingThreshold)}`,
+                      ? t("product.courierCollect", { couriers: market.couriers.join(" · ") })
+                      : t("product.freeOver", { threshold: price(market.freeShippingThreshold) }),
                 },
-                { Icon: IconShield, title: "Гаранция на заварката", desc: "скъсване на шева — подменяме" },
-                { Icon: IconWrench, title: "Технически съвет", desc: "обадете се" },
+                { Icon: IconShield, title: t("product.weldWarranty"), desc: t("product.weldWarrantyNote") },
+                { Icon: IconWrench, title: t("product.techAdvice"), desc: t("product.techAdviceNote") },
               ].map((item, i) => (
                 <div key={item.title} className={`p-4 flex gap-3 items-start ${i < 2 ? "border-r border-ink-15" : ""}`}>
                   <item.Icon size={22} className="text-orange shrink-0" />
@@ -356,17 +381,31 @@ export function ProductClient({ product }: { product: ProductView }) {
         </div>
 
         {/* Specification */}
-        {(dimensionRows.length > 0 || materialRows.length > 0) && (
+        {(dimensionRows.length > 0 || materialRows.length > 0 || machines.length > 0) && (
           <div className="mt-24">
             <div className="border-b border-ink-15">
               <span className="inline-block px-6 py-4 font-mono text-xs tracking-[0.12em] uppercase text-ink border-b-2 border-orange -mb-px">
-                Спецификация
+                {t("product.specification")}
               </span>
             </div>
             <div className="py-10 grid grid-cols-1 md:grid-cols-2 gap-12">
-              {dimensionRows.length > 0 && <SpecTable title="Размери" rows={dimensionRows} />}
-              {materialRows.length > 0 && <SpecTable title="Изпълнение" rows={materialRows} />}
+              {dimensionRows.length > 0 && <SpecTable title={t("product.dimensions")} rows={dimensionRows} />}
+              {materialRows.length > 0 && <SpecTable title={t("product.construction")} rows={materialRows} />}
             </div>
+            {machines.length > 0 && (
+              <div className="pb-10">
+                <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-4 font-semibold">
+                  {t("product.fitsMachines")}
+                </h4>
+                <ul className="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12">
+                  {machines.map((m) => (
+                    <li key={m} className="py-3 border-b border-ink-15 font-sans text-sm text-ink-70">
+                      {m}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </div>

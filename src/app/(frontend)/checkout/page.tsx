@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Placeholder, Btn } from "@/components/ui/primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { CartSkeleton } from "@/components/layout/CartSkeleton";
 import { IconArrowRight } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { vatLabel, type CheckoutPaymentMethod } from "@/lib/market";
 import { usePrices } from "@/lib/market-context";
-import { COMPANY } from "@/lib/company";
+import { COMPANY, companyFor } from "@/lib/company";
 
 function Input({
   label,
@@ -69,17 +70,45 @@ const FIELDS = [
 ] as const;
 type Field = (typeof FIELDS)[number];
 
+const BILLING_FIELDS = ["company", "taxId", "vatNumber", "address"] as const;
+type BillingField = (typeof BILLING_FIELDS)[number];
+
 /** [method, label, detail] */
 type DeliveryOption = ["courier" | "pickup", string, string];
 
-const PAYMENT_LABELS: Record<CheckoutPaymentMethod, string> = {
-  bank_transfer: "Банков превод",
-  cod: "Наложен платеж",
+/** What the order route returns on success — all in EUR, the authored currency. */
+type OrderResult = {
+  orderNumber: string;
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  total: number;
 };
+
+/**
+ * One key per visit to the page, resent on every submit, so a double click or a
+ * retry after a dropped connection cannot create a second order. randomUUID
+ * needs a secure context; the fallback covers the odd plain-http host.
+ */
+function newIdempotencyKey(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
 
 export default function CheckoutPage() {
   const { market, gross, amount, price, symbol } = usePrices();
   const tc = useTranslations("common");
+  const tcart = useTranslations("cart");
+  const t = useTranslations("checkout");
+  const locale = useLocale();
+  const company = companyFor(locale);
 
   // Which methods exist is the market's call (Romania: cash on delivery, no
   // pickup). Cards are deferred until a provider is connected; offering a card
@@ -90,30 +119,79 @@ export default function CheckoutPage() {
     () => Object.fromEntries(FIELDS.map((f) => [f, ""])) as Record<Field, string>,
   );
   const [notes, setNotes] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<Field | "paymentMethod" | "items", string>>>({});
+  const [invoice, setInvoice] = useState(false);
+  const [billing, setBilling] = useState<Record<BillingField, string>>(
+    () => Object.fromEntries(BILLING_FIELDS.map((f) => [f, ""])) as Record<BillingField, string>,
+  );
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [idempotencyKey] = useState(newIdempotencyKey);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  const [result, setResult] = useState<OrderResult | null>(null);
 
-  const { items, itemCount, vatRate, totalsFor, clearCart } = useCart();
+  const { items, loaded, itemCount, vatRate, totalsFor, clearCart } = useCart();
   // Priced for the delivery actually selected — pickup carries no carriage.
   const { subtotal, shippingCost: shipping, tax, total } = totalsFor(shippingMethod);
 
+  const hasMadeToMeasure = items.some((i) => i.customSpecs);
+
+  const paymentLabels: Record<CheckoutPaymentMethod, string> = {
+    bank_transfer: t("bankTransfer"),
+    cod: t("cod"),
+  };
+
+  const pickupAddress =
+    locale.startsWith("bg")
+      ? `гр. ${company.address.city} ${company.address.postalCode}, ${company.address.street}`
+      : `${company.address.postalCode} ${company.address.city}, ${company.address.street}`;
+
   const deliveryOptions: DeliveryOption[] = [
-    ["courier", "Куриер", market.couriers.join(" · ")],
+    ["courier", t("courier"), market.couriers.join(" · ")],
     ...(market.pickup
-      ? [["pickup", "Лично вземане", `Цех ${COMPANY.address.city} · безплатно`] as DeliveryOption]
+      ? [["pickup", t("pickup"), t("pickupDetail", { city: company.address.city })] as DeliveryOption]
       : []),
   ];
 
   const set = (field: Field) => (v: string) => setForm((prev) => ({ ...prev, [field]: v }));
+  const setBill = (field: BillingField) => (v: string) => setBilling((prev) => ({ ...prev, [field]: v }));
+
+  const toggleInvoice = (on: boolean) => {
+    setInvoice(on);
+    // The company a buyer already typed under Contact is almost always the one
+    // to invoice; offer it rather than make them type it twice.
+    if (on && !billing.company.trim() && form.company.trim()) {
+      setBilling((prev) => ({ ...prev, company: form.company.trim() }));
+    }
+  };
+
+  /** Client-side checks for what the server insists on, so the buyer sees them at once. */
+  const validate = (): Record<string, string> => {
+    const errors: Record<string, string> = {};
+    if (!acceptedTerms) errors.acceptedTerms = t("consentRequired");
+    if (invoice) {
+      if (!billing.company.trim()) errors.billingCompany = t("fieldRequired");
+      if (!billing.taxId.trim()) errors.billingTaxId = t("fieldRequired");
+      if (!billing.address.trim()) errors.billingAddress = t("fieldRequired");
+    }
+    return errors;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
 
-    setSubmitting(true);
     setFormError(null);
+    const errors = validate();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+      });
+      return;
+    }
+
+    setSubmitting(true);
     setFieldErrors({});
 
     try {
@@ -130,6 +208,15 @@ export default function CheckoutPage() {
           },
           paymentMethod: method,
           notes,
+          billing: {
+            invoice,
+            company: invoice ? billing.company.trim() : "",
+            taxId: invoice ? billing.taxId.trim() : "",
+            vatNumber: invoice ? billing.vatNumber.trim() : "",
+            address: invoice ? billing.address.trim() : "",
+          },
+          acceptedTerms: true,
+          idempotencyKey,
           // Only what we are buying. The server prices it — see /api/checkout.
           items: items.map((i) => ({
             sku: i.sku,
@@ -139,57 +226,72 @@ export default function CheckoutPage() {
         }),
       });
 
-      const data = (await res.json()) as {
-        orderNumber?: string;
+      const data = (await res.json().catch(() => ({}))) as Partial<OrderResult> & {
         error?: string;
         fields?: Record<string, string>;
       };
 
       if (!res.ok) {
-        setFormError(data.error ?? "Възникна грешка. Опитайте отново.");
+        setFormError(data.error ?? t("genericError"));
         if (data.fields) setFieldErrors(data.fields);
         return;
       }
 
       // Clear only once the order is safely recorded.
-      setOrderNumber(data.orderNumber ?? null);
+      setResult({
+        orderNumber: data.orderNumber ?? "",
+        subtotal: data.subtotal ?? subtotal,
+        shipping: data.shipping ?? shipping,
+        tax: data.tax ?? tax,
+        total: data.total ?? total,
+      });
       clearCart();
     } catch {
-      setFormError("Няма връзка със сървъра. Проверете интернет и опитайте отново.");
+      setFormError(t("networkError"));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const submitted = orderNumber !== null;
-
-  if (submitted) {
+  if (result) {
     return (
       <div className="bg-paper">
         <PageHeader
-          eyebrowNumber="Step 03"
-          eyebrowLabel="Потвърждение"
-          title="Поръчката е приета."
-          description="Наш инженер ще се свърже с вас, за да потвърди размерите и срока за изработка."
+          eyebrowNumber={tcart("step3")}
+          eyebrowLabel={t("stepConfirm")}
+          title={t("successTitle")}
+          description={t("successDescription")}
         >
           <div className="flex gap-3 font-mono text-[11px] tracking-[0.1em] uppercase text-white/50">
-            <span>✓ Количка</span>
-            <span>✓ Доставка</span>
-            <span className="text-orange-light">● Плащане</span>
+            <span>✓ {tcart("stageCart")}</span>
+            <span>✓ {tcart("stageDelivery")}</span>
+            <span className="text-orange-light">● {tcart("stagePayment")}</span>
           </div>
         </PageHeader>
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 pb-[120px]">
           <div className="bg-white border border-ink-15 p-7 max-w-[520px] mb-8">
             <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50 mb-2">
-              Номер на поръчка
+              {t("orderNumber")}
             </div>
-            <div className="font-display text-4xl font-extrabold tracking-tight text-ink tabular-nums">
-              {orderNumber}
+            <div className="font-display text-4xl font-extrabold tracking-tight text-ink tabular-nums break-all">
+              {result.orderNumber}
             </div>
-            <p className="font-sans text-sm text-ink-70 mt-4 mb-0">
-              Запишете си номера. {method === "bank_transfer"
-                ? "Ще получите данни за банков превод — поръчката тръгва след потвърждение на плащането."
-                : "Плащате при доставка на куриера."}
+
+            <div className="mt-6 pt-5 border-t border-ink-15 text-sm">
+              <div className="flex justify-between mb-1"><span className="text-ink-50">{t("subtotal", { exVat: tc("exVat") })}</span><span className="tabular-nums">{price(result.subtotal)}</span></div>
+              <div className="flex justify-between mb-1">
+                <span className="text-ink-50">{t("delivery")}</span>
+                <span className="tabular-nums">{market.carriage === "collect" ? tc("courierFee") : result.shipping === 0 ? tc("free") : price(result.shipping)}</span>
+              </div>
+              <div className="flex justify-between mb-3"><span className="text-ink-50">{tc("vat", { rate: vatLabel(vatRate) })}</span><span className="tabular-nums">{price(result.tax)}</span></div>
+              <div className="flex justify-between items-baseline pt-3 border-t border-ink-15">
+                <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-ink-50">{t("total", { vatNote: tc("incVat") })}</span>
+                <span className="font-display text-[28px] font-extrabold text-ink tracking-tight tabular-nums">{price(result.total)}</span>
+              </div>
+            </div>
+
+            <p className="font-sans text-sm text-ink-70 mt-5 mb-0">
+              {t("keepNumber")} {method === "bank_transfer" ? t("bankInstruction") : t("codInstruction")}
             </p>
             {market.carriage === "collect" && (
               <p className="font-sans text-sm text-ink-70 mt-2 mb-0">
@@ -197,26 +299,28 @@ export default function CheckoutPage() {
               </p>
             )}
           </div>
-          <Link href="/"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Към началото</Btn></Link>
+          <Link href="/"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("backHome")}</Btn></Link>
         </div>
       </div>
     );
   }
 
+  if (!loaded) return <CartSkeleton />;
+
   if (items.length === 0) {
     return (
       <div className="bg-paper">
         <PageHeader
-          eyebrowNumber="Step 02"
-          eyebrowLabel="Доставка и плащане"
-          crumbs={[{ label: "Начало", href: "/" }, { label: "Количка", href: "/cart" }]}
-          title="Няма какво да платите."
-          description="Количката е празна — добавете артикул от каталога или конфигурирайте лента по размер."
+          eyebrowNumber={tcart("step2")}
+          eyebrowLabel={t("stepDelivery")}
+          crumbs={[{ label: tc("home"), href: "/" }, { label: tc("cart"), href: "/cart" }]}
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
         />
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 pb-[120px]">
           <div className="flex gap-3 flex-wrap">
-            <Link href="/shop"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>Към каталога</Btn></Link>
-            <Link href="/configurator"><Btn variant="ghost" size="lg">Конфигуратор</Btn></Link>
+            <Link href="/shop"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("toCatalogue")}</Btn></Link>
+            <Link href="/configurator"><Btn variant="ghost" size="lg">{tc("configurator")}</Btn></Link>
           </div>
         </div>
       </div>
@@ -227,41 +331,67 @@ export default function CheckoutPage() {
     <div className="bg-paper">
       {/* Transactional page: same masthead typography, no photograph. */}
       <PageHeader
-        eyebrowNumber="Step 02"
-        eyebrowLabel="Доставка и плащане"
-        crumbs={[{ label: "Начало", href: "/" }, { label: "Количка", href: "/cart" }, { label: "Плащане" }]}
-        title="Завърши поръчка."
+        eyebrowNumber={tcart("step2")}
+        eyebrowLabel={t("stepDelivery")}
+        crumbs={[{ label: tc("home"), href: "/" }, { label: tc("cart"), href: "/cart" }, { label: t("crumbPayment") }]}
+        title={t("title")}
       >
         <div className="flex gap-3 font-mono text-[11px] tracking-[0.1em] uppercase text-white/50">
-          <span>✓ Количка</span>
-          <span className="text-orange-light">● Доставка</span>
-          <span>○ Плащане</span>
+          <span>✓ {tcart("stageCart")}</span>
+          <span className="text-orange-light">● {tcart("stageDelivery")}</span>
+          <span>○ {tcart("stagePayment")}</span>
         </div>
       </PageHeader>
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-12 pb-[120px]">
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8">
-          <div className="flex flex-col gap-6">
-            <CheckoutCard num="01" title="Контакти">
+          <div className="flex flex-col gap-6 min-w-0">
+            <CheckoutCard num="01" title={t("cardContact")}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <Input label="Име и фамилия" required autoComplete="name"
+                <Input label={t("fieldName")} required autoComplete="name"
                   value={form.name} onChange={set("name")} error={fieldErrors.name} />
-                <Input label="Фирма (незадължително)" autoComplete="organization"
+                <Input label={t("fieldCompany")} autoComplete="organization"
                   value={form.company} onChange={set("company")} />
-                <Input label="Имейл" placeholder="you@company.bg" type="email" required autoComplete="email"
+                <Input label={t("fieldEmail")} placeholder={t("emailPlaceholder")} type="email" required autoComplete="email"
                   value={form.email} onChange={set("email")} error={fieldErrors.email} />
-                <Input label="Телефон" placeholder="+359 …" type="tel" required autoComplete="tel"
+                <Input label={t("fieldPhone")} placeholder={t("phonePlaceholder")} type="tel" required autoComplete="tel"
                   value={form.phone} onChange={set("phone")} error={fieldErrors.phone} />
               </div>
+
+              <label className="flex items-center gap-3 mt-5 cursor-pointer font-sans text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={invoice}
+                  onChange={(e) => toggleInvoice(e.target.checked)}
+                  className="w-5 h-5 accent-orange shrink-0"
+                />
+                {t("invoiceToggle")}
+              </label>
+              {invoice && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                  <div className="md:col-span-2">
+                    <Input label={t("invoiceCompany")} required autoComplete="organization"
+                      value={billing.company} onChange={setBill("company")} error={fieldErrors.billingCompany} />
+                  </div>
+                  <Input label={t("invoiceTaxId")} required
+                    value={billing.taxId} onChange={setBill("taxId")} error={fieldErrors.billingTaxId} />
+                  <Input label={t("invoiceVat")}
+                    value={billing.vatNumber} onChange={setBill("vatNumber")} />
+                  <div className="md:col-span-2">
+                    <Input label={t("invoiceAddress")} required autoComplete="off"
+                      value={billing.address} onChange={setBill("address")} error={fieldErrors.billingAddress} />
+                  </div>
+                </div>
+              )}
             </CheckoutCard>
 
-            <CheckoutCard num="02" title="Доставка">
+            <CheckoutCard num="02" title={t("cardDelivery")}>
               {/* A choice only where there is one. With courier alone, a single
                   pressed button reads as something that could be un-pressed. */}
               {deliveryOptions.length > 1 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
-                  {deliveryOptions.map(([k, t, d]) => (
+                  {deliveryOptions.map(([k, label, d]) => (
                     <button
                       key={k}
                       type="button"
@@ -271,7 +401,7 @@ export default function CheckoutPage() {
                         shippingMethod === k ? "border-ink bg-paper" : "border-ink-15 bg-white hover:border-ink-30"
                       }`}
                     >
-                      <div className="font-display text-sm font-semibold text-ink">{t}</div>
+                      <div className="font-display text-sm font-semibold text-ink">{label}</div>
                       <div className="font-mono text-[10px] text-ink-50 mt-0.5 tracking-[0.05em]">{d}</div>
                     </button>
                   ))}
@@ -291,23 +421,23 @@ export default function CheckoutPage() {
 
               {shippingMethod === "courier" ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <Input label="Град" required autoComplete="address-level2"
+                  <Input label={t("fieldCity")} required autoComplete="address-level2"
                     value={form.city} onChange={set("city")} error={fieldErrors.city} />
-                  <Input label="Пощенски код" autoComplete="postal-code"
+                  <Input label={t("fieldPostalCode")} autoComplete="postal-code"
                     value={form.postalCode} onChange={set("postalCode")} />
                   <div className="md:col-span-2">
-                    <Input label="Адрес" placeholder="Улица, номер, офис" required autoComplete="street-address"
+                    <Input label={t("fieldStreet")} placeholder={t("streetPlaceholder")} required autoComplete="street-address"
                       value={form.street} onChange={set("street")} error={fieldErrors.street} />
                   </div>
                 </div>
               ) : (
                 <div className="p-4 bg-paper font-sans text-sm text-ink-70">
-                  Вземане от цеха: гр. Габрово 5300, ул. „Негенска“ 2. Ще се обадим, когато лентата е готова.
+                  {t("pickupNote", { address: pickupAddress })}
                 </div>
               )}
             </CheckoutCard>
 
-            <CheckoutCard num="03" title="Плащане">
+            <CheckoutCard num="03" title={t("cardPayment")}>
               {market.paymentMethods.length > 1 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                   {market.paymentMethods.map((k) => (
@@ -320,25 +450,25 @@ export default function CheckoutPage() {
                         method === k ? "bg-ink text-white border-ink" : "bg-white text-ink border-ink-15 hover:border-ink-30"
                       }`}
                     >
-                      {PAYMENT_LABELS[k]}
+                      {paymentLabels[k]}
                     </button>
                   ))}
                 </div>
               )}
               {method === "bank_transfer" && (
                 <div className="p-4 bg-paper font-sans text-sm text-ink-70">
-                  <p className="font-semibold text-ink mb-2 mt-0">Банков превод:</p>
-                  <p className="m-0">IBAN: {COMPANY.bank.iban}<br />BIC: {COMPANY.bank.bic}<br />Основание: номерът на поръчката</p>
+                  <p className="font-semibold text-ink mb-2 mt-0">{t("bankTransferTitle")}</p>
+                  <p className="m-0">IBAN: {COMPANY.bank.iban}<br />BIC: {COMPANY.bank.bic}<br />{t("bankReference")}</p>
                 </div>
               )}
               {method === "cod" && (
                 <div className="p-4 bg-paper font-sans text-sm text-ink-70">
-                  Плащате при доставка на куриера.
+                  {t("codInstruction")}
                 </div>
               )}
               <label className="block mt-4">
                 <span className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
-                  Бележка към поръчката (незадължително)
+                  {t("fieldNotes")}
                 </span>
                 <textarea
                   rows={3}
@@ -351,30 +481,40 @@ export default function CheckoutPage() {
           </div>
 
           {/* Summary sidebar */}
-          <aside className="bg-white border border-ink-15 p-8 h-fit lg:sticky lg:top-[200px]">
-            <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50 mb-5">Поръчка · {itemCount} артикула</div>
+          <aside className="bg-white border border-ink-15 p-8 h-fit min-w-0 lg:sticky lg:top-[200px]">
+            <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50 mb-5">{t("orderSummary", { count: itemCount })}</div>
             {items.map((it) => (
               <div key={it.id} className="flex gap-3 py-3 border-b border-ink-05">
-                <Placeholder tone="paper" ratio="1/1" className="w-12 shrink-0" caption="" />
+                <Placeholder tone="paper" ratio="1/1" className="w-12 shrink-0" caption="" src={it.image} alt="" sizes="48px" />
                 <div className="flex-1 min-w-0">
                   <div className="font-display text-[13px] font-semibold text-ink leading-tight truncate">{it.name}</div>
                   <div className="font-mono text-[10px] text-ink-50 mt-0.5 tabular-nums">
                     {it.quantity} × {price(gross(it.price))} {tc("incVat")} · {price(it.price)} {tc("exVat")}
                   </div>
+                  {it.customSpecs && (
+                    <div className="inline-block mt-1.5 px-1.5 py-0.5 bg-orange/10 border border-orange/40 font-mono text-[10px] text-ink leading-snug">
+                      {t("madeToMeasure")}
+                    </div>
+                  )}
                 </div>
                 <div className="font-mono text-[13px] font-semibold text-ink shrink-0 tabular-nums">{amount(gross(it.quantity * it.price))}</div>
               </div>
             ))}
+            {hasMadeToMeasure && (
+              <div role="note" className="mt-4 p-3.5 bg-orange/10 border border-orange/40 font-sans text-[13px] text-ink">
+                {t("madeToMeasureNotice")}
+              </div>
+            )}
             <div className="mt-5 pt-5 border-t border-ink-15">
-              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">Междинна сума · {tc("exVat")}</span><span>{price(subtotal)}</span></div>
-              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">Доставка</span><span>{market.carriage === "collect" ? tc("courierFee") : shipping === 0 ? tc("free") : price(shipping)}</span></div>
+              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">{t("subtotal", { exVat: tc("exVat") })}</span><span>{price(subtotal)}</span></div>
+              <div className="flex justify-between text-sm mb-1"><span className="text-ink-50">{t("delivery")}</span><span>{market.carriage === "collect" ? tc("courierFee") : shipping === 0 ? tc("free") : price(shipping)}</span></div>
               <div className="flex justify-between text-sm mb-3"><span className="text-ink-50">{tc("vat", { rate: vatLabel(vatRate) })}</span><span>{price(tax)}</span></div>
               <div className="flex justify-between items-baseline pt-3 border-t border-ink-15">
-                <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-ink-50">Общо · {tc("incVat")}</span>
+                <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-ink-50">{t("total", { vatNote: tc("incVat") })}</span>
                 <span className="font-display text-[32px] font-extrabold text-ink tracking-tight tabular-nums">{amount(total)} <span className="text-xs font-normal text-ink-50">{symbol}</span></span>
               </div>
               <div className="flex justify-between font-mono text-[11px] text-ink-50 tabular-nums mt-1">
-                <span>Общо · {tc("exVat")}</span>
+                <span>{t("total", { vatNote: tc("exVat") })}</span>
                 <span>{price(subtotal + shipping)}</span>
               </div>
             </div>
@@ -388,13 +528,44 @@ export default function CheckoutPage() {
               </div>
             )}
 
+            {/* Required consent: unticked by default, links open in a new tab so
+                the buyer does not lose the form. */}
+            <div className="mt-5">
+              <label className="flex items-start gap-3 cursor-pointer font-sans text-[13px] leading-snug text-ink">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => {
+                    setAcceptedTerms(e.target.checked);
+                    if (e.target.checked) setFieldErrors((prev) => ({ ...prev, acceptedTerms: "" }));
+                  }}
+                  aria-invalid={Boolean(fieldErrors.acceptedTerms)}
+                  aria-required="true"
+                  className="w-5 h-5 mt-0.5 accent-orange shrink-0"
+                />
+                <span>
+                  {t.rich("consent", {
+                    terms: (chunks) => (
+                      <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline text-blue">{chunks}</Link>
+                    ),
+                    privacy: (chunks) => (
+                      <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="underline text-blue">{chunks}</Link>
+                    ),
+                  })}
+                </span>
+              </label>
+              {fieldErrors.acceptedTerms && (
+                <span role="alert" className="font-mono text-[10px] text-danger mt-1.5 block">{fieldErrors.acceptedTerms}</span>
+              )}
+            </div>
+
             <div className="mt-5">
               <Btn variant="primary" size="lg" fullWidth type="submit" disabled={submitting} iconRight={<IconArrowRight size={16} />}>
-                {submitting ? "Изпращане…" : "Потвърди поръчка"}
+                {submitting ? t("submitting") : t("submit")}
               </Btn>
             </div>
             <p className="font-mono text-[10px] text-ink-50 mt-3 text-center leading-relaxed">
-              Сумата се преизчислява при потвърждение по актуалния ценоразпис.
+              {t("recalcNote")}
             </p>
           </aside>
         </form>

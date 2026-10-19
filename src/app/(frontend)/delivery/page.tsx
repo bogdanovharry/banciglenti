@@ -1,130 +1,152 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
-import { LegalPage, LegalSection } from "@/components/layout/LegalPage";
-import { COMPANY, TERMS, formattedAddress } from "@/lib/company";
-import { DEFAULT_MARKET } from "@/lib/market";
+import { LegalPage, LegalSection, legalTags } from "@/components/layout/LegalPage";
+import { COMPANY, addressLine, companyFor, rateLabel, termsFor } from "@/lib/company";
+import { getMarket } from "@/i18n/locale";
+import { currencySymbol, formatPrice } from "@/lib/market";
+import { absoluteUrl } from "@/lib/site-url";
 
-export const metadata: Metadata = {
-  title: "Доставка и плащане",
-  description:
-    `Начини на доставка и плащане, срокове и цени при поръчка на банцигови ленти и режещи инструменти от ${COMPANY.tradeName}.`,
-};
+/*
+ * DRAFT for review by a Romanian lawyer before the Romanian store goes live.
+ * Strings live in messages/parts/legal.{bg,ro}.json under `legal.delivery`.
+ */
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("legal.delivery.meta");
+  const market = await getMarket();
+  return {
+    title: t("title"),
+    description: t("description", { name: companyFor(market.locale).tradeName }),
+    alternates: { canonical: await absoluteUrl("/delivery") },
+  };
+}
 
 /**
- * Every figure here is read from src/lib/company.ts, which mirrors the values
- * the cart and the order route actually use. If the free-shipping threshold
- * changes in code, this page changes with it — a delivery page that disagrees
- * with checkout is worse than no delivery page.
+ * Every figure here is read from the market registry (src/lib/market.ts) via
+ * termsFor(), which mirrors the values the cart and the order route actually
+ * use. If the free-shipping threshold changes in code, this page changes with
+ * it — a delivery page that disagrees with checkout is worse than no delivery
+ * page.
+ *
+ * Per market: Bulgaria has a flat fee, a free-delivery threshold and workshop
+ * pickup; Romania ('collect') has none of those — the courier bills its own
+ * weight-based fee at the door.
  */
-export default function DeliveryPage() {
+export default async function DeliveryPage() {
+  const t = await getTranslations("legal.delivery");
+  const market = await getMarket();
+  const co = companyFor(market.locale);
+  const terms = termsFor(market);
+  const bg = market.locale.startsWith("bg");
+
+  const tags = legalTags({ email: co.email, telHref: co.phone.office.href });
+  const values = {
+    country: market.country,
+    couriers: terms.couriers.join(bg ? " и " : " și "),
+    address: addressLine(market.locale),
+    email: co.email,
+    phone: co.phone.office.display,
+    vatPercent: terms.vatPercent,
+    rate: rateLabel(market),
+    symbol: currencySymbol(market),
+  };
+  const rich = (key: string, extra: Record<string, string | number> = {}) =>
+    t.rich(key, { ...values, ...extra, ...tags });
+
+  // Card payments are announced on the Bulgarian store only; Romania launches
+  // with cash on delivery and promises nothing further.
+  const cardsAnnounced = market.code === "bg";
+
   return (
     <LegalPage
-      eyebrowNumber="№ 10"
-      eyebrowLabel="Условия"
-      title="Доставка и плащане"
-      description="Как стигат до вас поръчаните ленти и как се плаща за тях."
-      updated="2026-08-06"
+      eyebrowNumber={t("eyebrowNumber")}
+      eyebrowLabel={t("eyebrowLabel")}
+      title={t("title")}
+      description={t("lead")}
+      updated="2026-10-19"
     >
-      <LegalSection n="01" title="Начини на доставка">
-        <p>
-          Доставяме с куриер до адрес или до офис на куриерската фирма на територията на
-          {" "}{COMPANY.address.country}. Работим с {DEFAULT_MARKET.couriers.join(" и ")} —
-          куриерът се избира при обработката на поръчката според вашия адрес.
-        </p>
-        <p>
-          Можете и да вземете поръчката лично от цеха ни: {formattedAddress()}. Обаждаме се,
-          когато лентата е готова. Личното вземане е безплатно.
-        </p>
+      <LegalSection n="01" title={t("s01.title")}>
+        <p>{t("s01.p1", values)}</p>
+        {terms.pickup && <p>{t("s01.pickup", values)}</p>}
       </LegalSection>
 
-      <LegalSection n="02" title="Цена на доставката">
-        <dl>
-          <dt>Стандартна доставка</dt>
-          <dd className="tabular-nums">{TERMS.shippingCost.toFixed(2)} € с куриер до адрес или офис</dd>
-          <dt>Безплатна доставка</dt>
-          <dd className="tabular-nums">при поръчка над {TERMS.freeShippingThreshold} € без ДДС</dd>
-          <dt>Лично вземане</dt>
-          <dd>безплатно, от цеха в {COMPANY.address.city}</dd>
-        </dl>
-        <p>
-          Цената на доставката се изчислява автоматично в количката и се вижда преди
-          потвърждение на поръчката.
-        </p>
+      <LegalSection n="02" title={t("s02.title")}>
+        {terms.carriage === "collect" ? (
+          <p>{t("s02.collect")}</p>
+        ) : (
+          <>
+            <dl>
+              <dt>{t("s02.standard")}</dt>
+              <dd className="tabular-nums">
+                {t("s02.standardText", { cost: formatPrice(terms.shippingCost, market) })}
+              </dd>
+              <dt>{t("s02.free")}</dt>
+              <dd className="tabular-nums">
+                {t("s02.freeText", { amount: formatPrice(terms.freeShippingThreshold, market) })}
+              </dd>
+              {terms.pickup && (
+                <>
+                  <dt>{t("s02.pickupLabel")}</dt>
+                  <dd>{t("s02.pickupText", { city: co.address.city })}</dd>
+                </>
+              )}
+            </dl>
+            <p>{t("s02.auto")}</p>
+          </>
+        )}
       </LegalSection>
 
-      <LegalSection n="03" title="Срокове">
-        <p>
-          <strong>Артикули от склад</strong> се експедират след потвърждаване на поръчката.
-        </p>
-        <p>
-          <strong>Ленти по поръчка</strong> се режат и заваряват на заявения от вас размер.
-          Срокът за изработка се потвърждава от наш инженер при обработката на поръчката,
-          защото зависи от размера, материала и текущата натовареност на цеха.
-        </p>
-        <p>
-          Срокът на куриера се добавя към срока за изработка и зависи от избраната
-          куриерска фирма и населеното място.
-        </p>
+      <LegalSection n="03" title={t("s03.title")}>
+        <p>{rich("s03.stock")}</p>
+        <p>{rich("s03.custom")}</p>
+        <p>{t("s03.courier")}</p>
       </LegalSection>
 
-      <LegalSection n="04" title="Начини на плащане">
-        <h3>Банков превод</h3>
-        <p>
-          След потвърждение на поръчката получавате данни за превод. Поръчката влиза в
-          производство след постъпване на сумата по сметката.
-        </p>
-        <dl>
-          <dt>Получател</dt>
-          <dd>{COMPANY.legalName}</dd>
-          <dt>Банка</dt>
-          <dd>{COMPANY.bank.name}</dd>
-          <dt>IBAN</dt>
-          <dd className="tabular-nums">{COMPANY.bank.iban}</dd>
-          <dt>BIC</dt>
-          <dd>{COMPANY.bank.bic}</dd>
-          <dt>Основание</dt>
-          <dd>номерът на вашата поръчка</dd>
-        </dl>
+      <LegalSection n="04" title={t("s04.title")}>
+        {terms.bankTransfer && (
+          <>
+            <h3>{t("s04.bankTitle")}</h3>
+            <p>{t("s04.bank")}</p>
+            <dl>
+              <dt>{t("s04.payee")}</dt>
+              <dd>{COMPANY.legalName}</dd>
+              <dt>{t("s04.bankName")}</dt>
+              <dd>{COMPANY.bank.name}</dd>
+              <dt>{t("s04.iban")}</dt>
+              <dd className="tabular-nums">{COMPANY.bank.iban}</dd>
+              <dt>{t("s04.bic")}</dt>
+              <dd>{COMPANY.bank.bic}</dd>
+              <dt>{t("s04.reason")}</dt>
+              <dd>{t("s04.reasonText")}</dd>
+            </dl>
+          </>
+        )}
 
-        <h3>Наложен платеж</h3>
-        <p>
-          Плащате на куриера при получаване. Таксата за наложен платеж се определя от
-          куриерската фирма и се заплаща от получателя.
-        </p>
+        {terms.cod && (
+          <>
+            <h3>{t("s04.codTitle")}</h3>
+            <p>{t("s04.cod")}</p>
+          </>
+        )}
 
-        <h3>Плащане с карта</h3>
-        <p>
-          Плащането с банкова карта предстои да бъде включено. Междувременно приемаме
-          банков превод и наложен платеж.
-        </p>
+        {cardsAnnounced && (
+          <>
+            <h3>{t("s04.cardTitle")}</h3>
+            <p>{t("s04.card")}</p>
+          </>
+        )}
       </LegalSection>
 
-      <LegalSection n="05" title="Цени и ДДС">
-        <p>
-          Всички цени в сайта са в евро (€) и се показват <strong>с ДДС и без ДДС</strong>. Начисленият ДДС е
-          {" "}{(TERMS.vatRate * 100).toFixed(0)}% и се показва отделно в количката и в
-          потвърждението на поръчката.
-        </p>
-        <p>
-          Цената на лента по поръчка се изчислява по актуалния ни ценоразпис според дължина,
-          широчина, дебелина, материал и избраните обработки (заваряване, чапраз, заточване,
-          термообработка). Сумата се преизчислява при потвърждение на поръчката по
-          ценоразписа, валиден в този момент.
-        </p>
+      <LegalSection n="05" title={t("s05.title")}>
+        <p>{rich("s05.p1")}</p>
+        {terms.exchangeRate !== 1 && <p>{t("s05.rate", values)}</p>}
+        <p>{t("s05.p2")}</p>
       </LegalSection>
 
-      <LegalSection n="06" title="Проверка при получаване">
-        <p>
-          Прегледайте пратката в присъствието на куриера. При видима повреда на опаковката
-          или несъответствие опишете това в товарителницата и ни уведомете веднага на{" "}
-          <a href={COMPANY.phone.office.href}>{COMPANY.phone.office.display}</a> или{" "}
-          <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>.
-        </p>
-        <p>
-          Условията за връщане и рекламация са описани в{" "}
-          <Link href="/terms">Общите условия</Link>.
-        </p>
+      <LegalSection n="06" title={t("s06.title")}>
+        <p>{rich("s06.p1")}</p>
+        <p>{rich("s06.p2")}</p>
       </LegalSection>
     </LegalPage>
   );

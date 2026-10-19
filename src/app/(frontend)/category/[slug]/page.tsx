@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { getCategories, getCategoryBySlug, getCategoryCounts, getProducts } from "@/lib/catalog";
+import { absoluteUrl } from "@/lib/site-url";
 import { CategoryClient, type Subcategory } from "./CategoryClient";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -24,13 +26,18 @@ const CATEGORY_IMAGES: Record<string, string> = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = await getCategoryBySlug(slug);
+  const [category, t] = await Promise.all([getCategoryBySlug(slug), getTranslations("catalog")]);
 
-  if (!category) return { title: "Категорията не е намерена" };
+  if (!category) return { title: t("meta.categoryNotFound") };
+
+  const description = category.description || t("meta.categoryDescription", { name: category.name });
+  const url = await absoluteUrl(`/category/${category.slug}`);
 
   return {
     title: category.name,
-    description: category.description || undefined,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title: category.name, description, url, type: "website" },
   };
 }
 

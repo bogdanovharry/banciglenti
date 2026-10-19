@@ -1,167 +1,139 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
-import { LegalPage, LegalSection } from "@/components/layout/LegalPage";
-import { COMPANY, TERMS, formattedAddress } from "@/lib/company";
+import { LegalPage, LegalSection, legalTags } from "@/components/layout/LegalPage";
+import { COMPANY, addressLine, companyFor, rateLabel, termsFor } from "@/lib/company";
+import { getMarket } from "@/i18n/locale";
+import { currencySymbol } from "@/lib/market";
+import { absoluteUrl } from "@/lib/site-url";
 
-export const metadata: Metadata = {
-  title: "Общи условия",
-  description:
-    `Общи условия за продажба на ${COMPANY.legalName} — сключване на договор, цени, доставка, право на отказ, гаранция и рекламации.`,
-};
+/*
+ * DRAFT for review by a Romanian lawyer (the ro text, and the Romanian-law
+ * citations in it) before the Romanian store goes live. The Bulgarian text is
+ * the existing baseline plus the corrections listed in the engineering report.
+ * Strings live in messages/parts/legal.{bg,ro}.json under `legal.terms`.
+ */
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("legal.terms.meta");
+  const market = await getMarket();
+  return {
+    title: t("title"),
+    description: t("description", { name: companyFor(market.locale).legalName }),
+    alternates: { canonical: await absoluteUrl("/terms") },
+  };
+}
 
 /**
  * States statutory positions (EU distance-selling and conformity rules as
- * transposed into Bulgarian law) rather than inventing company policy, so
- * nothing here commits the business to more than the law already does.
+ * transposed into Bulgarian and Romanian law) rather than inventing company
+ * policy, so nothing here commits the business to more than the law already does.
  *
  * Two points are deliberately explicit because they are commercially material
  * and easy to get wrong:
- *   - made-to-measure blades are exempt from the 14-day withdrawal right;
+ *   - blades made to the consumer's specification (configured length, width…)
+ *     are exempt from the 14-day withdrawal right; standard catalogue items
+ *     that are merely welded on request are not;
  *   - consumers have a two-year conformity guarantee, which cannot be reduced.
  */
-export default function TermsPage() {
+export default async function TermsPage() {
+  const t = await getTranslations("legal.terms");
+  const market = await getMarket();
+  const co = companyFor(market.locale);
+  const terms = termsFor(market);
+
+  const contact = { email: co.email, telHref: co.phone.office.href };
+  const tags = legalTags(contact, {
+    kzp: "https://kzp.bg",
+    anpc: "https://anpc.ro",
+    sal: "https://anpc.ro/sal/",
+  });
+  const company = {
+    name: co.legalName,
+    vat: COMPANY.vatNumber,
+    eik: COMPANY.eik,
+    address: addressLine(market.locale),
+    email: co.email,
+    phone: co.phone.office.display,
+  };
+  const rich = (key: string, values: Record<string, string | number> = {}) =>
+    t.rich(key, { ...company, ...values, ...tags });
+
   return (
     <LegalPage
-      eyebrowNumber="№ 11"
-      eyebrowLabel="Правна информация"
-      title="Общи условия"
-      description="Условия за продажба при поръчка през този сайт."
-      updated="2026-08-06"
+      eyebrowNumber={t("eyebrowNumber")}
+      eyebrowLabel={t("eyebrowLabel")}
+      title={t("title")}
+      description={t("lead")}
+      updated="2026-10-19"
     >
-      <LegalSection n="01" title="Страни и обхват">
-        <p>
-          Тези общи условия уреждат продажбата на стоки и услуги през този сайт от{" "}
-          <strong>{COMPANY.legalName}</strong>, ДДС № {COMPANY.vatNumber}, със седалище{" "}
-          {formattedAddress()} („Продавач“, „ние“), към лицето, което прави поръчка
-          („Купувач“, „вие“).
-        </p>
-        <p>
-          С потвърждаването на поръчка приемате тези условия в редакцията им към момента на
-          поръчката.
-        </p>
+      <LegalSection n="01" title={t("s01.title")}>
+        <p>{rich("s01.p1")}</p>
+        <p>{t("s01.p2")}</p>
       </LegalSection>
 
-      <LegalSection n="02" title="Сключване на договора">
-        <p>
-          Информацията в сайта е покана за отправяне на предложение, а не обвързваща оферта.
-          Договорът се счита за сключен, когато потвърдим поръчката ви.
-        </p>
-        <p>
-          Запазваме си правото да откажем поръчка, ако артикулът не е наличен, ако заявената
-          комбинация от размери не може да бъде произведена, или ако е допусната явна грешка
-          в цената.
-        </p>
+      <LegalSection n="02" title={t("s02.title")}>
+        <p>{t("s02.p1")}</p>
+        <p>{t("s02.p2")}</p>
       </LegalSection>
 
-      <LegalSection n="03" title="Цени">
-        <p>
-          Цените са в евро (€) и се показват с ДДС и без ДДС. Начисляваме{" "}
-          {(TERMS.vatRate * 100).toFixed(0)}% ДДС, показан отделно преди потвърждение на поръчката.
-        </p>
-        <p>
-          Цената на изделие по поръчка се изчислява по актуалния ни ценоразпис. Сумата се
-          преизчислява в момента на потвърждение на поръчката, затова показаната по-рано в
-          количката цена е ориентировъчна до този момент.
-        </p>
+      <LegalSection n="03" title={t("s03.title")}>
+        <p>{t("s03.p1", { vatPercent: terms.vatPercent })}</p>
+        {terms.exchangeRate !== 1 && (
+          <p>{t("s03.rate", { rate: rateLabel(market), symbol: currencySymbol(market) })}</p>
+        )}
+        <p>{t("s03.p2")}</p>
       </LegalSection>
 
-      <LegalSection n="04" title="Плащане и доставка">
-        <p>
-          Приемаме банков превод и наложен платеж. Условията, сроковете и цените за доставка
-          са описани на страница <Link href="/delivery">Доставка и плащане</Link> и са част
-          от тези общи условия.
-        </p>
+      <LegalSection n="04" title={t("s04.title")}>
+        <p>{rich("s04.p1", { methods: terms.bankTransfer ? "both" : "other" })}</p>
       </LegalSection>
 
-      <LegalSection n="05" title="Право на отказ при онлайн покупка">
-        <p>
-          Ако сте <strong>потребител</strong> (физическо лице, което купува извън рамките на
-          своята търговска или професионална дейност), имате право да се откажете от
-          договора в срок от <strong>14 дни</strong> от получаване на стоката, без да
-          посочвате причина.
-        </p>
-        <p>
-          Уведомете ни на <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a> или на{" "}
-          <a href={COMPANY.phone.office.href}>{COMPANY.phone.office.display}</a>. Стоката се
-          връща в търговски вид, а стойността ѝ се възстановява в срок до 14 дни от
-          получаване на уведомлението. Преките разходи за връщане са за ваша сметка.
-        </p>
+      <LegalSection n="05" title={t("s05.title")}>
+        <p>{rich("s05.p1")}</p>
+        <p>{rich("s05.p2", { formSection: "06" })}</p>
+        <p>{t("s05.refund")}</p>
 
-        <h3>Изключение за изделия по поръчка</h3>
-        <p>
-          Правото на отказ <strong>не се прилага</strong> за стоки, изработени по ваша
-          поръчка или явно персонализирани. Лента, отрязана на заявена от вас дължина и
-          заварена на контур, е такава стока — тя не може да бъде предложена на друг клиент.
-        </p>
-        <p>
-          Затова размерите се потвърждават с вас преди производство. Ако не сте сигурни какъв
-          размер ви трябва, обадете се преди да поръчате — консултацията е безплатна.
-        </p>
+        <h3>{t("s05.exTitle")}</h3>
+        <p>{rich("s05.exP1")}</p>
+        <p>{t("s05.exP2")}</p>
       </LegalSection>
 
-      <LegalSection n="06" title="Съответствие и рекламации">
-        <p>
-          При покупка от <strong>потребител</strong> отговаряме за липса на съответствие на
-          стоката с договора в законоустановения срок от <strong>две години</strong> от
-          доставянето. В този срок имате право на ремонт, замяна, намаляване на цената или
-          разваляне на договора при условията на закона.
-        </p>
-        <p>
-          Естественото износване на режещия ръб при нормална употреба не е дефект.
-          Банциговата лента е консуматив — животът ѝ зависи от материала, режима на рязане
-          и настройката на машината, затова не гарантираме срок на експлоатация. Не се
-          покриват повреди, причинени от неправилно опъване, несъответстващ размер спрямо
-          машината, неподходящ режим на рязане или механично увреждане.
-        </p>
-
-        <h3>Гаранция на заваръчния шев</h3>
-        <p>
-          За лентите, които заваряваме, отговаряме за <strong>качеството на шева</strong>.
-          Ако лентата се скъса на мястото на заварката, а не поради износване или
-          неправилна употреба, я подменяме.
-        </p>
-        <p>
-          Това е наша търговска гаранция за извършената от нас работа и не ограничава
-          законовите ви права като потребител по раздела по-горе.
-        </p>
-        <p>
-          Рекламация се предявява на{" "}
-          <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a> с номер на поръчката и
-          описание на проблема. При възможност приложете снимка на лентата и на мястото на
-          скъсване — това често позволява да установим причината и да ви посъветваме как да
-          я избегнете.
-        </p>
+      <LegalSection n="06" title={t("s06.title")}>
+        <p>{rich("s06.intro")}</p>
+        <div className="border border-ink-15 p-5 md:p-6 my-5">
+          <p>{t("s06.to", company)}</p>
+          <p>{t("s06.body")}</p>
+          <p>{t("s06.ordered")}</p>
+          <p>{t("s06.consumerName")}</p>
+          <p>{t("s06.consumerAddress")}</p>
+          <p>{t("s06.sign")}</p>
+          <p>{t("s06.date")}</p>
+          <p className="text-ink-50">{t("s06.note")}</p>
+        </div>
       </LegalSection>
 
-      <LegalSection n="07" title="Покупки от търговци">
-        <p>
-          Правилата в раздели 05 и 06 относно правото на отказ и двугодишния срок се отнасят
-          за потребители. При покупка от юридическо лице или едноличен търговец в рамките на
-          неговата дейност се прилагат разпоредбите на Търговския закон.
-        </p>
+      <LegalSection n="07" title={t("s07.title")}>
+        <p>{rich("s07.p1")}</p>
+        <p>{t("s07.p2")}</p>
+
+        <h3>{t("s07.seamTitle")}</h3>
+        <p>{rich("s07.seamP1")}</p>
+        <p>{t("s07.seamP2")}</p>
+        <p>{rich("s07.claim")}</p>
       </LegalSection>
 
-      <LegalSection n="08" title="Приложимо право и спорове">
-        <p>
-          За тези условия се прилага българското право. Спорове се решават по споразумение, а
-          при невъзможност — от компетентния български съд.
-        </p>
-        <p>
-          Като потребител можете да отнесете спор и към Комисията за защита на потребителите,
-          или през платформата на ЕС за онлайн решаване на спорове:{" "}
-          <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">
-            ec.europa.eu/consumers/odr
-          </a>
-          .
-        </p>
+      <LegalSection n="08" title={t("s08.title")}>
+        <p>{t("s08.p1", { withdrawal: "05", conformity: "07" })}</p>
       </LegalSection>
 
-      <LegalSection n="09" title="Промени">
-        <p>
-          Можем да променяме тези условия. За вече сключен договор важи редакцията, действала
-          към момента на поръчката. Датата на последната редакция е отбелязана по-долу.
-        </p>
+      <LegalSection n="09" title={t("s09.title")}>
+        <p>{t("s09.p1")}</p>
+        <p>{rich("s09.p2")}</p>
+      </LegalSection>
+
+      <LegalSection n="10" title={t("s10.title")}>
+        <p>{t("s10.p1")}</p>
       </LegalSection>
     </LegalPage>
   );

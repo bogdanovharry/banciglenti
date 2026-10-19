@@ -96,10 +96,10 @@ export function SawMeisterLogo({
    * buttons on a phone, beside the search box from tablet up.
    */
   className = "w-[165px] h-auto sm:w-[210px] md:w-[240px] lg:w-[295px] xl:w-[320px]",
-  priority = false,
+  preload = false,
 }: {
   className?: string;
-  priority?: boolean;
+  preload?: boolean;
 }) {
   return (
     <Image
@@ -107,7 +107,7 @@ export function SawMeisterLogo({
       alt="Saw-Meister"
       width={LOGO_W}
       height={LOGO_H}
-      priority={priority}
+      preload={preload}
       className={`max-w-full ${className}`}
     />
   );

@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import Link from 'next/link'
+import { getLocale, getTranslations } from 'next-intl/server'
 
 import { PageHeader } from '@/components/layout/PageHeader'
 
@@ -11,7 +13,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
  * continuous prose. The rest of the site runs much wider because it is mostly
  * cards and figures.
  */
-export function LegalPage({
+export async function LegalPage({
   eyebrowNumber,
   eyebrowLabel,
   title,
@@ -27,12 +29,15 @@ export function LegalPage({
   updated: string
   children: ReactNode
 }) {
+  const t = await getTranslations('legal.common')
+  const locale = await getLocale()
+
   return (
     <div className="bg-paper">
       <PageHeader
         eyebrowNumber={eyebrowNumber}
         eyebrowLabel={eyebrowLabel}
-        crumbs={[{ label: 'Начало', href: '/' }, { label: title }]}
+        crumbs={[{ label: t('home'), href: '/' }, { label: title }]}
         title={title}
         description={description}
       />
@@ -41,9 +46,9 @@ export function LegalPage({
         <article className="tl-prose max-w-[68ch]">{children}</article>
 
         <p className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 mt-14 pt-6 border-t border-ink-15 max-w-[68ch]">
-          Последна редакция:{' '}
+          {t('updated')}{' '}
           <time dateTime={updated} className="tabular-nums">
-            {new Date(updated).toLocaleDateString('bg-BG', {
+            {new Date(updated).toLocaleDateString(locale, {
               year: 'numeric',
               month: 'long',
               day: 'numeric',
@@ -74,4 +79,35 @@ export function LegalSection({
       {children}
     </section>
   )
+}
+
+/** One external link, opened in a new tab. */
+const ext = (href: string) =>
+  function ExternalLink(chunks: ReactNode) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer">
+        {chunks}
+      </a>
+    )
+  }
+
+/**
+ * The inline tags the legal messages use with `t.rich()`:
+ * <b>, <terms>, <delivery>, <privacy> (internal links), <mail> and <tel>
+ * (company contact), plus any per-page `extra` tags such as <kzp>.
+ */
+export function legalTags(
+  contact: { email: string; telHref: string },
+  extra: Record<string, string> = {},
+) {
+  const external = Object.fromEntries(Object.entries(extra).map(([k, href]) => [k, ext(href)]))
+  return {
+    b: (chunks: ReactNode) => <strong>{chunks}</strong>,
+    terms: (chunks: ReactNode) => <Link href="/terms">{chunks}</Link>,
+    delivery: (chunks: ReactNode) => <Link href="/delivery">{chunks}</Link>,
+    privacy: (chunks: ReactNode) => <Link href="/privacy">{chunks}</Link>,
+    mail: (chunks: ReactNode) => <a href={`mailto:${contact.email}`}>{chunks}</a>,
+    tel: (chunks: ReactNode) => <a href={contact.telHref}>{chunks}</a>,
+    ...external,
+  }
 }

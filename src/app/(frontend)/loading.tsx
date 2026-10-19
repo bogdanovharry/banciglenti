@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 /**
  * Shown while a database-backed route resolves. Every catalogue page now reads
  * from Payload, so without this a navigation left the previous page frozen with
@@ -7,10 +9,11 @@
  * occupies the shape the content will take, so the page does not jump when the
  * real cards arrive.
  */
-export default function Loading() {
+export default async function Loading() {
+  const t = await getTranslations("loadingPage");
   return (
     <div aria-busy="true" aria-live="polite">
-      <span className="sr-only">Зарежда…</span>
+      <span className="sr-only">{t("text")}</span>
 
       {/* Masthead */}
       <div className="bg-blue-deep">

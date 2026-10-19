@@ -41,6 +41,7 @@ function SpecBlock({
   specs: { width?: number; thickness?: number; length?: number };
   material?: string;
 }) {
+  const t = useTranslations("catalog");
   const hasDims = typeof specs.width === "number" && typeof specs.thickness === "number";
   const hasLength = typeof specs.length === "number";
 
@@ -67,14 +68,14 @@ function SpecBlock({
           <>
             <div className="font-mono text-[38px] leading-none font-semibold text-ink tracking-[-0.03em] tabular-nums">
               {specs.length}
-              <span className="text-[15px] text-ink-50 font-normal ml-1.5">мм</span>
+              <span className="text-[15px] text-ink-50 font-normal ml-1.5">{t("unit.mm")}</span>
             </div>
             <div className="font-mono text-[10px] tracking-[0.16em] uppercase text-ink-50 mt-2">
-              дължина на контура
+              {t("card.loopLength")}
             </div>
             {hasDims && (
               <div className="font-mono text-[12px] text-ink-70 mt-2.5 tabular-nums">
-                {specs.width} × {specs.thickness} мм
+                {specs.width} × {specs.thickness} {t("unit.mm")}
               </div>
             )}
           </>
@@ -86,7 +87,7 @@ function SpecBlock({
               {specs.thickness}
             </div>
             <div className="font-mono text-[10px] tracking-[0.16em] uppercase text-ink-50 mt-2">
-              мм · широчина × дебелина
+              {t("unit.mm")} · {t("card.widthTimesThickness")}
             </div>
           </>
         ) : null}
@@ -109,9 +110,11 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
   const { addItem } = useCart();
   const { gross, amount, symbol } = usePrices();
   const tStock = useTranslations("stock");
+  const t = useTranslations("catalog");
 
   const stockColor =
-    p.stock === "in" ? "text-ok" : p.stock === "low" ? "text-orange" : "text-ink-50";
+    p.stock === "in" || p.stock === "order" ? "text-ok" : p.stock === "low" ? "text-orange" : "text-ink-50";
+  // Made to order is always buyable: the workshop cuts it when it is bought.
   const soldOut = p.stock === "out";
   const pack = packFromSlug(p.slug);
 
@@ -154,7 +157,7 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
                 {pack.percent > 0 ? `−${pack.percent}%` : "SET"}
               </div>
               <div className="font-mono text-[9px] tracking-[0.1em] uppercase leading-none mt-1 opacity-90">
-                {pack.qty} бр.
+                {t("pack.pieces", { qty: pack.qty })}
               </div>
             </div>
           )}
@@ -182,10 +185,10 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
                 <div className="font-mono text-[10px] mt-1 tabular-nums">
                   {pack.kind === "box" ? (
                     <span className={pack.percent > 0 ? "text-orange font-semibold" : "text-ink-50"}>
-                      {amount(gross(unitPriceInPack(p.price, pack.qty)))} {symbol}/бр.
+                      {t("pack.perPiece", { amount: amount(gross(unitPriceInPack(p.price, pack.qty))), symbol })}
                     </span>
                   ) : (
-                    <span className="text-orange font-semibold">{pack.qty} различни ленти</span>
+                    <span className="text-orange font-semibold">{t("pack.differentBlades", { qty: pack.qty })}</span>
                   )}
                 </div>
               )}
@@ -197,11 +200,11 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                addItem({ sku: p.sku, name: p.name, dim: p.dim, price: p.price, quantity: 1 });
+                addItem({ sku: p.sku, name: p.name, dim: p.dim, price: p.price, quantity: 1, image: p.image });
               }}
-              aria-label={`Добави ${p.name} в количката`}
+              aria-label={t("card.addAria", { name: p.name })}
             >
-              <IconPlus size={12} /> {soldOut ? "Няма" : "Добави"}
+              <IconPlus size={12} /> {soldOut ? t("card.unavailable") : t("card.add")}
             </button>
           </div>
         </div>

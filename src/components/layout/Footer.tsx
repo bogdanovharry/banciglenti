@@ -1,44 +1,58 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Btn } from "@/components/ui/primitives";
 import { IconArrowRight } from "@/components/ui/icons";
-import { COMPANY, COMPANY_LATIN } from "@/lib/company";
+import { COMPANY, COMPANY_LATIN, companyFor } from "@/lib/company";
+import { CATALOG_FACTS } from "@/lib/catalog-facts";
+import { getLocale, getMarket } from "@/i18n/locale";
 
 const columns = [
-  { title: "Продукти", links: [
-    { label: "Хоризонтални банцизи", href: "/category/horizontalni-bantsizi" },
-    { label: "Вертикални банцизи", href: "/category/vertikalni-bantsizi" },
-    { label: "Биметални ленти", href: "/category/bimetalni-lenti" },
-    { label: "Циркулярни триони", href: "/category/tsirkulyarni-trioni" },
-    { label: "Ножове за абрихт", href: "/category/nozhove-za-abriht" },
-    { label: "Машини", href: "/category/mashini" },
+  { title: "colProducts", links: [
+    { label: "pHorizontal", href: "/category/horizontalni-bantsizi" },
+    { label: "pVertical", href: "/category/vertikalni-bantsizi" },
+    { label: "pBimetal", href: "/category/bimetalni-lenti" },
+    { label: "pCircular", href: "/category/tsirkulyarni-trioni" },
+    { label: "pPlaner", href: "/category/nozhove-za-abriht" },
+    { label: "pMachines", href: "/category/mashini" },
   ]},
-  { title: "Индустрии", links: [
-    { label: "Дървообработка", href: "/category/dyrvo" },
-    { label: "Металообработка", href: "/category/metal" },
-    { label: "Хранителна индустрия", href: "/category/hrani" },
-    { label: "Хоби работилници", href: "/category/hobi-bantsig" },
+  { title: "colIndustries", links: [
+    { label: "iWood", href: "/category/dyrvo" },
+    { label: "iMetal", href: "/category/metal" },
+    { label: "iFood", href: "/category/hrani" },
+    { label: "iHobby", href: "/category/hobi-bantsig" },
   ]},
-  { title: "Компания", links: [
-    { label: "За нас", href: "/about" },
-    { label: "Блог", href: "/blog" },
-    { label: "Сертификати", href: "/about" },
-    { label: "Контакти", href: "/contact" },
+  // No blog (hidden) and no certifications link: nothing on /about backs up
+  // the TÜV NORD / CE claim that used to sit here, so it is not made.
+  { title: "colCompany", links: [
+    { label: "cAbout", href: "/about" },
+    { label: "cContact", href: "/contact" },
   ]},
-  { title: "Клиенти", links: [
-    { label: "Доставка и плащане", href: "/delivery" },
-    { label: "Гаранция", href: "/terms" },
-    { label: "Условия", href: "/terms" },
-    { label: "Поверителност", href: "/privacy" },
+  { title: "colCustomers", links: [
+    { label: "uDelivery", href: "/delivery" },
+    { label: "uWarranty", href: "/terms" },
+    { label: "uTerms", href: "/terms" },
+    { label: "uPrivacy", href: "/privacy" },
   ]},
-];
+] as const;
 
-// Only certifications the company actually holds. ISO 14001, the Sandvik
-// distributor claim and the EUWA membership were removed as unsubstantiated —
-// the Sandvik one also contradicted the catalogue, which carries no Sandvik
-// product at all.
-const certs = ["TÜV NORD ISO 9001", "CE"];
+export async function Footer() {
+  const t = await getTranslations("siteFooter");
+  const locale = await getLocale();
+  const market = await getMarket();
+  const company = companyFor(locale);
+  // The footer states numbers in full international form: it is the formal
+  // identity block, and it is read from outside Bulgaria. Display and href
+  // come from the same object.
+  const phone = COMPANY_LATIN.phone;
+  const site = t("site");
 
-export function Footer() {
+  const facts: [string, string][] = [
+    [String(COMPANY.foundedYear), t("factFounded")],
+    [company.address.city, t("factWorkshop")],
+    [`${CATALOG_FACTS.widthMin}–${CATALOG_FACTS.widthMax}`, t("factWidth")],
+    [market.country, t("factDelivery")],
+  ];
+
   return (
     <footer className="bg-blue-deep text-white pt-20">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
@@ -54,18 +68,13 @@ export function Footer() {
               № 00 — Tehnoles Ltd. · est. 1993
             </div>
             <div className="font-display text-4xl md:text-5xl lg:text-[56px] leading-[1.02] font-extrabold tracking-[-0.035em]">
-              Режещи инструменти,<br />
-              <span className="text-orange">направени точно.</span>
+              {t("headlineA")}<br />
+              <span className="text-orange">{t("headlineB")}</span>
             </div>
 
             {/* Verifiable facts, set as data rather than as prose */}
             <dl className="mt-9 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-5 max-w-[520px]">
-              {[
-                ["1993", "основана"],
-                ["Габрово", "цех и склад"],
-                ["6-200", "мм широчина"],
-                ["БГ + Балкани", "доставка"],
-              ].map(([v, l]) => (
+              {facts.map(([v, l]) => (
                 <div key={l}>
                   <dt className="font-display text-lg font-bold tracking-tight tabular-nums">{v}</dt>
                   <dd className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/50 mt-1 m-0">{l}</dd>
@@ -76,15 +85,14 @@ export function Footer() {
 
           <div className="self-end">
             <p className="font-sans text-[15px] leading-relaxed text-white/70 max-w-[380px]">
-              Над 30 години доставяме банцигови ленти, циркулярни триони и консумативи за дървообработка,
-              металообработка и хранителна индустрия в България и Балканите.
+              {t("blurb")}
             </p>
             <div className="mt-7 flex gap-3 flex-wrap">
               <Link href="/configurator">
-                <Btn variant="primary" size="md" iconRight={<IconArrowRight size={14} />}>Заяви по размер</Btn>
+                <Btn variant="primary" size="md" iconRight={<IconArrowRight size={14} />}>{t("ctaCustom")}</Btn>
               </Link>
               <Link href="/contact">
-                <Btn variant="ghostLight" size="md">Технически съвет</Btn>
+                <Btn variant="ghostLight" size="md">{t("ctaAdvice")}</Btn>
               </Link>
             </div>
           </div>
@@ -94,31 +102,29 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-10 py-14">
           {/* Office column */}
           <div className="col-span-2 md:col-span-1 lg:col-span-1">
-            <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-4">Централен офис</div>
-            <div className="font-display text-lg font-semibold mb-1">{COMPANY.legalName}</div>
+            <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-4">{t("office")}</div>
+            <div className="font-display text-lg font-semibold mb-1">{company.legalName}</div>
             <div className="font-sans text-sm text-white/70 leading-relaxed">
-              гр. {COMPANY.address.city} {COMPANY.address.postalCode}<br />
-              {COMPANY.address.street}<br />
-              {COMPANY.address.country}
+              {t("addressLine", { city: company.address.city, postalCode: company.address.postalCode })}<br />
+              {company.address.street}<br />
+              {company.address.country}
             </div>
-            {/* The footer states numbers in full international form: it is the
-                formal identity block, and it is read from outside Bulgaria. */}
             <div className="mt-5 flex flex-col gap-1.5 font-mono text-xs">
-              <a href={COMPANY.phone.office.href} className="text-white no-underline hover:text-orange-light transition-colors">{COMPANY_LATIN.phone.office.display}</a>
-              <a href={COMPANY.phone.mobile.href} className="text-white no-underline hover:text-orange-light transition-colors">{COMPANY_LATIN.phone.mobile.display}</a>
-              <a href={`mailto:${COMPANY.email}`} className="text-orange-light no-underline hover:text-white transition-colors">{COMPANY.email}</a>
+              <a href={phone.office.href} className="text-white no-underline hover:text-orange-light transition-colors">{phone.office.display}</a>
+              <a href={phone.mobile.href} className="text-white no-underline hover:text-orange-light transition-colors">{phone.mobile.display}</a>
+              <a href={`mailto:${company.email}`} className="text-orange-light no-underline hover:text-white transition-colors">{company.email}</a>
             </div>
           </div>
 
           {/* Nav columns */}
           {columns.map((col) => (
             <div key={col.title}>
-              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-4">{col.title}</div>
+              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-4">{t(col.title)}</div>
               <ul className="list-none m-0 p-0 flex flex-col gap-2.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
                     <Link href={l.href} className="font-sans text-sm text-white/75 no-underline hover:text-white transition-colors">
-                      {l.label}
+                      {t(l.label)}
                     </Link>
                   </li>
                 ))}
@@ -127,19 +133,9 @@ export function Footer() {
           ))}
         </div>
 
-        {/* Certifications */}
-        <div className="flex flex-wrap items-center gap-6 py-6 border-t border-white/10">
-          <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50">Сертификати</div>
-          <div className="flex-1 flex gap-7 flex-wrap">
-            {certs.map((c) => (
-              <span key={c} className="font-mono text-[11px] tracking-[0.05em] text-white/60">{c}</span>
-            ))}
-          </div>
-        </div>
-
         {/* Bottom */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t border-white/10 font-mono text-[11px] text-white/50 tracking-[0.04em]">
-          <div>© {COMPANY.foundedYear}–{new Date().getFullYear()} {COMPANY.legalName} · www.banciglenti.com · ДДС {COMPANY.vatNumber}</div>
+          <div>© {company.foundedYear}–{new Date().getFullYear()} {company.legalName}{site ? ` · ${site}` : ""} · {t("vatNo", { number: company.vatNumber })}</div>
           <div className="flex gap-5">
             <a href="https://www.facebook.com/tehnoles" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white no-underline transition-colors">Facebook</a>
             <a href="https://www.youtube.com/@Tehnolesltd" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white no-underline transition-colors">YouTube</a>

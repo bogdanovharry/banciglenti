@@ -34,6 +34,16 @@ import type { BladeTableKey } from '@/lib/order-pricing'
  *   carcasses, the convex wave for filleting fresh fish and thin bone.
  */
 
+/**
+ * Every sentence below is a message under `catalog.guide` / `catalog.series`,
+ * not a string in this file, so the same row reads in the visitor's language.
+ * The translator is passed in rather than imported: this module is shared by a
+ * client component today and may be called from a server one tomorrow, and
+ * next-intl has a different hook for each. Anything shaped like
+ * `useTranslations('catalog')` fits.
+ */
+export type Translate = (key: string, values?: Record<string, string | number>) => string
+
 /** Photography by series, matching what the catalogue cards use. */
 const SERIES_IMAGE: Record<SeriesKey, string> = {
   softcut: '/images/products/kodiak.png',
@@ -122,14 +132,12 @@ function toothsPerInch(table: BladeTableKey, pitch: string): number | null {
  * is the whole rule, so it is quoted as the millimetre figure rather than left
  * as a maxim the buyer has to apply themselves.
  */
-function constantPitchNote(tpi: number): string {
+function constantPitchNote(t: Translate, tpi: number): string {
   const minMm = Math.round((3 * 25.4) / tpi)
 
-  if (tpi <= 4)
-    return `Едра стъпка — за дебел и мек материал: алуминий, месинг, пластмаса, дърво. Дълбокият улей извежда обемната стружка, вместо да я трамбова. Поне 3 зъба в реза означава сечение от около ${minMm} мм нагоре.`
-  if (tpi <= 8)
-    return `Универсална стъпка — най-широко приложима за среден профил и плътен материал до около 25 мм. Поне 3 зъба в реза означава сечение от около ${minMm} мм нагоре.`
-  return `Фина стъпка — за тънък лист, тънкостенна тръба и малко сечение. Дава по-гладък срез, но улеят се запълва бързо в дебел материал. Материал под около ${minMm} мм остава между зъбите и ги чупи.`
+  if (tpi <= 4) return t('guide.pitch.constantCoarse', { minMm })
+  if (tpi <= 8) return t('guide.pitch.constantUniversal', { minMm })
+  return t('guide.pitch.constantFine', { minMm })
 }
 
 /**
@@ -139,38 +147,19 @@ function constantPitchNote(tpi: number): string {
  * that is what kills the washboard pattern and the singing on a long cut. The
  * diameter ranges are the published selection chart, not a rule of thumb.
  */
-const VARIABLE_PITCH_NOTE: Record<string, string> = {
-  '1.4/2':
-    'Най-едрата стъпка — плътно сечение Ø 120 – 400 мм. Големият улей носи стружката през целия дълъг рез; на тънък материал зъбът е прекалено едър и се къса.',
-  '2/3':
-    'Груба стъпка — плътно сечение Ø 80 – 200 мм и тежък конструкционен профил. Малко зъби в реза, много място за стружка.',
-  '3/4':
-    'Едра стъпка — плътно сечение Ø 60 – 120 мм, вал, дебела шина и плътен блок.',
-  '4/6':
-    'Средна стъпка — плътно сечение Ø 35 – 70 мм, тръби с дебела стена и плътен профил. Най-универсалната стъпка за работилница.',
-  '5/8':
-    'Средно-фина стъпка — плътно сечение Ø 25 – 40 мм и профил със средна стена.',
-  '6/10':
-    'Фина стъпка — плътно сечение Ø 16 – 30 мм, тръби и профили с по-тънка стена.',
-  '8/12':
-    'Фина стъпка — плътно сечение Ø 8 – 20 мм, тънкостенна тръба и тънък профил.',
-  '10/14':
-    'Много фина стъпка — плътно сечение Ø 2 – 15 мм и тънкостенна тръба. Стената трябва да поеме поне 3 зъба, иначе зъбите се късат.',
-  '12/16':
-    'Най-финият зъб — ламарина, тънкостенен профил и малко сечение, където срезът трябва да излезе чист и без мустак.',
-}
+/** The pairs the selection chart names; their text is `guide.pitch.variable.<pair>`. */
+const VARIABLE_PITCH_PAIRS = ['1.4/2', '2/3', '3/4', '4/6', '5/8', '6/10', '8/12', '10/14', '12/16']
 
-function variablePitchNote(pitch: string): string | null {
-  const known = VARIABLE_PITCH_NOTE[pitch]
-  if (known) return known
+function variablePitchNote(t: Translate, pitch: string): string | null {
+  if (VARIABLE_PITCH_PAIRS.includes(pitch)) return t(`guide.pitch.variable.${pitch.replace('.', '_').replace('/', '-')}`)
   if (!pitch.includes('/')) return null
 
   // An unlisted pair still gets the principle, read off its coarse tooth.
   const coarse = Number(pitch.split('/')[0])
   if (!Number.isFinite(coarse)) return null
-  if (coarse <= 3) return 'Груба стъпка — за плътен профил и голямо сечение.'
-  if (coarse <= 6) return 'Средна стъпка — тръби с дебела стена и плътен материал.'
-  return 'Фина стъпка — тънкостенни тръби и профили. Поне 3 зъба да са в реза.'
+  if (coarse <= 3) return t('guide.pitch.variableCoarse')
+  if (coarse <= 6) return t('guide.pitch.variableMedium')
+  return t('guide.pitch.variableFine')
 }
 
 /**
@@ -181,19 +170,15 @@ function variablePitchNote(pitch: string): string | null {
  * sawmill band is normally supplied in — the thresholds are set around it
  * rather than around a round number.
  */
-function woodPitchNote(pitch: string): string | null {
+function woodPitchNote(t: Translate, pitch: string): string | null {
   const mm = Number(pitch)
   if (!Number.isFinite(mm)) return null
 
-  if (mm < 10)
-    return `Фина стъпка (${mm} мм) — за плитък рез, тънък материал и чиста повърхност направо от лентата.`
-  if (mm < 15)
-    return `Средна стъпка (${mm} мм) — универсална за разкрой на дъски и по-плитко разбичване.`
-  if (mm < 20)
-    return `Средно-едра стъпка (${mm} мм) — за дебели дъски и греди, където финият зъб вече се запълва.`
-  if (mm < 24)
-    return `Едра стъпка (${mm} мм) — стъпката, с която обикновено се работи в дълбок рез: улеят носи стружката през целия срез, без да я трамбова.`
-  return `Най-едра стъпка (${mm} мм) — за най-дълбокия рез, за мокър материал и за висока подаваща скорост. Обемната стружка запушва всеки по-фин зъб.`
+  if (mm < 10) return t('guide.pitch.woodFine', { mm })
+  if (mm < 15) return t('guide.pitch.woodMedium', { mm })
+  if (mm < 20) return t('guide.pitch.woodMediumCoarse', { mm })
+  if (mm < 24) return t('guide.pitch.woodCoarse', { mm })
+  return t('guide.pitch.woodCoarsest', { mm })
 }
 
 // ===== Edge profiles for food blades =====
@@ -263,21 +248,18 @@ export function edgeKind(table: BladeTableKey, pitch: string): EdgeKind {
  * sawdust — which is why they are the ones used on boneless product where the
  * face of the cut is the product.
  */
-const FOOD_PROFILE_NOTE: Record<string, string> = {
-  '3 TPI':
-    'Универсален зъб за замразено и охладено свинско, говеждо и агнешко, и за разполовяване на дълбоко замразена риба. По-едрият зъб отнема по-малко материал в реза и издържа на кост при висока подаваща скорост.',
-  '4 TPI':
-    'По-финият зъб оставя по-гладък срез на прясно и охладено месо, птици и риба — там, където видът на среза е част от продукта. На дълбоко замразен блок се затъпява по-бързо от 3 TPI.',
-  'cleaner-tooth':
-    'Зъбът чистач е за разполовяване на трупно и замразено трупно месо. Чистачът извежда кокалената каша от улея, вместо тя да се трамбова в него — лентата не се задръства, реже по-чисто и работи по-тихо.',
-  'concave-wave':
-    'Вдлъбнатата вълна захапва с върховете си кора, ципа и хлъзгава кожа, а полумесецът между тях реже. За риба, колбаси, сирене и зеленчуци, и за хляб с твърда кора.',
-  'convex-wave':
-    'Изпъкналата вълна е за рязане и филетиране на прясна, незамразена риба и за прерязване на тънки кости. Заобленият ръб влиза през кожата, без да къса влакното под нея.',
-  'smooth-ground':
-    'Гладко заточеният ръб няма зъб и няма чапраз — срязва, вместо да стърже. Най-чистият възможен срез на обезкостена риба и месо, без трохи и без накъсване; в кост не се използва.',
-  wave: 'Вълнообразният ръб реже с плъзгане и не мачка продукта под себе си — перфектни резени с минимум трохи по хляб и хлебни изделия, и надежден избор по риба и рибни продукти.',
-}
+const FOOD_PROFILE_CODES = [
+  '3 TPI',
+  '4 TPI',
+  'cleaner-tooth',
+  'concave-wave',
+  'convex-wave',
+  'smooth-ground',
+  'wave',
+]
+
+const foodProfileNote = (t: Translate, pitch: string): string | null =>
+  FOOD_PROFILE_CODES.includes(pitch) ? t(`guide.food.profile.${pitch.replace(' ', '_')}`) : null
 
 // ===== Soft materials: which grind for which material =====
 
@@ -298,52 +280,26 @@ const FOOD_PROFILE_NOTE: Record<string, string> = {
 export type MaterialEdge = {
   /** Matches a PITCH_LABELS code where one exists, so the two agree. */
   code: string
-  name: string
   kind: EdgeKind
   /** In the price list, or quoted on enquiry. */
   stocked: boolean
-  materials: string
-  note: string
 }
 
+/** The words for an edge: `guide.edge.<code>.name | materials | note`. */
+export type MaterialEdgeText = { name: string; materials: string; note: string }
+
 export const MATERIAL_EDGE_GUIDE: MaterialEdge[] = [
-  {
-    code: 'smooth-ground',
-    name: 'Гладко заточен',
-    kind: 'straight',
-    stocked: true,
-    materials: 'Мека пяна и дунапрен, текстил на пластове, кожа, хартия, картон, корк',
-    note:
-      'Прав, заточен ръб без зъб. Не отнема материал и не праши — минава през пакета като нож през масло и оставя отвесен срез. Първият избор за всичко меко и нископлътно; в плътен материал се хлъзга и се отклонява.',
-  },
-  {
-    code: 'wave',
-    name: 'Вълна',
-    kind: 'wave',
-    stocked: false,
-    materials: 'Гъвкава полиуретанова пяна, филц, влакнести и пружиниращи материали, маркучи',
-    note:
-      'Плавни гребени без остри върхове. Захапва по-добре от гладкия ръб, но реже влакното, вместо да го дърпа както го прави зъбът — затова е изборът за филц и за пяна, която бяга пред острието. Праши минимално.',
-  },
-  {
-    code: 'concave-wave',
-    name: 'Вдлъбната вълна (скалоп)',
-    kind: 'scallop',
-    stocked: false,
-    materials: 'По-плътна пяна, гума и гумени маркучи, картон и по-твърди пластове',
-    note:
-      'Изрязани полумесеци с ясен връх между тях. По-агресивна от вълната и по-контролирана от зъба — върховете пробиват плътния материал, а полумесецът довършва среза. Средното положение, което върши най-много работа.',
-  },
-  {
-    code: 'v-tooth',
-    name: 'Назъбен (V-зъб)',
-    kind: 'teeth-fine',
-    stocked: false,
-    materials: 'Твърда и високоплътна пяна, среднотвърда пластмаса, плътен картон',
-    note:
-      'Остър насечен зъб, който гризе материала на малки хапки. В твърда пяна и пластмаса дава най-чистия срез от четирите, но отделя прах и в мек материал къса ръба.',
-  },
+  { code: 'smooth-ground', kind: 'straight', stocked: true },
+  { code: 'wave', kind: 'wave', stocked: false },
+  { code: 'concave-wave', kind: 'scallop', stocked: false },
+  { code: 'v-tooth', kind: 'teeth-fine', stocked: false },
 ]
+
+export const materialEdgeText = (t: Translate, code: string): MaterialEdgeText => ({
+  name: t(`guide.edge.${code}.name`),
+  materials: t(`guide.edge.${code}.materials`),
+  note: t(`guide.edge.${code}.note`),
+})
 
 // ===== What the chosen width buys you =====
 
@@ -365,56 +321,46 @@ function minRadiusMm(width: number): number {
 }
 
 /** Horizontal mills — width is beam strength against wander in a deep cut. */
-function millWidthNote(width: number): string {
-  if (width <= 35)
-    return `На ${width} мм лентата е за по-малките и мобилните гатери — върви и на по-малки маховици, но в дълбок рез по-лесно тръгва по чепа.`
-  if (width <= 50)
-    return `${width} мм е работната ширина на повечето гатери — достатъчно корава, за да държи линията през цял труп, без да иска голяма машина.`
-  if (width < 100)
-    return `На ${width} мм лентата се съпротивлява много по-добре на отклонение в дебел материал и дава по-равна дъска. За сметка на това иска голям диаметър на маховиците и по-високо опъване.`
-  return `${width} мм е ширина за производствени гатери с големи маховици — максимална коравина при дълбок рез през едър труп.`
+function millWidthNote(t: Translate, width: number): string {
+  if (width <= 35) return t('guide.width.mill1', { width })
+  if (width <= 50) return t('guide.width.mill2', { width })
+  if (width < 100) return t('guide.width.mill3', { width })
+  return t('guide.width.mill4', { width })
 }
 
 /** Vertical saws — narrow bands turn, wide bands resaw. */
-function verticalWidthNote(width: number): string {
-  if (width <= 16)
-    return `На ${width} мм лентата е за криволинеен рез: минималният радиус, който държи, е около ${minRadiusMm(width)} мм. По-тясната лента влиза в по-остър завой, но по-трудно пази права линия.`
-  if (width <= 25)
-    return `${width} мм е универсалната ширина за вертикална машина — реже право и все още завива, но не под радиус от около ${minRadiusMm(width)} мм.`
-  if (width <= 50)
-    return `На ${width} мм лентата е за прав разкрой и разбичване — достатъчно корава, за да не се извива в реза. За завои е вече прекалено широка.`
-  return `На ${width} мм лентата е за разбичване на висок материал: широката лента държи опъването и върви право, но не прави завои.`
+function verticalWidthNote(t: Translate, width: number): string {
+  const radius = minRadiusMm(width)
+  if (width <= 16) return t('guide.width.vertical1', { width, radius })
+  if (width <= 25) return t('guide.width.vertical2', { width, radius })
+  if (width <= 50) return t('guide.width.vertical3', { width })
+  return t('guide.width.vertical4', { width })
 }
 
 /** Metal saws — width is set by the machine, and pairs with the back thickness. */
-function metalWidthNote(width: number, thickness: number): string {
-  if (width <= 13)
-    return `${width} × ${thickness} мм е за малки и преносими отрезни машини и за къс контур.`
-  if (width <= 20)
-    return `${width} × ${thickness} мм е ширината на работилничните банцизи и по-малките полуавтомати.`
-  if (width <= 27)
-    return `${width} × ${thickness} мм е стандартът за компактни полуавтоматични отрезни машини.`
-  if (width <= 34)
-    return `${width} × ${thickness} мм е най-разпространената лента за полуавтоматични отрезни машини — балансът между коравина и цена на метър.`
-  if (width <= 41)
-    return `${width} × ${thickness} мм е за големите полуавтомати и автомати: по-дебелият гръб държи опъването, което е нужно, за да излезе срезът прав в едро сечение.`
-  return `${width} × ${thickness} мм е производствена ширина — за автомати и голямо плътно сечение, където всяко отклонение в среза струва материал.`
+function metalWidthNote(t: Translate, width: number, thickness: number): string {
+  const v = { width, thickness }
+  if (width <= 13) return t('guide.width.metal1', v)
+  if (width <= 20) return t('guide.width.metal2', v)
+  if (width <= 27) return t('guide.width.metal3', v)
+  if (width <= 34) return t('guide.width.metal4', v)
+  if (width <= 41) return t('guide.width.metal5', v)
+  return t('guide.width.metal6', v)
 }
 
 /** Food and slicer blades — narrow follows the contour, wide holds the line. */
-function foodWidthNote(width: number, thickness: number, edge: FoodEdge): string {
-  if (width <= 12)
-    return `На ${width} × ${thickness} мм ножът е тесен и тънък — тънкото острие минава през резена, без да го смачка пред себе си, и отнема по-малко от самия хляб.`
+function foodWidthNote(t: Translate, width: number, thickness: number, edge: FoodEdge): string {
+  const v = { width, thickness }
+  if (width <= 12) return t('guide.width.food1', v)
   if (width <= 16)
-    return edge === 'toothed' || edge === 'cleaner'
-      ? `На ${width} мм лентата следва по-плътно контура — по-подходяща за рязане около кокал и за по-малките настолни машини.`
-      : `На ${width} мм ножът е достатъчно тесен, за да заобиколи контура при филетиране, и достатъчно корав за прав срез.`
-  return `На ${width} мм ножът е по-корав и държи по-права линия — за разполовяване, за замразен блок и за по-големите машини.`
+    return edge === 'toothed' || edge === 'cleaner' ? t('guide.width.food2Toothed', v) : t('guide.width.food2Smooth', v)
+  return t('guide.width.food3', v)
 }
 
 // ===== Assembly =====
 
 function identity(
+  t: Translate,
   table: BladeTableKey,
   blade: BladeSelection,
 ): Pick<BladeGuide, 'series' | 'name' | 'type' | 'application' | 'image'> & { base: string } {
@@ -427,15 +373,11 @@ function identity(
     if (isBimetal(table, blade.brand) && (table === 'wood-h' || table === 'wood-v')) {
       return {
         series: null,
-        name: blade.brand === 'BiMetal' ? 'Биметална гатерна лента' : blade.brand,
-        type: 'Биметал',
-        application: 'Дърво — гатер',
+        name: blade.brand === 'BiMetal' ? t('guide.identity.bimetalMillName') : blade.brand,
+        type: t('guide.identity.bimetalType'),
+        application: t('guide.identity.woodMill'),
         image: BIMETAL_IMAGE,
-        base:
-          'Гатерна лента с биметален зъб: бързорезна стомана, заварена върху пружинен гръб. ' +
-          'Държи ръба си в пъти по-дълго от въглеродната лента и понася абразивен или замърсен ' +
-          'материал — кора с пясък, стар и сух труп, вътрешни чепове. Цената на метър е по-висока, ' +
-          'но между две заточвания се реже значително повече.',
+        base: t('guide.identity.bimetalMillBase'),
       }
     }
 
@@ -445,25 +387,22 @@ function identity(
       const premium = !/m42/i.test(blade.brand)
       return {
         series: null,
-        name: blade.brand || 'Биметална лента',
-        type: 'Биметал',
-        application: premium ? 'Легирана и неръждаема' : 'Метал — обща употреба',
+        name: blade.brand || t('guide.identity.bimetalBlade'),
+        type: t('guide.identity.bimetalType'),
+        application: premium ? t('guide.identity.alloyStainless') : t('guide.identity.metalGeneral'),
         image: BIMETAL_IMAGE,
-        base: premium
-          ? 'Биметална отрезна лента с по-високолегирана бързорезна стомана в зъба, заварена върху пружинен гръб. Купува се за неръждаема, легирана и трудно обработваема стомана, където стандартният M42 се затъпява бързо.'
-          : 'Биметална отрезна лента: закалени бързорезни зъби, заварени върху пружинен гръб. Издържа на по-висока скорост и по-твърд материал от въглеродната лента, но е и по-скъпа — избира се за серийно рязане на метал.',
+        base: premium ? t('guide.identity.bimetalPremiumBase') : t('guide.identity.bimetalStandardBase'),
       }
     }
 
     // Böhler and the other wide carbon bands on the mill tables.
     return {
       series: null,
-      name: blade.brand || 'Банцигова лента',
-      type: 'Въглеродна',
-      application: 'Дърво — гатер',
+      name: blade.brand || t('guide.identity.bandsawBlade'),
+      type: t('guide.identity.carbonType'),
+      application: t('guide.identity.woodMill'),
       image: SERIES_IMAGE.softcut,
-      base:
-        'Банцигова лента от закалена въглеродна лентова стомана за гатер. Тялото остава жилаво, а само зъбът е закален, така че лентата понася чапраз и заточване през целия си живот.',
+      base: t('guide.identity.carbonBase'),
     }
   }
 
@@ -471,10 +410,10 @@ function identity(
   return {
     series: key,
     name: `Saw-Meister ${s.name}`,
-    type: s.type,
-    application: s.application,
+    type: t(`series.${key}.type`),
+    application: t(`series.${key}.application`),
     image: SERIES_IMAGE[key],
-    base: s.description,
+    base: t(`series.${key}.description`),
   }
 }
 
@@ -485,51 +424,45 @@ function identity(
  * smooth-ground knife for filleting fish. One paragraph for both told half the
  * customers the wrong thing about their own blade.
  */
-function foodBase(table: BladeTableKey, edge: FoodEdge): string {
-  const steel =
-    'Изпълнението е от неръждаема стомана, годна за контакт с храни и за ежедневно миене и дезинфекция.'
+function foodBase(t: Translate, table: BladeTableKey, edge: FoodEdge): string {
+  const steel = t('guide.food.steel')
 
   // The edge itself is described in the profile note below the paragraph, so
   // this says what the product is and what it runs on instead of repeating it.
-  if (table === 'textile')
-    return 'Лентов нож за меки материали — пяна и дунапрен, текстил на пластове, кожа, хартия, картон и корк. Работи на лентоотрезна машина с вградено заточване: ръбът се подновява в движение, затова последният метър от пакета излиза като първия.'
-
-  if (table === 'bread')
-    return `Лентов нож за хлеборезна машина. Вълнообразният ръб срязва кората, вместо да я къса — оттам идват равните резени и малкото трохи. ${steel}`
+  if (table === 'textile') return t('guide.food.baseTextile')
+  if (table === 'bread') return t('guide.food.baseBread', { steel })
 
   switch (edge) {
     case 'toothed':
-      return `Лентов трион за месо с кост и за замразен блок. Зъбът е закален и чапразен, за да прореже кост, без улеят да се запуши с кокалена каша. ${steel}`
+      return t('guide.food.baseToothed', { steel })
     case 'cleaner':
-      return `Лентов трион с чистач за разполовяване на трупно месо. Чистачът върви след режещите зъби и изчиства улея, което държи лентата в права линия през целия труп. ${steel}`
+      return t('guide.food.baseCleaner', { steel })
     case 'wave':
-      return `Лентов нож с вълнообразен ръб — срязва вместо да стърже, затова не отделя стърготина и не къса влакното на продукта. За обезкостено месо, риба и рибни продукти. ${steel}`
+      return t('guide.food.baseWave', { steel })
     case 'plain':
-      return `Лентов нож с гладко заточен ръб, без зъб и без чапраз — за обезкостен продукт, където срезът трябва да е чист и без трохи. ${steel}`
+      return t('guide.food.basePlain', { steel })
   }
 }
 
-function widthNote(table: BladeTableKey, blade: BladeSelection): string {
+function widthNote(t: Translate, table: BladeTableKey, blade: BladeSelection): string {
   switch (table) {
     case 'wood-h':
-      return millWidthNote(blade.width)
+      return millWidthNote(t, blade.width)
     case 'wood-v':
       return blade.brand === 'Flexback Carbon'
-        ? `На ${blade.width} мм лентата е за криволинеен рез в работилницата: минималният радиус, който държи, е около ${minRadiusMm(blade.width)} мм.`
-        : verticalWidthNote(blade.width)
+        ? t('guide.width.flexbackWood', { width: blade.width, radius: minRadiusMm(blade.width) })
+        : verticalWidthNote(t, blade.width)
     case 'metal-bi':
-      return metalWidthNote(blade.width, blade.thickness)
+      return metalWidthNote(t, blade.width, blade.thickness)
     case 'metal-cs':
-      return `На ${blade.width} мм лентата минава завой с радиус от около ${minRadiusMm(blade.width)} мм нагоре; по-широката държи по-права линия, но не завива толкова остро.`
+      return t('guide.width.metalCs', { width: blade.width, radius: minRadiusMm(blade.width) })
     case 'meat':
     case 'bread':
-      return foodWidthNote(blade.width, blade.thickness, foodEdge(table, blade.pitch))
+      return foodWidthNote(t, blade.width, blade.thickness, foodEdge(table, blade.pitch))
     case 'textile':
-      if (blade.width <= 10)
-        return `На ${blade.width} мм ножът е за фигурален рез — влиза в най-острите контури, но в дебел блок се извива, ако бързаш с подаването.`
-      if (blade.width <= 20)
-        return `${blade.width} мм е универсалната ширина — реже контур и права линия еднакво добре и стои на повечето машини.`
-      return `На ${blade.width} × ${blade.thickness} мм ножът е за прав рез и разкрой на дебел блок: по-широкото и по-дебело острие не се отклонява надолу през пакета, но не заобикаля контур.`
+      if (blade.width <= 10) return t('guide.width.textile1', { width: blade.width })
+      if (blade.width <= 20) return t('guide.width.textile2', { width: blade.width })
+      return t('guide.width.textile3', { width: blade.width, thickness: blade.thickness })
     default:
       return ''
   }
@@ -540,62 +473,61 @@ function widthNote(table: BladeTableKey, blade: BladeSelection): string {
  * the same in each — the points grip, the crescent cuts. Which side of that to
  * lead with depends on which tab the buyer is standing on.
  */
-const BREAD_CONCAVE_WAVE =
-  'Вдлъбнатата вълна захапва с върховете си твърдата кора, а полумесецът между тях реже средата. За селски и пълнозърнест хляб с корава коричка, където обикновената вълна се хлъзга, вместо да влезе.'
-
-function pitchNoteFor(table: BladeTableKey, blade: BladeSelection): string | null {
+function pitchNoteFor(t: Translate, table: BladeTableKey, blade: BladeSelection): string | null {
   // On the soft-materials tab the same codes mean the same shapes but a wholly
   // different job, so the guide written for those materials answers instead of
   // the food copy.
   if (table === 'textile')
-    return MATERIAL_EDGE_GUIDE.find((e) => e.code === blade.pitch)?.note ?? null
+    return MATERIAL_EDGE_GUIDE.some((e) => e.code === blade.pitch)
+      ? materialEdgeText(t, blade.pitch).note
+      : null
 
-  if (table === 'bread' && blade.pitch === 'concave-wave') return BREAD_CONCAVE_WAVE
+  if (table === 'bread' && blade.pitch === 'concave-wave') return t('guide.food.breadConcaveWave')
 
-  if (table === 'meat' || table === 'bread') return FOOD_PROFILE_NOTE[blade.pitch] ?? null
+  if (table === 'meat' || table === 'bread') return foodProfileNote(t, blade.pitch)
 
-  if (blade.pitch.includes('/')) return variablePitchNote(blade.pitch)
+  if (blade.pitch.includes('/')) return variablePitchNote(t, blade.pitch)
 
   const tpi = toothsPerInch(table, blade.pitch)
-  if (tpi) return constantPitchNote(tpi)
+  if (tpi) return constantPitchNote(t, tpi)
 
-  if (table === 'wood-h' || table === 'wood-v') return woodPitchNote(blade.pitch)
+  if (table === 'wood-h' || table === 'wood-v') return woodPitchNote(t, blade.pitch)
   return null
 }
 
-export function bladeGuide(table: BladeTableKey, blade: BladeSelection): BladeGuide {
-  const id = identity(table, blade)
+export function bladeGuide(t: Translate, table: BladeTableKey, blade: BladeSelection): BladeGuide {
+  const id = identity(t, table, blade)
   const edge = foodEdge(table, blade.pitch)
   const isFood = table === 'meat' || table === 'bread' || table === 'textile'
 
-  const base = isFood ? foodBase(table, edge) : id.base
-  const width = widthNote(table, blade)
+  const base = isFood ? foodBase(t, table, edge) : id.base
+  const width = widthNote(t, table, blade)
 
   return {
     series: id.series,
     name: id.name,
-    // FineCut's "Хранителна" is right for the meat and bread counters but not
+    // FineCut's "food" type is right for the meat and bread counters but not
     // for a slicer band cutting textile, paper and foam.
-    type: table === 'textile' ? 'Лентов нож' : id.type,
-    application: isFood ? foodApplication(table, edge) : id.application,
+    type: table === 'textile' ? t('guide.identity.bandKnife') : id.type,
+    application: isFood ? foodApplication(t, table, edge) : id.application,
     description: width ? `${base} ${width}` : base,
     image: id.image,
-    pitchNote: pitchNoteFor(table, blade),
+    pitchNote: pitchNoteFor(t, table, blade),
   }
 }
 
 /** The eyebrow above the name, so it names the job rather than the department. */
-function foodApplication(table: BladeTableKey, edge: FoodEdge): string {
-  if (table === 'textile') return 'Пяна, текстил, гума'
-  if (table === 'bread') return 'Хляб и хлебни изделия'
+function foodApplication(t: Translate, table: BladeTableKey, edge: FoodEdge): string {
+  if (table === 'textile') return t('guide.food.appTextile')
+  if (table === 'bread') return t('guide.food.appBread')
   switch (edge) {
     case 'toothed':
-      return 'Месо с кост и замразено'
+      return t('guide.food.appToothed')
     case 'cleaner':
-      return 'Разполовяване на трупно месо'
+      return t('guide.food.appCleaner')
     case 'wave':
-      return 'Обезкостено месо и риба'
+      return t('guide.food.appWave')
     case 'plain':
-      return 'Филетиране'
+      return t('guide.food.appPlain')
   }
 }

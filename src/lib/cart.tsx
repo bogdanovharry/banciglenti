@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useCallback, useSyncExternalStore, ReactNode } from "react";
 
 import type { CustomSpecs } from "./order-pricing";
 import { computeOrderTotals, type OrderTotals } from "./order-totals";
@@ -27,6 +27,8 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
+  /** False until the stored cart has been read — render a skeleton, not "empty". */
+  loaded: boolean;
   addItem: (item: Omit<CartItem, "id">) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -52,57 +54,98 @@ function generateId(item: Omit<CartItem, "id">): string {
   return `${item.sku}-${specsKey}`;
 }
 
+/**
+ * The cart lives in localStorage, read through useSyncExternalStore rather than
+ * an effect: the server renders no snapshot (null), the browser renders the
+ * stored one with no extra pass, and `loaded` tells a page which of the two it
+ * is looking at — so /cart and /checkout show a skeleton, not "cart is empty",
+ * until the real contents are known.
+ */
+const STORAGE_KEY = "tl-cart";
+const NO_ITEMS: CartItem[] = [];
+const listeners = new Set<() => void>();
+let cachedRaw: string | null = null;
+let cachedItems: CartItem[] = NO_ITEMS;
+
+function parseItems(raw: string | null): CartItem[] {
+  if (!raw) return NO_ITEMS;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as CartItem[]) : NO_ITEMS;
+  } catch {
+    return NO_ITEMS;
+  }
+}
+
+function getSnapshot(): CartItem[] {
+  let raw: string | null = cachedRaw;
+  try {
+    raw = localStorage.getItem(STORAGE_KEY);
+  } catch {
+    // Storage blocked: fall back to what this tab already holds in memory.
+  }
+  if (raw !== cachedRaw) {
+    cachedRaw = raw;
+    cachedItems = parseItems(raw);
+  }
+  return cachedItems;
+}
+
+const getServerSnapshot = (): CartItem[] | null => null;
+
+function subscribe(onChange: () => void) {
+  listeners.add(onChange);
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === null || e.key === STORAGE_KEY) onChange();
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    listeners.delete(onChange);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+function writeItems(next: CartItem[]) {
+  const raw = JSON.stringify(next);
+  cachedRaw = raw;
+  cachedItems = next;
+  try {
+    localStorage.setItem(STORAGE_KEY, raw);
+  } catch {}
+  listeners.forEach((l) => l());
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [loaded, setLoaded] = useState(false);
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("tl-cart");
-      if (stored) {
-        setItems(JSON.parse(stored));
-      }
-    } catch {}
-    setLoaded(true);
-  }, []);
-
-  // Save to localStorage on change
-  useEffect(() => {
-    if (loaded) {
-      localStorage.setItem("tl-cart", JSON.stringify(items));
-    }
-  }, [items, loaded]);
+  const snapshot = useSyncExternalStore<CartItem[] | null>(subscribe, getSnapshot, getServerSnapshot);
+  const loaded = snapshot !== null;
+  const items = snapshot ?? NO_ITEMS;
 
   const addItem = useCallback((item: Omit<CartItem, "id">) => {
     const id = generateId(item);
-    setItems((prev) => {
-      const existing = prev.find((i) => i.id === id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === id ? { ...i, quantity: i.quantity + item.quantity } : i
-        );
-      }
-      return [...prev, { ...item, id }];
-    });
+    const prev = getSnapshot();
+    const existing = prev.find((i) => i.id === id);
+    writeItems(
+      existing
+        ? prev.map((i) => (i.id === id ? { ...i, quantity: i.quantity + item.quantity } : i))
+        : [...prev, { ...item, id }],
+    );
   }, []);
 
   const removeItem = useCallback((id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+    writeItems(getSnapshot().filter((i) => i.id !== id));
   }, []);
 
   const updateQuantity = useCallback((id: string, quantity: number) => {
-    if (quantity <= 0) {
-      setItems((prev) => prev.filter((i) => i.id !== id));
-    } else {
-      setItems((prev) =>
-        prev.map((i) => (i.id === id ? { ...i, quantity } : i))
-      );
-    }
+    const prev = getSnapshot();
+    writeItems(
+      quantity <= 0
+        ? prev.filter((i) => i.id !== id)
+        : prev.map((i) => (i.id === id ? { ...i, quantity } : i)),
+    );
   }, []);
 
   const clearCart = useCallback(() => {
-    setItems([]);
+    writeItems([]);
   }, []);
 
   // The same function the order route charges through, fed the same market
@@ -126,7 +169,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, clearCart, itemCount, vatRate, subtotal, shipping, tax, total, totalsFor }}
+      value={{ items, loaded, addItem, removeItem, updateQuantity, clearCart, itemCount, vatRate, subtotal, shipping, tax, total, totalsFor }}
     >
       {children}
     </CartContext.Provider>

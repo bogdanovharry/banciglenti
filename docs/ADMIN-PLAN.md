@@ -139,6 +139,16 @@ Decisions taken on the way, so they are not re-litigated:
   paths shadowed Payload's own `/api/orders` and `/api/enquiries`, which broke
   bulk actions in its admin.
 
+## The blog is off
+
+`/blog` has no route and answers a real 404. It used to show six invented,
+dated "articles" (cards with no link and no page behind them) and the homepage
+carried a teaser for them — made-up guides are misleading on a shop. To bring it
+back: add `src/app/(frontend)/blog/page.tsx` that queries the Payload `articles`
+collection (`status: published`), a `/blog/[slug]` page, and restore the nav and
+footer links and the homepage teaser. The old PHP site's `/bg/news/*` redirects in
+`next.config.ts` point at those routes.
+
 ## What this does not change
 
 The multi-market plan stands and is not superseded. Its open items:

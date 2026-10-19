@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useId, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Btn } from "@/components/ui/primitives";
 import { IconArrowRight, IconEdge, IconRuler } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
@@ -19,13 +19,13 @@ import {
   getAvailablePitches,
   findBlade,
   isProfilePitch,
-  pitchLabel,
+  PITCH_LABELS,
   type BladeConfig,
 } from "@/lib/pricing";
 import { MAX_CUSTOM_LENGTH, MIN_CUSTOM_LENGTH, type BladeTableKey } from "@/lib/order-pricing";
 import { usePrices } from "@/lib/market-context";
 import { DualPrice } from "@/components/ui/DualPrice";
-import { MATERIAL_EDGE_GUIDE, bladeGuide, edgeKind } from "@/lib/blade-guide";
+import { MATERIAL_EDGE_GUIDE, bladeGuide, edgeKind, materialEdgeText, type Translate } from "@/lib/blade-guide";
 import Image from "next/image";
 
 // Prices here are quoted at the consumer rate of the market being served (see
@@ -62,6 +62,19 @@ const TAB_ORDER: ConfigType[] = [
  * than no form.
  */
 
+/**
+ * The `catalog` messages as the plain translator the blade guide takes, plus
+ * the name of a tooth profile in the visitor's language. A pitch such as
+ * "14 TPI" or "12.5" is language-neutral and shown as stored; only the named
+ * edge shapes ("wave", "smooth-ground") are words.
+ */
+function useCatalogText() {
+  const t = useTranslations("catalog");
+  const guideT = t as unknown as Translate;
+  const pitchText = (pitch: string) => (pitch in PITCH_LABELS ? t(`pitch.${pitch}`) : pitch);
+  return { t, guideT, pitchText };
+}
+
 function Select({ label, options, required, value, onChange, format }: {
   label: string; options: string[]; required?: boolean;
   value: string; onChange: (v: string) => void;
@@ -69,12 +82,14 @@ function Select({ label, options, required, value, onChange, format }: {
   format?: (v: string) => string;
 }) {
   const t = useTranslations("configurator");
+  const id = useId();
   return (
     <div>
-      <label className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">
+      <label htmlFor={id} className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">
         {label} {required && <span className="text-orange">*</span>}
       </label>
       <select
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full h-12 px-3.5 border border-ink-15 bg-white font-sans text-[15px] text-ink outline-none focus:border-blue hover:border-ink-30 transition-colors cursor-pointer"
@@ -99,16 +114,20 @@ function Select({ label, options, required, value, onChange, format }: {
  */
 function LengthInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const t = useTranslations("configurator");
+  const id = useId();
+  const hintId = useId();
   const tooShort = value > 0 && value < MIN_CUSTOM_LENGTH;
   const tooLong = value > MAX_CUSTOM_LENGTH;
 
   return (
     <div>
-      <label className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">
+      <label htmlFor={id} className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">
         {t("field.length")} <span className="text-orange">*</span>
       </label>
       <div className="flex items-center gap-2">
         <input
+          id={id}
+          aria-describedby={hintId}
           type="number"
           value={value || ""}
           onChange={(e) => onChange(+e.target.value)}
@@ -125,15 +144,15 @@ function LengthInput({ value, onChange }: { value: number; onChange: (v: number)
       </div>
 
       {tooShort ? (
-        <p className="font-sans text-[12px] leading-snug text-orange mt-2 mb-0">
+        <p id={hintId} className="font-sans text-[12px] leading-snug text-orange mt-2 mb-0">
           {t("length.tooShort", { min: MIN_CUSTOM_LENGTH })}
         </p>
       ) : tooLong ? (
-        <p className="font-sans text-[12px] leading-snug text-orange mt-2 mb-0">
+        <p id={hintId} className="font-sans text-[12px] leading-snug text-orange mt-2 mb-0">
           {t("length.tooLong", { max: MAX_CUSTOM_LENGTH })}
         </p>
       ) : (
-        <p className="font-sans text-[12px] leading-snug text-ink-50 mt-2 mb-0">
+        <p id={hintId} className="font-sans text-[12px] leading-snug text-ink-50 mt-2 mb-0">
           {t("length.hint", { min: MIN_CUSTOM_LENGTH })}
         </p>
       )}
@@ -144,39 +163,63 @@ function LengthInput({ value, onChange }: { value: number; onChange: (v: number)
 /** A length the workshop will actually take, and the server will accept. */
 const isWeldableLength = (mm: number) => mm >= MIN_CUSTOM_LENGTH && mm <= MAX_CUSTOM_LENGTH;
 
-function Checkbox({ label, checked, onChange }: {
+/**
+ * A paid process the buyer opts into. `unavailable` is a process the selected
+ * blade has no price for — ticking it would add nothing, so it is shown but
+ * cannot be ticked. The native input stays (visually hidden) so it is in the
+ * tab order and read out; the span beside it is only the drawing of the box,
+ * and takes the focus ring when the input has keyboard focus.
+ */
+function Checkbox({ label, checked, onChange, unavailable, unavailableLabel }: {
   label: string; checked: boolean; onChange: (v: boolean) => void;
+  unavailable?: boolean; unavailableLabel?: string;
 }) {
+  const on = checked && !unavailable;
   return (
-    <label className="flex items-center gap-3 cursor-pointer font-sans text-sm text-ink group select-none">
+    <label
+      className={`flex items-center gap-3 font-sans text-sm group select-none ${
+        unavailable ? "cursor-not-allowed text-ink-30" : "cursor-pointer text-ink"
+      }`}
+    >
       <input
         type="checkbox"
-        checked={checked}
+        checked={on}
+        disabled={unavailable}
         onChange={(e) => onChange(e.target.checked)}
         className="sr-only peer"
       />
       <span
         aria-hidden
-        className={`w-4 h-4 shrink-0 border transition-colors ${checked ? "bg-orange border-orange" : "border-ink-30 group-hover:border-ink"}`}
+        className={`w-4 h-4 shrink-0 border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-blue peer-focus-visible:ring-offset-2 ${
+          on ? "bg-orange border-orange" : unavailable ? "border-ink-15 bg-paper" : "border-ink-30 group-hover:border-ink"
+        }`}
       />
-      <span className={checked ? "text-ink" : "text-ink-70"}>{label}</span>
+      <span className={on ? "text-ink" : unavailable ? "text-ink-30" : "text-ink-70"}>
+        {label}
+        {unavailable && unavailableLabel && <span className="ml-1.5 font-mono text-[10px] uppercase tracking-[0.08em]">· {unavailableLabel}</span>}
+      </span>
     </label>
   );
 }
 
 function QuantityStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const t = useTranslations("configurator");
+  const tCat = useTranslations("catalog");
+  const id = useId();
   return (
     <div>
-      <label className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">{t("field.quantity")}</label>
+      <label htmlFor={id} className="block font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-2">{t("field.quantity")}</label>
       <div className="inline-flex items-center border border-ink-15 bg-white">
         <button
+          type="button"
+          aria-label={tCat("product.qtyDecrease")}
           onClick={() => onChange(Math.max(1, value - 1))}
           className="w-12 h-12 flex items-center justify-center bg-ink text-white border-none cursor-pointer text-lg font-bold hover:bg-orange transition-colors"
         >
           −
         </button>
         <input
+          id={id}
           type="number"
           value={value}
           onChange={(e) => onChange(Math.max(1, +e.target.value || 1))}
@@ -184,6 +227,8 @@ function QuantityStepper({ value, onChange }: { value: number; onChange: (v: num
           min={1}
         />
         <button
+          type="button"
+          aria-label={tCat("product.qtyIncrease")}
           onClick={() => onChange(value + 1)}
           className="w-12 h-12 flex items-center justify-center bg-ink text-white border-none cursor-pointer text-lg font-bold hover:bg-orange transition-colors"
         >
@@ -218,7 +263,8 @@ function BladePreview({
   length: number;
 }) {
   const t = useTranslations("configurator");
-  const guide = bladeGuide(table, blade);
+  const { guideT, pitchText } = useCatalogText();
+  const guide = bladeGuide(guideT, table, blade);
   const kind = edgeKind(table, blade.pitch);
   // "3 TPI" is a tooth spacing; "Изпъкнала вълна" is a ground shape. Naming a
   // pitch a profile reads as a mistake to anyone who buys these.
@@ -250,14 +296,14 @@ function BladePreview({
             <span className="inline-flex items-center gap-1.5 border border-ink-15 bg-white px-2 py-1">
               <IconEdge kind={kind} size={40} className="text-ink" aria-hidden />
               <span className="font-mono text-[10px] tracking-[0.08em] uppercase text-ink-70">
-                {pitchLabel(blade.pitch)}
+                {pitchText(blade.pitch)}
               </span>
             </span>
           )}
         </div>
         <div className="font-mono text-[11px] text-ink-70 tabular-nums mt-1.5">
           {blade.width} × {blade.thickness} {t("field.mm")} ·{" "}
-          {isProfile ? t("preview.profile") : t("preview.pitch")} {pitchLabel(blade.pitch)}
+          {isProfile ? t("preview.profile") : t("preview.pitch")} {pitchText(blade.pitch)}
           {length > 0 && <> · {t("preview.loop", { length })}</>}
         </div>
 
@@ -286,6 +332,7 @@ function BladePreview({
  */
 function EdgeProfileGuide() {
   const t = useTranslations("configurator");
+  const { guideT } = useCatalogText();
   return (
     <div className="mt-10 border-t border-ink-15 pt-8">
       <h3 className="font-display text-lg font-bold tracking-tight text-ink m-0">
@@ -296,7 +343,9 @@ function EdgeProfileGuide() {
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-ink-15 border border-ink-15">
-        {MATERIAL_EDGE_GUIDE.map((edge) => (
+        {MATERIAL_EDGE_GUIDE.map((edgeDef) => {
+          const edge = { ...edgeDef, ...materialEdgeText(guideT, edgeDef.code) };
+          return (
           <div key={edge.code} className="bg-white p-5">
             <div className="flex items-center justify-between gap-3">
               <IconEdge kind={edge.kind} size={56} className="text-ink" aria-hidden />
@@ -318,7 +367,8 @@ function EdgeProfileGuide() {
               {edge.note}
             </p>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <p className="font-sans text-[13px] leading-relaxed text-ink-50 mt-5 mb-0 max-w-[70ch]">
@@ -332,6 +382,7 @@ function EdgeProfileGuide() {
 function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const t = useTranslations("configurator");
   const tc = useTranslations("common");
+  const { t: tCat, pitchText } = useCatalogText();
   const { price } = usePrices();
   const blades = type === "v" ? VERTICAL_WOOD_BLADES : HORIZONTAL_WOOD_BLADES;
 
@@ -343,10 +394,12 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const [brand, setBrand] = useState("");
   const [length, setLength] = useState(0);
   const [qty, setQty] = useState(1);
-  const [welding, setWelding] = useState(true);
-  const [setting, setSetting] = useState(true);
-  const [sharpening, setSharpening] = useState(true);
-  const [heatTreat, setHeatTreat] = useState(false);
+  // The optional paid processes start unticked: a pre-ticked extra is a charge
+  // the buyer never chose, which consumer law does not allow. Welding is not
+  // one of them — see below.
+  const [settingOpt, setSetting] = useState(false);
+  const [sharpeningOpt, setSharpening] = useState(false);
+  const [heatTreatOpt, setHeatTreat] = useState(false);
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
 
@@ -362,6 +415,23 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const selectedBlade = width && thickness && pitch && brand
     ? findBlade(blades, widthNum, thicknessNum, pitch, brand)
     : null;
+
+  // A process with no price in this blade's row cannot be bought on it, so it
+  // is offered greyed out and counts as off whatever was ticked before.
+  const avail = {
+    welding: !selectedBlade || selectedBlade.welding > 0,
+    setting: !selectedBlade || selectedBlade.setting > 0,
+    sharpening: !selectedBlade || selectedBlade.sharpening > 0,
+    heatTreatment: !selectedBlade || selectedBlade.heatTreatment > 0,
+  };
+  // Welding is not an extra: it is what turns a length of strip into the loop
+  // being ordered, so it is part of every made-to-length blade whose row prices
+  // it. It was an unticked box, which quoted an unwelded strip to anyone who did
+  // not guess that — and every other tab already includes it the same way.
+  const welding = avail.welding;
+  const setting = settingOpt && avail.setting;
+  const sharpening = sharpeningOpt && avail.sharpening;
+  const heatTreat = heatTreatOpt && avail.heatTreatment;
 
   // Only quote a length the workshop will actually weld — a price against a
   // 400 mm loop is a promise the checkout would then break.
@@ -383,7 +453,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
     addItem({
       sku: `CUSTOM-${type.toUpperCase()}-${width}x${thickness}-${length}`,
       name: t("item.wood", { width, thickness, brand }),
-      dim: `${length} × ${width} × ${thickness} мм · ${pitchLabel(pitch)} · ${brand}`,
+      dim: `${length} × ${width} × ${thickness} ${tCat("unit.mm")} · ${pitchText(pitch)} · ${brand}`,
       price: unitPrice,
       quantity: qty,
       customSpecs: {
@@ -410,7 +480,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
         <Select label={t("field.width")} options={widths.map(String)} required value={width} onChange={handleWidthChange} />
         <Select label={t("field.thickness")} options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
         <Select label={t("field.brand")} options={widthNum ? widthOptions.brands : []} required value={brand} onChange={handleBrandChange} />
-        <Select label={t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchLabel} />
+        <Select label={t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
         <LengthInput value={length} onChange={setLength} />
         <QuantityStepper value={qty} onChange={setQty} />
         {selectedBlade && (
@@ -421,10 +491,14 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
       {/* Right — extras + price */}
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-3">
-          <Checkbox label={t("extras.welding")} checked={welding} onChange={setWelding} />
-          <Checkbox label={t("extras.setting")} checked={setting} onChange={setSetting} />
-          <Checkbox label={t("extras.sharpening")} checked={sharpening} onChange={setSharpening} />
-          <Checkbox label={t("extras.heatTreatment")} checked={heatTreat} onChange={setHeatTreat} />
+          {avail.welding && (
+            <p className="font-mono text-[11px] tracking-[0.05em] text-ink-70 m-0">
+              ✓ {tCat("configurator.weldingIncluded")}
+            </p>
+          )}
+          <Checkbox label={tCat("configurator.setting")} checked={settingOpt} onChange={setSetting} unavailable={!avail.setting} unavailableLabel={tCat("configurator.unavailable")} />
+          <Checkbox label={t("extras.sharpening")} checked={sharpeningOpt} onChange={setSharpening} unavailable={!avail.sharpening} unavailableLabel={tCat("configurator.unavailable")} />
+          <Checkbox label={t("extras.heatTreatment")} checked={heatTreatOpt} onChange={setHeatTreat} unavailable={!avail.heatTreatment} unavailableLabel={tCat("configurator.unavailable")} />
         </div>
 
         {selectedBlade && (
@@ -435,7 +509,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
             {welding && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
             {sharpening && selectedBlade.sharpening > 0 && <> · {t("extras.sharpening")}: {t("price.perMetreUnit", { price: price(selectedBlade.sharpening) })}</>}
             {heatTreat && selectedBlade.heatTreatment > 0 && <> · {t("extras.heatShort")}: {t("price.perMetreUnit", { price: price(selectedBlade.heatTreatment) })}</>}
-            {setting && selectedBlade.setting > 0 && <> · {t("extras.setting")}: {t("price.perMetreUnit", { price: price(selectedBlade.setting) })}</>}
+            {setting && selectedBlade.setting > 0 && <> · {tCat("configurator.setting")}: {t("price.perMetreUnit", { price: price(selectedBlade.setting) })}</>}
             {" "}· {tc("exVat")}
           </div>
         )}
@@ -469,6 +543,7 @@ function RealDataConfigurator({
   const t = useTranslations("configurator");
   const label = t(`item.${tableKey}`);
   const tc = useTranslations("common");
+  const { t: tCat, pitchText } = useCatalogText();
   const { price } = usePrices();
   const { widths } = getUniqueValues(blades);
   const [width, setWidth] = useState("");
@@ -511,7 +586,7 @@ function RealDataConfigurator({
     addItem({
       sku: `CUSTOM-${widthNum}x${thicknessNum}-${length}-${pitch}`,
       name: label,
-      dim: `${length} × ${width} × ${thickness} мм · ${pitch} · ${effectiveBrand}`,
+      dim: `${length} × ${width} × ${thickness} ${tCat("unit.mm")} · ${pitch} · ${effectiveBrand}`,
       price: unitPrice,
       quantity: qty,
       customSpecs: {
@@ -536,7 +611,7 @@ function RealDataConfigurator({
         {widthOptions.brands.length > 1 && (
           <Select label={t("field.brand")} options={widthOptions.brands} required value={brand} onChange={handleBrandChange} />
         )}
-        <Select label={availablePitches.some(isProfilePitch) ? t("field.profileAndPitch") : t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchLabel} />
+        <Select label={availablePitches.some(isProfilePitch) ? t("field.profileAndPitch") : t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
         {/* Length belongs with width, thickness and profile — it is the fourth
             dimension of the blade, not a commercial control like quantity.
             Sitting alone in the price column it read as an afterthought on the
@@ -567,6 +642,7 @@ function RealDataConfigurator({
 
 // ===== Main page =====
 export function ConfiguratorPanel() {
+  const locale = useLocale();
   const t = useTranslations("configurator");
   const tc = useTranslations("common");
   const { market, price } = usePrices();
@@ -629,7 +705,7 @@ export function ConfiguratorPanel() {
             market.carriage === "collect"
               ? [t("facts.shippingFigure"), market.couriers.join(" · "), tc("courierFeeNote", { couriers: market.couriers.join(" / ") })]
               : [t("facts.shippingFigure"), t("facts.shippingUnit"), t("facts.shippingNote", { threshold: `${price(market.freeShippingThreshold)} ${tc("exVat")}` })],
-            [`${MIN_CUSTOM_LENGTH.toLocaleString("bg-BG")} — ∞`, t("facts.lengthUnit"), t("facts.lengthNote")],
+            [`${MIN_CUSTOM_LENGTH.toLocaleString(locale)} — ∞`, t("facts.lengthUnit"), t("facts.lengthNote")],
             [t("facts.warrantyFigure"), t("facts.warrantyUnit"), t("facts.warrantyNote")],
           ].map(([figure, unit, desc]) => (
             <div key={desc} className="bg-white p-5">

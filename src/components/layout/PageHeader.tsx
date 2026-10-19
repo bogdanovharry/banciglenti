@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 
 import { SectionNumber } from "@/components/ui/primitives";
 
@@ -37,11 +38,12 @@ export function PageHeader({
   crumbs?: Crumb[];
   children?: ReactNode;
 }) {
+  const t = useTranslations("pageHeader");
   return (
     <section className="relative isolate bg-blue-deep text-white overflow-hidden">
       {image && (
         <div className="absolute inset-0 -z-10">
-          <Image src={image} alt={imageAlt} fill priority sizes="100vw" className="object-cover object-center" />
+          <Image src={image} alt={imageAlt} fill preload sizes="100vw" className="object-cover object-center" />
           <div className="absolute inset-0 bg-blue mix-blend-color opacity-70" />
           <div className="absolute inset-0 bg-gradient-to-r from-blue-deep/88 via-blue-ink/50 to-blue/10" />
           <div className="absolute inset-0 bg-gradient-to-t from-blue-deep/65 via-transparent to-blue-deep/20" />
@@ -51,7 +53,7 @@ export function PageHeader({
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-10 pb-12 md:pt-14 md:pb-16">
         {crumbs && crumbs.length > 0 && (
           <nav
-            aria-label="Навигация"
+            aria-label={t("breadcrumb")}
             className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/55 flex gap-2 mb-8 flex-wrap"
           >
             {crumbs.map((c, i) => (

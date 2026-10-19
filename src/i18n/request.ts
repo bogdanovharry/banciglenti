@@ -33,6 +33,31 @@ async function loadMessages(language: string) {
   }
 }
 
+/**
+ * The storefront's strings live in one file per language plus one small file
+ * per area under messages/parts/<area>.<language>.json.
+ *
+ * The area files exist because the Romanian translation is large and is done
+ * in parallel, a screen at a time: one 600-key file edited by several people
+ * at once is a file where somebody's work gets overwritten. Each area is owned
+ * by whoever is translating it, and every file is optional — a missing one is
+ * simply nothing to merge. Add a name here when a new area file is created.
+ */
+const AREAS = ['chrome', 'checkout', 'catalog', 'home', 'legal', 'seo'] as const
+
+async function loadAreas(language: string): Promise<Messages> {
+  let out: Messages = {}
+  for (const area of AREAS) {
+    try {
+      const part = (await import(`../../messages/parts/${area}.${language}.json`)).default as Messages
+      out = merge(out, part)
+    } catch {
+      // No file for this area in this language: nothing to add.
+    }
+  }
+  return out
+}
+
 type Messages = { [k: string]: string | Messages }
 
 /**
@@ -64,8 +89,12 @@ export default getRequestConfig(async () => {
   const locale = await getLocale()
   const language = locale.split('-')[0]
 
-  const base = (await import(`../../messages/${FALLBACK_LANGUAGE}.json`)).default as Messages
-  const own = language === FALLBACK_LANGUAGE ? null : ((await loadMessages(language)) as Messages | null)
+  const baseFile = (await import(`../../messages/${FALLBACK_LANGUAGE}.json`)).default as Messages
+  const base = merge(baseFile, await loadAreas(FALLBACK_LANGUAGE))
+  if (language === FALLBACK_LANGUAGE) return { locale, messages: base }
 
-  return { locale, messages: own ? merge(base, own) : base }
+  const ownFile = (await loadMessages(language)) as Messages | null
+  const own = ownFile ? merge(ownFile, await loadAreas(language)) : await loadAreas(language)
+
+  return { locale, messages: merge(base, own) }
 })

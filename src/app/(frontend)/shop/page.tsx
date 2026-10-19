@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { getTranslations } from "next-intl/server";
 
+import { absoluteUrl } from "@/lib/site-url";
 import { getCategories, getCategoryCounts, getProducts } from "@/lib/catalog";
 import { ShopClient, type ShopFilter } from "./ShopClient";
 
@@ -9,11 +11,14 @@ import { ShopClient, type ShopFilter } from "./ShopClient";
 // time and /admin edits would not appear until the next deploy.
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: "Каталог",
-  description:
-    "Пълен каталог банцигови ленти, циркулярни триони, ножове за абрихт и абразиви. Филтрирайте по категория или поръчайте по размер.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("catalog");
+  return {
+    title: t("meta.shopTitle"),
+    description: t("meta.shopDescription"),
+    alternates: { canonical: await absoluteUrl("/shop") },
+  };
+}
 
 export default async function ShopPage() {
   const [products, categories, counts] = await Promise.all([
@@ -25,7 +30,8 @@ export default async function ShopPage() {
   // Only the categories that actually hold products, so the sidebar never shows
   // a filter that yields an empty grid.
   const filters: ShopFilter[] = [
-    { slug: "", label: "Всички", count: products.length },
+    // The "all" row's label is written by the client, in the visitor's language.
+    { slug: "", label: "", count: products.length },
     ...categories
       .filter((category) => (counts[category.slug] ?? 0) > 0)
       .map((category) => ({

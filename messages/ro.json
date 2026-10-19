@@ -25,7 +25,8 @@
   "stock": {
     "in": "În stoc",
     "low": "Stoc limitat",
-    "out": "Stoc epuizat"
+    "out": "Stoc epuizat",
+    "order": "Se face la comandă"
   },
   "sort": {
     "popularity": "Popularitate",
@@ -139,7 +140,7 @@
       "priceFromList": "Preț din lista de prețuri",
       "notEstimate": "nu o estimare",
       "perPiece": "per bucată, se adaugă la preț",
-      "setAndSharpen": "Ceaprazuire și ascuțire",
+      "setAndSharpen": "Avoiere și ascuțire",
       "optionalPerMetre": "opțional, per metru",
       "width": "Lățime · mm",
       "thickness": "Grosime · mm",
@@ -147,7 +148,7 @@
       "pitch": "Pas / dinte",
       "totalLength": "Lungime totală · mm",
       "welding": "Sudare",
-      "setting": "Ceaprazuire",
+      "setting": "Avoiere",
       "sharpening": "Ascuțire",
       "priceExVat": "Preț fără TVA",
       "added": "✓ Adăugat",
@@ -177,7 +178,7 @@
       "weldingTitle": "Sudare la dimensiune",
       "weldingDesc": "Tăiem la lungimea dumneavoastră și sudăm pânza în buclă. Prețul este per sudură.",
       "sharpeningDesc": "Discuri CBN și diamantate. Reface geometria dintelui în loc să cumpărați o pânză nouă.",
-      "settingDesc": "Ceaprazuire conform specificației utilajului — determină lățimea tăieturii și rectitudinea.",
+      "settingDesc": "Avoierea conform specificației utilajului — determină lățimea tăieturii și rectitudinea.",
       "heatTitle": "Tratament termic",
       "heatDesc": "Detensionarea spatelui după sudare. Prelungește viața pânzei în regim greu.",
       "perPiece": "per bucată",
@@ -263,7 +264,7 @@
     },
     "extras": {
       "welding": "Sudură",
-      "setting": "Ceaprazuire",
+      "setting": "Avoiere",
       "sharpening": "Ascuțire",
       "heatTreatment": "Tratament termic",
       "heatShort": "Termic"

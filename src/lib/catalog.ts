@@ -1,4 +1,5 @@
 import { cache } from 'react'
+import { getTranslations } from 'next-intl/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
@@ -36,6 +37,8 @@ export type CatalogCategory = {
 export type CatalogProduct = ProductCardData & {
   /** Units on hand, before it is bucketed into the display label. */
   stockCount: number
+  /** Cut to order: always buyable, and `stockCount` means nothing for it. */
+  madeToOrder: boolean
   categorySlugs: string[]
   brandName: string | null
   /** Saw-Meister product line; null for bimetal, circulars, knives, abrasives. */
@@ -131,18 +134,21 @@ function fallbackImage(
  * "2360 × 13 × 0.65 мм" — length first, because that is the figure that has to
  * match the machine. Falls back to width × thickness when no length is recorded.
  */
-function dimensionLabel(specs: {
-  width?: number | null
-  thickness?: number | null
-  length?: number | null
-}): string {
+function dimensionLabel(
+  specs: {
+    width?: number | null
+    thickness?: number | null
+    length?: number | null
+  },
+  unit: string,
+): string {
   const wt = [specs.width, specs.thickness].filter(
     (n): n is number => typeof n === 'number' && Number.isFinite(n),
   )
   if (wt.length !== 2) return ''
 
   const hasLength = typeof specs.length === 'number' && Number.isFinite(specs.length)
-  return hasLength ? `${specs.length} × ${wt[0]} × ${wt[1]} мм` : `${wt[0]} × ${wt[1]} мм`
+  return hasLength ? `${specs.length} × ${wt[0]} × ${wt[1]} ${unit}` : `${wt[0]} × ${wt[1]} ${unit}`
 }
 
 export const getCategories = cache(async (): Promise<CatalogCategory[]> => {
@@ -171,7 +177,23 @@ export const getCategoryBySlug = cache(async (slug: string): Promise<CatalogCate
   return categories.find((category) => category.slug === slug) ?? null
 })
 
-function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCategory[]): CatalogProduct {
+/**
+ * The few words the mapping itself writes into a product — the unit in "13 × 0.65 мм"
+ * and the label of a product with no category. They come from the `catalog`
+ * messages so a Romanian visitor reads "mm", not "мм".
+ */
+type ProductText = { mm: string; other: string }
+
+const getProductText = cache(async (): Promise<ProductText> => {
+  const t = await getTranslations('catalog')
+  return { mm: t('unit.mm'), other: t('unit.otherIndustry') }
+})
+
+function toCatalogProduct(
+  doc: Record<string, unknown>,
+  categories: CatalogCategory[],
+  text: ProductText,
+): CatalogProduct {
   const rawCategories = Array.isArray(doc.categories) ? doc.categories : []
   const categorySlugs = rawCategories
     .map((c) => relationSlug(c))
@@ -182,7 +204,7 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
   // attached categories sits at the root.
   const attached = categories.filter((c) => categorySlugs.includes(c.slug))
   const industry =
-    attached.find((c) => c.parentSlug === null)?.name ?? attached[0]?.name ?? 'Друго'
+    attached.find((c) => c.parentSlug === null)?.name ?? attached[0]?.name ?? text.other
 
   const specs = (doc.specs ?? {}) as {
     width?: number
@@ -191,6 +213,7 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
     material?: string
   }
   const stockCount = typeof doc.stock === 'number' ? doc.stock : 0
+  const madeToOrder = doc.madeToOrder === true
 
   const machines = (Array.isArray(doc.machines) ? doc.machines : [])
     .map((m) => {
@@ -226,12 +249,13 @@ function toCatalogProduct(doc: Record<string, unknown>, categories: CatalogCateg
     slug: String(doc.slug),
     name: String(doc.name),
     price: typeof doc.basePrice === 'number' ? doc.basePrice : 0,
-    dim: dimensionLabel(specs),
+    dim: dimensionLabel(specs, text.mm),
     industry,
-    stock: stockStateFor(stockCount),
+    stock: stockStateFor(stockCount, madeToOrder),
     badge: doc.topProduct ? 'TOP' : null,
     image: uploadedUrl ?? fallbackImage(categorySlugs, brandName, series, specs.material),
     stockCount,
+    madeToOrder,
     categorySlugs,
     brandName,
     series,
@@ -276,7 +300,8 @@ export const getProducts = cache(
         : notRetired,
     })
 
-    return result.docs.map((doc) => toCatalogProduct(doc as Record<string, unknown>, categories))
+    const text = await getProductText()
+    return result.docs.map((doc) => toCatalogProduct(doc as Record<string, unknown>, categories, text))
   },
 )
 
@@ -292,7 +317,7 @@ export const getProductBySlug = cache(async (slug: string): Promise<CatalogProdu
   })
 
   const doc = result.docs[0]
-  return doc ? toCatalogProduct(doc as Record<string, unknown>, categories) : null
+  return doc ? toCatalogProduct(doc as Record<string, unknown>, categories, await getProductText()) : null
 })
 
 /** Category slugs with how many products each holds — drives the filter counts. */

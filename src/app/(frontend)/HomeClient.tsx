@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useMemo } from "react";
-import { SectionNumber, Placeholder, Btn, Tag } from "@/components/ui/primitives";
+import { useState, useRef } from "react";
+import { SectionNumber, Placeholder, Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
-import { useCart } from "@/lib/cart";
 import {
   HORIZONTAL_WOOD_BLADES,
   VERTICAL_WOOD_BLADES,
@@ -15,23 +14,19 @@ import {
   MEAT_BLADES,
   BREAD_BLADES,
   TEXTILE_BLADES,
-  calculateBladePrice,
-  getUniqueValues,
-  getOptionsForWidth,
-  getAvailablePitches,
-  findBlade,
-  pitchLabel,
 } from "@/lib/pricing";
-import type { BladeTableKey } from "@/lib/order-pricing";
 import {
-  IconArrowRight, IconCheck, IconPhone, IconWood, IconMetal, IconFood,
+  IconArrowRight, IconPhone, IconWood, IconMetal, IconFood,
   IconHobby, IconMachine, IconAbrasive,
 } from "@/components/ui/icons";
-import { DEFAULT_MARKET, formatPrice, vatRateFor } from "@/lib/market";
 import { usePrices } from "@/lib/market-context";
-import { COMPANY } from "@/lib/company";
+import { companyFor } from "@/lib/company";
+import { CATALOG_FACTS } from "@/lib/catalog-facts";
 import { ConfiguratorPanel } from "@/components/configurator/ConfiguratorPanel";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+
+/** 1000 -> "1 000" (non-breaking space). Intl leaves 4-digit numbers ungrouped in bg/ro. */
+const spaced = (n: number) => n.toLocaleString("en-US").replace(/,/g, String.fromCharCode(160));
 
 // Industrial accent for highlighted words — heavy upright sans, brand orange
 const accent = "font-extrabold";
@@ -50,6 +45,15 @@ const accent = "font-extrabold";
 function HeroCustom() {
   const t = useTranslations("home.hero");
   const tf = useTranslations("home.facts");
+  // Every figure is derived from the price tables (see catalog-facts.ts). The
+  // tile that used to say "12 000 active clients" is gone: the legacy shop's
+  // own numbers are 5 766 orders from 1 865 customers, so it was not defensible.
+  const facts: [string, string][] = [
+    ["30+", tf("years")],
+    [String(CATALOG_FACTS.profiles), tf("profiles")],
+    [`${CATALOG_FACTS.widthMin}–${CATALOG_FACTS.widthMax}`, tf("width")],
+    [String(CATALOG_FACTS.specs), tf("specs")],
+  ];
   return (
     <section className="relative isolate bg-blue-deep text-white overflow-hidden">
       <div className="absolute inset-0 -z-10">
@@ -57,7 +61,7 @@ function HeroCustom() {
           src="/images/hero/shutterstock_1753030058.webp"
           alt={t("imageAlt")}
           fill
-          priority
+          preload
           sizes="100vw"
           className="object-cover object-center"
         />
@@ -91,12 +95,7 @@ function HeroCustom() {
 
         {/* Proof rail */}
         <div className="mt-16 md:mt-24 grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-white/20">
-          {[
-            ["30+", tf("years")],
-            ["12 000", tf("clients")],
-            ["6-200", tf("width")],
-            ["133", tf("specs")],
-          ].map(([v, l], i) => (
+          {facts.map(([v, l], i) => (
             <div key={l} className={`pt-5 pb-1 pr-4 ${i > 0 ? "md:border-l md:border-white/20 md:pl-5" : ""}`}>
               <div className="font-display text-3xl md:text-4xl font-bold tracking-tight tabular-nums">{v}</div>
               <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/55 mt-1.5">{l}</div>
@@ -109,35 +108,73 @@ function HeroCustom() {
 }
 
 // ========== TICKER ==========
+/**
+ * A marquee that can be stopped (WCAG 2.2.2): it pauses while the pointer is
+ * over it or keyboard focus is inside it, there is a visible pause/play button,
+ * and for visitors who prefer reduced motion the animation is switched off in
+ * globals.css (it matches the inline "tl-marquee" animation) and the button is
+ * hidden, since there is then nothing to pause.
+ */
 function TickerStrip() {
   const t = useTranslations("home.ticker");
+  const th = useTranslations("homepage");
   const tc = useTranslations("common");
   const { market, price } = usePrices();
+  const [userPaused, setUserPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const paused = userPaused || hovered || focused;
+
   // The threshold is authored in EUR without VAT; formatted here so a Romanian
   // visitor reads it in lei, like every other figure on the page.
   const threshold = `${price(market.freeShippingThreshold)} ${tc("exVat")}`;
   // Every entry has to be defensible. "Над 8 000 размера на склад", "Заваряване
   // за 4 часа" and "Доставка до 48ч" were removed: the first described
   // made-to-order combinations as stock, and the other two promised times the
-  // workshop does not commit to. What replaced them is countable — see the
-  // figures in messages/*.json, derived from the price tables themselves.
+  // workshop does not commit to. What replaced them is countable — see
+  // catalog-facts.ts, derived from the price tables themselves.
   const items = [
-    "specs",
-    "widths",
+    t("specs", { specs: CATALOG_FACTS.specs }),
+    t("widths", { widths: CATALOG_FACTS.widths, profiles: CATALOG_FACTS.profiles }),
     // Only where delivery is actually free above something — not in Romania,
     // where the courier charges by weight.
-    ...(market.carriage === "flat" ? ["freeShipping"] : []),
-    "consult",
-    "lengthRange",
-    "guarantee",
-  ].map((k) => (k === "freeShipping" ? t(k, { threshold }) : t(k)));
+    ...(market.carriage === "flat" ? [t("freeShipping", { threshold })] : []),
+    t("consult"),
+    t("lengthRange", { min: spaced(CATALOG_FACTS.lengthMin) }),
+    t("guarantee"),
+  ];
   return (
-    <div className="bg-navy text-white overflow-hidden border-t-4 border-orange">
-      <div className="flex gap-12 py-4 whitespace-nowrap font-mono text-xs tracking-[0.1em] uppercase" style={{ animation: "tl-marquee 45s linear infinite" }}>
-        {[...items, ...items, ...items].map((t, i) => (
-          <span key={i} className={i % 7 === 0 ? "opacity-100" : "opacity-70"}>{t}</span>
+    <div
+      className="bg-navy text-white overflow-hidden border-t-4 border-orange relative"
+      role="region"
+      aria-label={th("tickerLabel")}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={(e) => { if (e.target !== (buttonRef.current as EventTarget | null)) setFocused(true); }}
+      onBlur={() => setFocused(false)}
+    >
+      <div
+        className="flex gap-12 py-4 whitespace-nowrap font-mono text-xs tracking-[0.1em] uppercase"
+        style={{ animation: "tl-marquee 45s linear infinite", animationPlayState: paused ? "paused" : "running" }}
+      >
+        {[...items, ...items, ...items].map((text, i) => (
+          // Only the first run is read out; the repeats exist for the loop.
+          <span key={i} aria-hidden={i >= items.length || undefined} className={i % 7 === 0 ? "opacity-100" : "opacity-70"}>{text}</span>
         ))}
       </div>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setUserPaused((p) => !p)}
+        aria-pressed={userPaused}
+        aria-label={userPaused ? th("tickerPlay") : th("tickerPause")}
+        className="motion-reduce:hidden absolute right-0 top-0 bottom-0 w-12 flex items-center justify-center bg-navy/90 text-white/80 hover:text-white border-0 border-l border-white/15 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-orange-light"
+      >
+        <svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor" aria-hidden="true">
+          {userPaused ? <path d="M1 0.5v13l10-6.5z" /> : <path d="M1 0h3.5v14H1zM7.5 0H11v14H7.5z" />}
+        </svg>
+      </button>
     </div>
   );
 }
@@ -157,6 +194,7 @@ const industriesBase = [
 
 function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
   const t = useTranslations("home.industries");
+  const th = useTranslations("homepage");
   // Counts come from the catalogue itself. They used to be hardcoded marketing
   // numbers ("1 240 артикула") that overstated the real range by tenfold.
   const industries = industriesBase.map((c) => ({
@@ -179,7 +217,7 @@ function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
           </Reveal>
         </div>
 
-        <Reveal delay={80} y={0} className="tl-stagger grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-ink-15">
+        <Reveal delay={80} stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-ink-15">
           {industries.map((c, i) => {
             const CIcon = c.Icon;
             return (
@@ -210,13 +248,13 @@ function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
                   <div className="font-display text-3xl lg:text-[34px] font-bold tracking-tight mb-2">{t(c.name)}</div>
                   <p className="font-sans text-sm leading-snug text-white/70 m-0 max-w-[34ch]">{t(c.desc)}</p>
                   <div className="mt-4 pt-4 border-t border-white/20 flex justify-between items-center font-mono text-[11px] text-white/60 tracking-[0.04em]">
-                    {/* Категории без наличен склад се предлагат по заявка —
-                        показването на „0 артикула“ убива интереса без причина. */}
+                    {/* A category with nothing in stock is sold on request —
+                        showing "0 items" kills interest for no reason. */}
                     <span className="tabular-nums">
-                      {c.count > 0 ? `${c.count} ${c.count === 1 ? "артикул" : "артикула"}` : "по заявка"}
+                      {c.count > 0 ? th("itemCount", { count: c.count }) : t("onRequest")}
                     </span>
                     <span className="text-orange-light flex items-center gap-1.5">
-                      Разгледай
+                      {t("browse")}
                       <IconArrowRight size={12} className="transition-transform duration-300 group-hover:translate-x-1" />
                     </span>
                   </div>
@@ -231,16 +269,8 @@ function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
 }
 
 // ========== CUSTOM ORDER / QUOTE ==========
-/**
- * A working quote, not a teaser. This previously invented its price with
- * `(len/100) * (w/10) * 0.42`, offered any width from 6 to 80 mm and any TPI
- * from 1 to 14 — combinations that are not in the price list and cannot be
- * made — and had no way to carry the result anywhere.
- *
- * It now runs on the same tables and the same `calculateBladePrice` as
- * /configurator, so every option shown is a blade that exists and every figure
- * is the real one, itemised. The result goes straight into the cart.
- */
+// The price tables, flattened: the services block below quotes its "from"
+// rates out of them.
 const SERVICE_TABLES = [
   HORIZONTAL_WOOD_BLADES,
   VERTICAL_WOOD_BLADES,
@@ -256,30 +286,10 @@ function minRate(key: "welding" | "sharpening" | "setting" | "heatTreatment") {
   const rates = SERVICE_TABLES.map((b) => b[key]).filter((n) => n > 0);
   return rates.length ? Math.min(...rates) : 0;
 }
-/** Counted from the price list, so the figure cannot drift away from reality. */
-const PRICED_SPEC_COUNT = SERVICE_TABLES.length;
-const MIN_WELDING = minRate("welding");
-
-// `table` names the price list each tab quotes from, so a line added here can
-// be re-priced by the order route instead of being taken on trust.
-const QUOTE_TYPES = [
-  { key: "wood-h", label: "Дърво · хоризонтален", blades: HORIZONTAL_WOOD_BLADES, table: "wood-h" },
-  { key: "wood-v", label: "Дърво · вертикален", blades: VERTICAL_WOOD_BLADES, table: "wood-v" },
-  { key: "metal", label: "Метал · биметал", blades: METAL_BIMETAL_BLADES, table: "metal-bi" },
-] as const satisfies readonly { key: string; label: string; blades: unknown; table: BladeTableKey }[];
-
-const MIN_LEN = 1000;
-const MAX_LEN = 50000;
-
-/** Keeps a selection valid as its parent selection changes, without effects. */
-function pick<T>(options: readonly T[], current: T | null): T | undefined {
-  if (current !== null && options.includes(current)) return current;
-  return options[0];
-}
 
 /**
- * The homepage used to carry its own cut-down quote widget: three blade types,
- * its own copies of the dropdowns, its own price maths. The real configurator
+ * The homepage intro to the configurator. It used to carry its own cut-down
+ * quote widget (three blade types, its own price maths); the real configurator
  * covers eight types and is the thing that actually gets maintained, so the
  * duplicate is gone and this is the intro to it.
  *
@@ -288,6 +298,7 @@ function pick<T>(options: readonly T[], current: T | null): T | undefined {
  */
 function ConfiguratorSection() {
   const t = useTranslations("home.quote");
+  const th = useTranslations("homepage");
 
   return (
     <section id="custom" className="relative">
@@ -316,8 +327,8 @@ function ConfiguratorSection() {
                 {t("lede1")} {t("lede2")}
               </p>
               <div className="flex flex-wrap gap-x-8 gap-y-3 font-mono text-[10px] tracking-[0.12em] uppercase text-white/50">
-                <span>133 {"спецификации"}</span>
-                <span>1 650–12 000 мм</span>
+                <span>{th("quoteSpecs", { count: CATALOG_FACTS.specs })}</span>
+                <span>{th("quoteLength", { min: spaced(CATALOG_FACTS.lengthMin) })}</span>
                 <span className="text-orange-light">{t("priceFromList")}</span>
               </div>
             </Reveal>
@@ -332,312 +343,41 @@ function ConfiguratorSection() {
   );
 }
 
-function CustomOrderBlockLegacy() {
-  const t = useTranslations("home.quote");
-  const [typeKey, setTypeKey] = useState<(typeof QUOTE_TYPES)[number]["key"]>("wood-h");
-  const [selWidth, setSelWidth] = useState<number | null>(null);
-  const [selThickness, setSelThickness] = useState<number | null>(null);
-  const [selBrand, setSelBrand] = useState<string | null>(null);
-  const [selPitch, setSelPitch] = useState<string | null>(null);
-  const [lengthInput, setLengthInput] = useState("3810");
-  const [welding, setWelding] = useState(true);
-  const [setting, setSetting] = useState(true);
-  const [sharpening, setSharpening] = useState(false);
-  const [added, setAdded] = useState(false);
-  const { addItem } = useCart();
-
-  const activeType = useMemo(() => QUOTE_TYPES.find((t) => t.key === typeKey)!, [typeKey]);
-  const blades = activeType.blades;
-
-  // Each level is derived from the one above, so an impossible combination
-  // cannot be selected in the first place. Keyed on typeKey rather than the
-  // blades array — the table is a module constant reached through it, and the
-  // compiler can prove the dependency from the key.
-  const widths = useMemo(() => getUniqueValues(activeType.blades).widths, [activeType]);
-  const width = pick(widths, selWidth)!;
-
-  const { thicknesses, brands } = useMemo(
-    () => getOptionsForWidth(activeType.blades, width),
-    [activeType, width],
-  );
-  const thickness = pick(thicknesses, selThickness)!;
-  const brand = pick(brands, selBrand)!;
-
-  const pitches = useMemo(
-    () => getAvailablePitches(activeType.blades, width, thickness, brand),
-    [activeType, width, thickness, brand],
-  );
-  const pitch = pick(pitches, selPitch);
-
-  const blade = pitch ? findBlade(blades, width, thickness, pitch, brand) : undefined;
-
-  const length = Number(lengthInput);
-  const lengthValid = Number.isFinite(length) && length >= MIN_LEN && length <= MAX_LEN;
-
-  const quote =
-    blade && lengthValid
-      ? calculateBladePrice(blade, length, { welding, sharpening, heatTreatment: false, setting })
-      : null;
-
-  const handleAdd = () => {
-    if (!blade || !quote || !lengthValid) return;
-    addItem({
-      sku: `CUSTOM-${brand}-${width}x${thickness}-${pitch}-${length}`,
-      // The customer reads this in the cart and on the order, so it carries the
-      // profile's name rather than its internal code.
-      name: `Банцигова лента ${brand} ${width}×${thickness} мм · стъпка ${pitchLabel(pitch!)}`,
-      dim: `${length} × ${width} × ${thickness} мм`,
-      price: quote.totalWithoutVat,
-      quantity: 1,
-      customSpecs: {
-        table: activeType.table,
-        length,
-        width,
-        thickness,
-        pitch: pitch!,
-        brand,
-        welding,
-        setting,
-        sharpening,
-      },
-    });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2200);
-  };
-
-  const selectClass =
-    "w-full h-11 px-3 border border-ink-15 bg-white font-mono text-[13px] text-ink outline-none focus:border-blue transition-colors cursor-pointer";
-
-  return (
-    <section id="custom" className="bg-ink text-white py-20 md:py-[120px] relative overflow-hidden">
-      <div
-        aria-hidden
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-          maskImage: "linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent)",
-        }}
-      />
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-20">
-          <Reveal>
-            <SectionNumber n="№ 03" label={t("title1")} tone="light" />
-            <h2 className="font-display text-4xl md:text-5xl lg:text-7xl leading-none tracking-[-0.04em] font-bold mt-7 mb-6">
-              Кажи ни размера.<br />
-              <span className={`${accent} text-orange-light`}>Заваряваме го.</span>
-            </h2>
-            <p className="font-sans text-[17px] leading-relaxed text-white/70 max-w-[480px] mb-10">
-              {t("lede1")}
-              {t("lede2")}
-            </p>
-            {/* Four facts, each derived from the price tables rather than
-                asserted. The previous list claimed an induction + shot-blasting
-                process, a 24-hour turnaround and a 30-day return policy — none
-                of which is evidenced anywhere in this codebase. */}
-            <ul className="list-none p-0 m-0 flex flex-col gap-4">
-              {[
-                [`${PRICED_SPEC_COUNT} спецификации в ценоразписа`, "7 типа ленти · широчина 6–100 мм"],
-                ["Цена от ценоразписа", "не приблизителна оценка"],
-                [`Заваряване от ${MIN_WELDING.toFixed(2)} €`, "на брой, добавя се към цената"],
-                ["Чапраз и заточване", "по избор, на метър"],
-              ].map(([t, d]) => (
-                <li key={t} className="flex gap-4 py-4 border-b border-white/[0.08]">
-                  <IconCheck size={22} className="text-orange-light shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-display text-[17px] font-semibold">{t}</div>
-                    <div className="font-sans text-[13px] text-white/55 mt-0.5">{d}</div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </Reveal>
-
-          {/* Quote card */}
-          <div className="bg-white text-ink p-6 md:p-9 relative">
-            <div className="flex justify-between items-center mb-6">
-              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-50">{t("eyebrow")}</div>
-              <Tag tone="ok">По поръчка</Tag>
-            </div>
-
-            {/* Type */}
-            <div className="grid grid-cols-3 gap-1.5 mb-6">
-              {QUOTE_TYPES.map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => {
-                    setTypeKey(t.key);
-                    setSelWidth(null);
-                    setSelThickness(null);
-                    setSelBrand(null);
-                    setSelPitch(null);
-                  }}
-                  className={`py-2.5 px-2 font-mono text-[10px] leading-tight tracking-[0.04em] uppercase cursor-pointer border transition-colors ${
-                    typeKey === t.key
-                      ? "bg-ink text-white border-ink"
-                      : "bg-white text-ink-70 border-ink-15 hover:border-ink-30"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <label className="block">
-                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">{t("width")}</span>
-                <select
-                  className={selectClass}
-                  value={width}
-                  onChange={(e) => { setSelWidth(Number(e.target.value)); setSelThickness(null); setSelBrand(null); setSelPitch(null); }}
-                >
-                  {widths.map((w) => <option key={w} value={w}>{w}</option>)}
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">{t("thickness")}</span>
-                <select
-                  className={selectClass}
-                  value={thickness}
-                  onChange={(e) => { setSelThickness(Number(e.target.value)); setSelPitch(null); }}
-                >
-                  {thicknesses.map((t) => <option key={t} value={t}>{t.toFixed(2)}</option>)}
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">{t("brand")}</span>
-                <select
-                  className={selectClass}
-                  value={brand}
-                  onChange={(e) => { setSelBrand(e.target.value); setSelPitch(null); }}
-                >
-                  {brands.map((b) => <option key={b} value={b}>{b}</option>)}
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">{t("pitch")}</span>
-                <select className={selectClass} value={pitch ?? ""} onChange={(e) => setSelPitch(e.target.value)}>
-                  {pitches.map((p) => <option key={p} value={p}>{pitchLabel(p)}</option>)}
-                </select>
-              </label>
-            </div>
-
-            {/* Length is typed, not dragged — buyers know their exact length. */}
-            <label className="block mt-4">
-              <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 block mb-1.5">
-                {t("totalLength")}
-              </span>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={lengthInput}
-                min={MIN_LEN}
-                max={MAX_LEN}
-                onChange={(e) => setLengthInput(e.target.value)}
-                aria-invalid={!lengthValid}
-                className={`w-full h-11 px-3 border bg-white font-mono text-[15px] font-semibold text-ink tabular-nums outline-none transition-colors ${
-                  lengthValid ? "border-ink-15 focus:border-blue" : "border-danger"
-                }`}
-              />
-              <span className={`font-mono text-[10px] mt-1.5 block ${lengthValid ? "text-ink-50" : "text-danger"}`}>
-                {lengthValid ? `Заваряваме от ${MIN_LEN} до ${MAX_LEN} мм` : `Дължината трябва да е между ${MIN_LEN} и ${MAX_LEN} мм`}
-              </span>
-            </label>
-
-            {/* Processing */}
-            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
-              {([
-                ["Заваряване", welding, setWelding],
-                ["Чапраз", setting, setSetting],
-                ["Заточване", sharpening, setSharpening],
-              ] as const).map(([label, val, set]) => (
-                <label key={label} className="flex items-center gap-2 font-sans text-[13px] text-ink-70 cursor-pointer">
-                  <input type="checkbox" checked={val} onChange={(e) => set(e.target.checked)} className="w-3.5 h-3.5 accent-orange" />
-                  {label}
-                </label>
-              ))}
-            </div>
-
-            {/* Itemised price */}
-            <div className="mt-6 p-5 bg-paper">
-              {quote ? (
-                <>
-                  <div className="flex flex-col gap-1.5 font-mono text-[11px] text-ink-70 mb-4 pb-4 border-b border-ink-15">
-                    <div className="flex justify-between"><span>Лента {(length / 1000).toFixed(2)} м</span><span className="tabular-nums">{quote.bladePrice.toFixed(2)} €</span></div>
-                    {welding && <div className="flex justify-between"><span>Заваряване</span><span className="tabular-nums">{quote.weldingPrice.toFixed(2)} €</span></div>}
-                    {setting && <div className="flex justify-between"><span>Чапраз</span><span className="tabular-nums">{quote.settingPrice.toFixed(2)} €</span></div>}
-                    {sharpening && <div className="flex justify-between"><span>Заточване</span><span className="tabular-nums">{quote.sharpeningPrice.toFixed(2)} €</span></div>}
-                  </div>
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">{t("priceExVat")}</div>
-                      <div className="font-display text-4xl font-extrabold tracking-tight text-ink tabular-nums leading-none mt-1">
-                        {quote.totalWithoutVat.toFixed(2)} <span className="text-sm text-ink-50 font-normal">€</span>
-                      </div>
-                      <div className="font-mono text-[10px] text-ink-50 mt-1.5 tabular-nums">
-                        с ДДС {formatPrice(quote.totalWithoutVat * (1 + vatRateFor(DEFAULT_MARKET)))}
-                      </div>
-                    </div>
-                    <Btn variant="primary" size="lg" onClick={handleAdd} iconRight={<IconArrowRight size={16} />}>
-                      {added ? "✓ Добавено" : "Добави"}
-                    </Btn>
-                  </div>
-                </>
-              ) : (
-                <div className="font-sans text-sm text-ink-70">
-                  Тази комбинация не е в ценоразписа.{" "}
-                  <Link href="/contact" className="text-orange underline">{t("ask")}</Link> — правим и нестандартни.
-                </div>
-              )}
-            </div>
-
-            <div className="mt-4 flex justify-between items-center font-mono text-[10px] text-ink-50 tracking-[0.06em]">
-              <span className="tabular-nums">
-                {lengthValid ? length : "—"} × {width} × {thickness.toFixed(2)} мм · {brand}
-              </span>
-              <Link href="/configurator" className="text-orange underline">{t("moreTypes")}</Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ========== BESTSELLERS ==========
 
 function BestsellersBlock({ products }: { products: ProductCardData[] }) {
-  const [filter, setFilter] = useState("Всички");
+  const t = useTranslations("home.best");
+  const th = useTranslations("homepage");
+  // "" stands for "all"; the labels are translated at render time.
+  const [filter, setFilter] = useState("");
   // Only offer a tab if the catalogue actually has products behind it.
   // A filter offering one real choice is just decoration, so the row only
   // appears once there are at least two industries to switch between.
   const industries = Array.from(new Set(products.map((p) => p.industry)));
-  const tabs = industries.length > 1 ? ["Всички", ...industries] : [];
-  const filtered = filter === "Всички" ? products : products.filter((b) => b.industry === filter);
+  const tabs = industries.length > 1 ? ["", ...industries] : [];
+  const filtered = filter === "" ? products : products.filter((b) => b.industry === filter);
 
   return (
     <section className="bg-paper py-20 md:py-[120px]">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-14">
           <Reveal>
-            <SectionNumber n="№ 04" label="Най-търсени · Април 2026" />
+            {/* These are the products flagged TOP by hand in the CMS, not sales
+                data, and carry no date — a hand-typed month goes stale. */}
+            <SectionNumber n="№ 04" label={t("eyebrow")} />
             <h2 className="font-display text-4xl md:text-[56px] leading-none tracking-[-0.035em] font-bold mt-7 text-ink">
-              Какво купуват<br />професионалистите.
+              {th("bestTitle1")}<br />{th("bestTitle2")}
             </h2>
           </Reveal>
           {tabs.length > 0 && (
             <div className="flex gap-1 bg-white border border-ink-15 p-1">
-              {tabs.map((t) => (
+              {tabs.map((tab) => (
                 <button
-                  key={t}
-                  onClick={() => setFilter(t)}
-                  className={`px-4 py-2.5 font-mono text-[11px] tracking-[0.1em] uppercase cursor-pointer border-none transition-colors ${filter === t ? "bg-ink text-white" : "bg-transparent text-ink-70 hover:text-ink"}`}
+                  key={tab}
+                  onClick={() => setFilter(tab)}
+                  className={`px-4 py-2.5 font-mono text-[11px] tracking-[0.1em] uppercase cursor-pointer border-none transition-colors ${filter === tab ? "bg-ink text-white" : "bg-transparent text-ink-70 hover:text-ink"}`}
                 >
-                  {t}
+                  {tab === "" ? t("all") : tab}
                 </button>
               ))}
             </div>
@@ -653,7 +393,7 @@ function BestsellersBlock({ products }: { products: ProductCardData[] }) {
         </div>
 
         <div className="mt-14 text-center">
-          <Link href="/shop"><Btn variant="dark" size="lg" iconRight={<IconArrowRight size={16} />}>Виж целия каталог</Btn></Link>
+          <Link href="/shop"><Btn variant="dark" size="lg" iconRight={<IconArrowRight size={16} />}>{t("viewAll")}</Btn></Link>
         </div>
       </div>
     </section>
@@ -662,6 +402,17 @@ function BestsellersBlock({ products }: { products: ProductCardData[] }) {
 
 // ========== EXPERTISE ==========
 function ExpertiseBlock() {
+  const t = useTranslations("home.about");
+  const th = useTranslations("homepage");
+  const stats: [string, string][] = [
+    // Counted from the price tables, so these cannot drift away from what the
+    // configurator will quote. (A "8 kinds of steel" tile was dropped: nothing
+    // in the repository substantiates it.)
+    [String(CATALOG_FACTS.specs), th("expertiseSpecs")],
+    [String(CATALOG_FACTS.widths), th("expertiseWidths", { min: CATALOG_FACTS.widthMin, max: CATALOG_FACTS.widthMax })],
+    [String(CATALOG_FACTS.profiles), th("expertiseProfiles")],
+    ["1993", th("expertiseFounded")],
+  ];
   return (
     <section className="bg-navy text-white py-20 md:py-[120px]">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-20 items-center">
@@ -670,28 +421,21 @@ function ExpertiseBlock() {
             tone="ink"
             ratio="4/5"
             src="/images/hero/man_working_bandsaw_blades.avif"
-            alt="Производство и заваряване на банцигови ленти в цеха в Габрово"
+            alt={t("imageAlt")}
             sizes="(max-width: 1024px) 100vw, 48vw"
           />
         </Reveal>
         <Reveal delay={120}>
-          <SectionNumber n="№ 05" label="От 1993 · Габрово" tone="light" />
+          <SectionNumber n="№ 05" label={t("eyebrow")} tone="light" />
           <h2 className="font-display text-4xl md:text-5xl lg:text-7xl leading-none tracking-[-0.04em] font-bold mt-7 mb-8">
-            Най-големият склад<br />за режещи инструменти<br />
-            <span className={`${accent} text-orange-light`}>на Балканите.</span>
+            {t("title1")}<br />{t("title2")}<br />
+            <span className={`${accent} text-orange-light`}>{t("title3")}</span>
           </h2>
           <p className="font-sans text-[17px] leading-relaxed text-white/75 max-w-[560px] mb-10">
-            30 години доставяме режещи инструменти на дървопреработвателни заводи, металообработващи цехове и хранителни производители.
+            {t("lede")}
           </p>
           <div className="grid grid-cols-2 gap-px bg-white/10 border border-white/10">
-            {[
-              // Counted from the price tables in src/lib/pricing.ts, so these
-              // cannot drift away from what the configurator will quote.
-              ["133", "спецификации ленти"],
-              ["23", "широчини от 6 до 200 мм"],
-              ["33", "профила и стъпки"],
-              ["8", "вида стомана"],
-            ].map(([v, l]) => (
+            {stats.map(([v, l]) => (
               <div key={l} className="p-7 bg-navy">
                 <div className="font-display text-3xl md:text-5xl font-extrabold tracking-tight leading-none tl-figures">{v}</div>
                 <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/60 mt-2">{l}</div>
@@ -717,41 +461,21 @@ function ExpertiseBlock() {
  * across those tables, so it moves when the price list moves.
  */
 
+// Names, descriptions and units are looked up by key at render time.
 const SERVICES = [
-  {
-    name: "Заваряване по размер",
-    detail: "Режем на вашата дължина и заваряваме лентата на контур. Цената е на брой шев.",
-    unit: "на брой",
-    rate: minRate("welding"),
-    tag: null,
-  },
-  {
-    name: "Заточване",
-    detail: "CBN и диамантени дискове. Възстановява геометрията на зъба вместо да купувате нова лента.",
-    unit: "на метър",
-    rate: minRate("sharpening"),
-    tag: null,
-  },
-  {
-    name: "Чапраз",
-    detail: "Разводка по спецификация на машината — определя ширината на реза и правотата.",
-    unit: "на метър",
-    rate: minRate("setting"),
-    tag: null,
-  },
-  {
-    name: "Термообработка",
-    detail: "Отпускане на гърба след заваряване. Удължава живота на лентата при тежък режим.",
-    unit: "на метър",
-    rate: minRate("heatTreatment"),
-    tag: null,
-  },
-];
+  { key: "welding", name: "weldingTitle", detail: "weldingDesc", perMetre: false, rate: minRate("welding") },
+  { key: "sharpening", name: "sharpening", detail: "sharpeningDesc", perMetre: true, rate: minRate("sharpening") },
+  { key: "setting", name: "setting", detail: "settingDesc", perMetre: true, rate: minRate("setting") },
+  { key: "heat", name: "heatTitle", detail: "heatDesc", perMetre: true, rate: minRate("heatTreatment") },
+] as const;
 
 function ServicesBlock() {
   const tSvc = useTranslations("home.services");
   const tc = useTranslations("common");
+  const tq = useTranslations("home.quote");
+  const th = useTranslations("homepage");
   const { gross, amount, symbol } = usePrices();
+  const company = companyFor(useLocale());
   return (
     <section className="bg-blue-deep text-white py-20 md:py-[120px] relative overflow-hidden">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
@@ -772,52 +496,46 @@ function ServicesBlock() {
                 {tSvc("workshop")}
               </div>
               <div className="font-display text-2xl font-bold tracking-tight">
-                Носите лентата. Връщате я в работа.
+                {th("servicesCaption")}
               </div>
             </div>
           </Reveal>
 
           <div>
             <Reveal>
-              <SectionNumber n="№ 06" label="Услуги в цеха" tone="light" />
+              <SectionNumber n="№ 06" label={tSvc("eyebrow")} tone="light" />
               <h2 className="font-display text-4xl md:text-5xl lg:text-[56px] leading-none tracking-[-0.035em] font-bold mt-7 mb-5">
-                Не само продаваме.<br />
-                <span className={`${accent} text-orange-light`}>Обработваме.</span>
+                {tSvc("title1")}<br />
+                <span className={`${accent} text-orange-light`}>{tSvc("title2")}</span>
               </h2>
               <p className="font-sans text-[17px] leading-relaxed text-white/70 max-w-[520px] mb-10">
-                Заточена лента реже като нова на част от цената. Цените са от актуалния ценоразпис —
-                точната сума зависи от широчината и дължината.
+                {tSvc("lede")}
               </p>
             </Reveal>
 
-            <Reveal delay={80} y={0} className="tl-stagger border-t border-white/15">
+            <Reveal delay={80} stagger className="border-t border-white/15">
               {SERVICES.map((s) => (
                 <div
-                  key={s.name}
+                  key={s.key}
                   className="group grid grid-cols-[1fr_auto] gap-6 items-baseline py-6 border-b border-white/15"
                 >
                   <div>
                     <div className="flex items-center gap-3 mb-1.5">
                       <h3 className="font-display text-xl md:text-[22px] font-semibold tracking-tight m-0">
-                        {s.name}
+                        {s.name === "sharpening" || s.name === "setting" ? tq(s.name) : tSvc(s.name)}
                       </h3>
-                      {s.tag && (
-                        <span className="font-mono text-[9px] tracking-[0.12em] uppercase bg-orange text-white px-1.5 py-0.5">
-                          {s.tag}
-                        </span>
-                      )}
                     </div>
                     <p className="font-sans text-[14px] leading-snug text-white/60 m-0 max-w-[46ch]">
-                      {s.detail}
+                      {tSvc(s.detail)}
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="font-mono text-[9px] tracking-[0.12em] uppercase text-white/45">от</div>
+                    <div className="font-mono text-[9px] tracking-[0.12em] uppercase text-white/45">{tSvc("from")}</div>
                     <div className="font-display text-2xl md:text-[26px] font-bold tracking-tight tabular-nums leading-none mt-0.5">
                       {amount(gross(s.rate))}
                       <span className="text-sm font-normal text-white/50 ml-1">{symbol}</span>
                     </div>
-                    <div className="font-mono text-[9px] text-white/45 mt-1">{s.unit} · {tc("incVat")}</div>
+                    <div className="font-mono text-[9px] text-white/45 mt-1">{tSvc(s.perMetre ? "perMetre" : "perPiece")} · {tc("incVat")}</div>
                   </div>
                 </div>
               ))}
@@ -829,56 +547,11 @@ function ServicesBlock() {
                   {tSvc("cta")}
                 </Btn>
               </Link>
-              <a href={COMPANY.phone.office.href}>
-                <Btn variant="ghostLight" size="lg" icon={<IconPhone size={16} />}>{COMPANY.phone.office.display}</Btn>
+              <a href={company.phone.office.href}>
+                <Btn variant="ghostLight" size="lg" icon={<IconPhone size={16} />}>{company.phone.office.display}</Btn>
               </a>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ========== BLOG ==========
-function BlogTeaser() {
-  const posts = [
-    { cat: "Техническо", date: "18.04.2026", title: "Как да изберете правилната широчина на банциговата лента", read: "6 мин", img: "/images/hero/shutterstock_1510054877.avif" },
-    { cat: "Казус", date: "02.04.2026", title: "Защо M42 е по-добро от M51 за въглеродна стомана", read: "4 мин", img: "/images/hero/metal-cutting-2023-11-27-04-59-56-utc-2.avif" },
-    { cat: "Ръководство", date: "27.03.2026", title: "5-те най-чести причини за скъсване на лента", read: "8 мин", img: "/images/hero/shutterstock_1753030058.webp" },
-  ];
-  return (
-    <section className="bg-bone py-20 md:py-[120px]">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-14">
-          <Reveal>
-            <SectionNumber n="№ 07" label="Journal · ръководства" />
-            <h2 className="font-display text-4xl md:text-[56px] leading-none tracking-[-0.035em] font-bold mt-7 text-ink">Техническо ноу-хау.</h2>
-          </Reveal>
-          <Link href="/blog"><Btn variant="ghost" size="md" iconRight={<IconArrowRight size={14} />}>Всички статии</Btn></Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {posts.map((p, i) => (
-            <Reveal key={i} delay={i * 80}>
-            <article className="group bg-white border border-ink-15 overflow-hidden cursor-pointer flex flex-col h-full hover:border-ink hover:shadow-[0_18px_40px_-22px_rgba(17,17,17,0.45)] hover:-translate-y-1 transition-all duration-300">
-              <div className="overflow-hidden">
-                <div className="transition-transform duration-500 ease-out group-hover:scale-[1.04]">
-                  <Placeholder tone="paper" ratio="4/3" src={p.img} alt={p.title} sizes="(max-width: 768px) 100vw, 33vw" />
-                </div>
-              </div>
-              <div className="p-7 flex flex-col gap-3">
-                <div className="flex justify-between font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
-                  <span className="text-orange">{p.cat}</span>
-                  <span>{p.date} · {p.read}</span>
-                </div>
-                <h3 className="font-display text-[22px] leading-tight tracking-tight font-semibold m-0 text-ink">{p.title}</h3>
-                <div className="mt-2 font-mono text-[11px] text-orange flex items-center gap-1.5 tracking-[0.05em]">
-                  Прочети <IconArrowRight size={12} className="transition-transform duration-300 group-hover:translate-x-1" />
-                </div>
-              </div>
-            </article>
-            </Reveal>
-          ))}
         </div>
       </div>
     </section>
@@ -895,6 +568,7 @@ function BlogTeaser() {
  */
 function ContactCTA() {
   const tSup = useTranslations("home.support");
+  const company = companyFor(useLocale());
   return (
     <section className="relative isolate bg-orange text-white overflow-hidden">
       <div className="absolute inset-0 -z-10">
@@ -930,19 +604,19 @@ function ContactCTA() {
                 {tSup("directLine")}
               </div>
               <a
-                href={COMPANY.phone.office.href}
+                href={company.phone.office.href}
                 className="group flex items-center gap-3 no-underline text-white"
               >
                 <IconPhone size={26} className="text-orange shrink-0 transition-transform duration-300 group-hover:-rotate-12" />
                 <span className="font-display text-[34px] md:text-[40px] font-extrabold tracking-tight tabular-nums leading-none group-hover:text-orange-light transition-colors">
-                  066 800 822
+                  {company.phone.office.display}
                 </span>
               </a>
               <a
-                href="tel:0878800162"
+                href={company.phone.mobile.href}
                 className="block font-mono text-[13px] text-white/60 hover:text-white no-underline mt-3 tabular-nums transition-colors"
               >
-                +359 878 800 162 · мобилен
+                {company.phone.mobile.display} · {tSup("mobile")}
               </a>
               <div className="mt-6 pt-6 border-t border-white/15">
                 <Link href="/contact" className="block">
@@ -976,7 +650,6 @@ export function HomeClient({
       <BestsellersBlock products={bestsellers} />
       <ExpertiseBlock />
       <ServicesBlock />
-      <BlogTeaser />
       <ContactCTA />
     </>
   );

@@ -13,16 +13,25 @@
  * imported from a component, so the shared vocabulary lives here instead.
  */
 
-export type StockState = 'in' | 'low' | 'out'
+export type StockState = 'in' | 'low' | 'out' | 'order'
 
 export const STOCK_LABELS: Record<StockState, string> = {
   in: 'На склад',
   low: 'Ниска наличност',
   out: 'Изчерпан',
+  order: 'Изработва се по поръчка',
 }
 
-/** Five or fewer is "low" — enough to warn without blocking the sale. */
-export function stockStateFor(units: number): StockState {
+/**
+ * Five or fewer is "low" — enough to warn without blocking the sale.
+ *
+ * A made-to-order product has no stock to run out of: the workshop cuts it when
+ * it is bought. It used to be shown as "sold out" with a disabled button, which
+ * is the one thing the business sells the most of, so it has a state of its own
+ * and is always orderable.
+ */
+export function stockStateFor(units: number, madeToOrder = false): StockState {
+  if (madeToOrder) return 'order'
   if (units <= 0) return 'out'
   if (units <= 5) return 'low'
   return 'in'
@@ -31,11 +40,13 @@ export function stockStateFor(units: number): StockState {
 export type SortKey = 'popularity' | 'price-asc' | 'price-desc' | 'width'
 
 /** Order here is the order rendered in the dropdown. */
-export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'popularity', label: 'Популярност' },
-  { key: 'price-asc', label: 'Цена ↑' },
-  { key: 'price-desc', label: 'Цена ↓' },
-  { key: 'width', label: 'Широчина' },
+export const SORT_OPTIONS: { key: SortKey; label: string; msg: 'popularity' | 'priceAsc' | 'priceDesc' | 'width' }[] = [
+  // `msg` is the key under the `sort` message namespace; the pages render
+  // that, and only ever compare `key`. `label` stays as the Bulgarian source.
+  { key: 'popularity', msg: 'popularity', label: 'Популярност' },
+  { key: 'price-asc', msg: 'priceAsc', label: 'Цена ↑' },
+  { key: 'price-desc', msg: 'priceDesc', label: 'Цена ↓' },
+  { key: 'width', msg: 'width', label: 'Широчина' },
 ]
 
 export const isSortKey = (v: unknown): v is SortKey =>
@@ -77,3 +88,11 @@ export const INDUSTRY_OPTIONS = [
 ] as const
 
 export type IndustryCode = (typeof INDUSTRY_OPTIONS)[number]['code']
+
+/**
+ * A whole number the way the market writes it — "1 000" in Bulgarian, "1.000"
+ * in Romanian. Grouping is forced on: Bulgarian leaves four-digit numbers bare
+ * by default, but a loop length is read in thousands.
+ */
+export const formatInt = (n: number, locale: string): string =>
+  new Intl.NumberFormat(locale, { useGrouping: 'always', maximumFractionDigits: 0 }).format(n)
