@@ -18,6 +18,29 @@
   unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
+/* Latin-extended and Greek for the mono labels.
+   The two faces above cover Latin-1 and Cyrillic, so on the Romanian store every
+   ă ș ț in a small mono label fell back to a different font in the middle of a
+   word — "fără" in two typefaces. The subsets are the ones Google publishes for
+   JetBrains Mono, so the ranges match its own; each is fetched only when a
+   character in it is actually on the page. Greek is for the market after next. */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("/fonts/jbmono-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("/fonts/jbmono-greek.woff2") format("woff2");
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+
 @theme {
   /* === BRANDBOOK PRIMARY PALETTE === */
   --color-white: #FFFFFF;
@@ -82,35 +105,6 @@ html {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-}
-
-/* Staggered entry — put on a <Reveal> whose children should cascade rather than
-   arrive together. The parent stays untransformed so grid borders are unaffected;
-   only the cells move. */
-.tl-stagger > * {
-  opacity: 0;
-  transform: translate3d(0, 14px, 0);
-  transition:
-    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.tl-stagger[data-shown="true"] > * {
-  opacity: 1;
-  transform: none;
-}
-.tl-stagger > *:nth-child(1) { transition-delay: 0ms; }
-.tl-stagger > *:nth-child(2) { transition-delay: 70ms; }
-.tl-stagger > *:nth-child(3) { transition-delay: 140ms; }
-.tl-stagger > *:nth-child(4) { transition-delay: 210ms; }
-.tl-stagger > *:nth-child(5) { transition-delay: 280ms; }
-.tl-stagger > *:nth-child(6) { transition-delay: 350ms; }
-
-@media (prefers-reduced-motion: reduce) {
-  .tl-stagger > * {
-    opacity: 1;
-    transform: none;
-    transition: none;
   }
 }
 

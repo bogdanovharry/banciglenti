@@ -7,7 +7,8 @@ import { CartProvider } from "@/lib/cart";
 import { MarketProvider } from "@/lib/market-context";
 import { getMarket } from "@/i18n/locale";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
+import { siteOrigin } from "@/lib/site-url";
 
 const inter = localFont({
   src: [{ path: "../../fonts/inter-latin-cyrillic.woff2", weight: "300 800" }],
@@ -16,19 +17,32 @@ const inter = localFont({
   fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "ТЕХНОЛЕС — Банцигови ленти и режещи инструменти",
-    template: "%s | ТЕХНОЛЕС",
-  },
-  description:
-    "Най-голямото разнообразие от банцигови ленти, циркулярни триони, ножове за абрихт и абразиви в България. Индивидуални решения за дърво, метал и хранителна промишленост.",
-  openGraph: {
-    type: "website",
-    locale: "bg_BG",
-    siteName: "ТЕХНОЛЕС",
-  },
-};
+/**
+ * Site-wide metadata, per market.
+ *
+ * It was one constant: Bulgarian title, Bulgarian description, `bg_BG`, on
+ * every domain — so the Romanian store introduced itself to search engines and
+ * link previews in Cyrillic under another brand's name, and the description
+ * opened with a superlative nobody can verify. Now the market decides the
+ * language, the name (ТЕХНОЛЕС in Bulgaria, Saw-Meister elsewhere, matching the
+ * header) and the locale, and `metadataBase` is the domain being visited so
+ * every relative URL a page declares resolves on its own host.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const [t, locale, origin] = await Promise.all([getTranslations("seo"), getLocale(), siteOrigin()]);
+  return {
+    metadataBase: new URL(origin),
+    title: { default: t("title"), template: `%s | ${t("siteName")}` },
+    description: t("description"),
+    openGraph: {
+      type: "website",
+      locale: locale.replace("-", "_"),
+      siteName: t("siteName"),
+      title: t("title"),
+      description: t("description"),
+    },
+  };
+}
 
 export default async function FrontendLayout({
   children,
@@ -40,6 +54,7 @@ export default async function FrontendLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   const market = await getMarket();
+  const tSeo = await getTranslations("seo");
 
   return (
     <html lang={locale.split("-")[0]} className={inter.variable}>
@@ -51,7 +66,7 @@ export default async function FrontendLayout({
             href="#main-content"
             className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[10000] focus:bg-blue focus:text-white focus:px-6 focus:py-3"
           >
-            Към съдържанието
+            {tSeo("skipToContent")}
           </a>
           <Header />
           <main id="main-content">{children}</main>
