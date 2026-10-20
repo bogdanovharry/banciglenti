@@ -92,44 +92,66 @@ export type GeneratedProduct = {
   shortDescription: string
 }
 
+/** What the catalogue already carries, reduced to what decides whether a machine fits it. */
+export type ExistingBlade = { length: number; width: number | null; industry: Machine['industry'] | null }
+
+export type MachineTag = {
+  industry: Machine['industry']
+  length: number
+  /** Null when the source did not state a width: any width of this loop fits the search. */
+  width: number | null
+  machines: { brand: string; model: string }[]
+}
+
 export type MachinePlan = {
-  /** Existing product slugs get these machines attached. */
-  tags: { length: number; machines: { brand: string; model: string }[] }[]
+  /** Existing products of the same industry, loop and width get these machines attached. */
+  tags: MachineTag[]
   creates: GeneratedProduct[]
 }
 
 /**
- * @param existingLengths loop lengths already present in the catalogue.
+ * Machines are matched to blades by industry and loop length, and by width
+ * where the source stated one. Length alone attached a metal saw to wood
+ * carbon blades that happen to share its loop, and a 27 mm machine to a 34 mm
+ * blade — a customer filtering by their machine must only ever see blades that
+ * run on it.
  */
-export function planMachineProducts(existingLengths: Set<number>): MachinePlan {
+export function planMachineProducts(existing: ExistingBlade[]): MachinePlan {
   const tags: MachinePlan['tags'] = []
   const creates: GeneratedProduct[] = []
 
-  // Group machines by length so one generated product can serve several models
-  // that happen to share a loop size.
-  const byLength = new Map<number, Machine[]>()
+  // One generated product can serve several models that share industry, loop and width.
+  const groups = new Map<string, Machine[]>()
   for (const m of MACHINES) {
-    byLength.set(m.length, [...(byLength.get(m.length) ?? []), m])
+    const key = `${m.industry}|${m.length}|${m.width ?? ''}`
+    groups.set(key, [...(groups.get(key) ?? []), m])
   }
 
-  for (const [length, machines] of byLength) {
+  for (const machines of groups.values()) {
+    const { industry, length } = machines[0]
+    const statedWidth = machines[0].width ?? null
     const entries = machines.map((m) => ({ brand: m.brand, model: m.model }))
+    const basis = BASIS[industry]
 
-    if (existingLengths.has(length)) {
-      tags.push({ length, machines: entries })
+    const carried = existing.some(
+      (e) =>
+        e.industry === industry &&
+        e.length === length &&
+        (statedWidth === null || e.width === statedWidth),
+    )
+    if (carried) {
+      tags.push({ industry, length, width: statedWidth, machines: entries })
       continue
     }
 
-    const industry = machines[0].industry
-    const basis = BASIS[industry]
-    // Prefer a size the source actually stated for this machine.
-    const width = machines.find((m) => m.width)?.width ?? basis.width
+    const width = statedWidth ?? basis.width
     const stated = machines.find((m) => m.thickness)?.thickness
-    const thickness = stated ?? basis.thickness
     // No price row for the stated size means no product: a blade that cannot be
     // priced from the table is not one the configurator could sell either.
     const row = basisRow(basis, width, stated ?? (width === basis.width ? basis.thickness : undefined))
     if (!row) continue
+    // The row's own thickness when the source gave none: a 20 mm blade is not 0.65.
+    const thickness = stated ?? row.thickness
 
     const price = Math.round((row.pricePerMeter * (length / 1000) + row.welding) * 100) / 100
     const names = machines.map(machineLabel)

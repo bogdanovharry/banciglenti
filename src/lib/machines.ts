@@ -45,7 +45,7 @@ export const MACHINES: Machine[] = [
   { brand: "Metabo", model: "BAS 261", industry: "wood", length: 1712, thickness: 0.65, source: "catalogue", verified: true },
 
   {
-    brand: "Scheppach", model: "Basato 3 / Basa 3", industry: "wood", length: 2360,
+    brand: "Scheppach", model: "Basato 3 / Basa 3", industry: "wood", length: 2360, width: 6, thickness: 0.65,
     source: "https://www.probois-machinoutils.com/en/263-blade-of-band-saw-for-kity-673-scheppach-basa",
     // Downgraded: the source is a blade dealer, not Scheppach. 2360 also sits
     // 8 mm from the Record BS300E's 2368, and the two are not interchangeable —
@@ -207,6 +207,36 @@ export const MACHINES: Machine[] = [
     brand: "Bernardo", model: "MBS 350 DG", industry: "metal", length: 2925, width: 27, thickness: 0.9,
     source: "https://www.ebay.de/p/1004800566",
     verified: false, // dealer listing
+  },
+  {
+    brand: "Güde", model: "MBS 125 V", industry: "metal", length: 1435, width: 13, thickness: 0.65,
+    source: "https://www.mashini.bg/search?q=метален+банциг",
+    verified: true, // Güde's own blade 40548, 1435 x 13 x 0.65
+  },
+  {
+    brand: "Optimum", model: "SQ-V10", industry: "metal", length: 1140, width: 13, thickness: 0.65,
+    source: "https://www.mashini.bg/bantsigi-za-metal",
+    verified: false, // Bulgarian dealer description: 1140 x 13 x 0.65
+  },
+  {
+    brand: "Güde", model: "MBS 220", industry: "metal", length: 2360, width: 20,
+    source: "https://www.mashini.bg/bantsigi-za-metal",
+    verified: false, // Bulgarian dealer listing: 2360 x 20, thickness not stated
+  },
+  {
+    brand: "Holzmann", model: "BS275TOP", industry: "metal", length: 2450,
+    source: "https://www.mashini.bg/bantsigi-za-metal",
+    verified: false, // Bulgarian dealer title states 2450 mm; width not stated
+  },
+  {
+    brand: "Holzmann", model: "BS320TOP", industry: "metal", length: 2680, width: 27, thickness: 0.9,
+    source: "https://www.mashini.bg/search?q=лента+за+банциг",
+    verified: false, // Bulgarian dealer: 2680 x 27 x 0.9
+  },
+  {
+    brand: "Holzmann", model: "BS370TOP", industry: "metal", length: 3160, width: 27, thickness: 0.9,
+    source: "https://www.mashini.bg/search?q=лента+за+банциг",
+    verified: false, // Bulgarian dealer: 3160 x 27 x 0.9
   },
   {
     brand: "Holzmann", model: "BS125M", industry: "metal", length: 1435, width: 13, thickness: 0.65,
