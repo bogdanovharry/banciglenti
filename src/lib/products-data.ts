@@ -192,37 +192,99 @@ export const CATALOGUE_PRODUCTS: ProductData[] = [
 export type SawmillFit = {
   /** Goes in the product name, so the buyer recognises their machine. */
   label: string
-  /** Loop length in mm. */
+  /** Every model that takes this loop, for the machine filter. Defaults to the label. */
+  machines?: string[]
+  /** Loop length in mm, as the maker states it. Never converted from inches. */
   length: number
+  /** Blade widths the maker lists for these mills. All of them when omitted. */
+  widths?: readonly number[]
   source: string
   /** Confirmed against the manufacturer's own documentation. */
   verified: boolean
 }
 
+const WM = (page: string) => `https://woodmizer.de/${page}`
+
+/**
+ * Wood-Mizer lengths are the ones its European site prints in millimetres
+ * (woodmizer.de, "Technische Daten" of each mill). An earlier version used the
+ * American figures converted from inches — 158" = 4013 — and that is not what
+ * a European LT15 takes: Wood-Mizer Europe specifies 4010. Three millimetres
+ * on a loop is a blade that will not run true, so nothing here is converted.
+ */
 export const SAWMILL_FITS: SawmillFit[] = [
   {
-    label: 'Wood-Mizer LT15 / LT20 / LT40',
-    length: 4013, // 158" exactly = 4013.2 mm
-    source: 'https://thebandsawshop.com/products/wood-mizer-lt15-classic-4013mm-158-wood-cutting-bandsaw-blade/',
-    verified: false, // dealer listing; Logosol sells the same fit rounded to 4000
+    label: 'Wood-Mizer LT10 / LT15 / LT20 / LT40',
+    machines: ['Wood-Mizer LT10', 'Wood-Mizer LT15', 'Wood-Mizer LT20', 'Wood-Mizer LT40'],
+    length: 4010,
+    widths: [32, 35],
+    source: WM('lt15start-sawmill'),
+    verified: true,
+  },
+  {
+    label: 'Wood-Mizer LT40',
+    length: 4010,
+    widths: [38], // the LT40 page lists 38 mm; the LT15 and LT20 pages do not
+    source: WM('lt40-sawmill'),
+    verified: true,
+  },
+  {
+    label: 'Wood-Mizer LT20 Wide / LT40 Wide',
+    machines: ['Wood-Mizer LT20WIDE', 'Wood-Mizer LT40WIDE'],
+    length: 4330,
+    widths: [32, 35, 38],
+    source: WM('lt40wide-sawmill'),
+    verified: true,
+  },
+  {
+    label: 'Wood-Mizer LT15 Classic Wide',
+    machines: ['Wood-Mizer LT15CLASSIC WIDE'],
+    length: 4470,
+    widths: [32, 35],
+    source: WM('lt15classic-wide-sawmill'),
+    verified: true,
+  },
+  {
+    label: 'Wood-Mizer LT70',
+    length: 4670,
+    widths: [38],
+    source: WM('lt70-sawmill'),
+    verified: true,
+  },
+  {
+    label: 'Wood-Mizer LT70 Wide',
+    length: 5000,
+    widths: [38],
+    source: WM('lt70wide-sawmill'),
+    verified: true,
+  },
+  {
+    label: 'Wood-Mizer LX50',
+    length: 3330,
+    widths: [32],
+    source: WM('lx50-sawmill'),
+    verified: true,
+  },
+  {
+    label: 'Wood-Mizer LX250',
+    length: 5470, // woodmizer.de says 5470; a dealer's catalogue prints 5460 — the maker wins
+    widths: [32, 38],
+    source: WM('lx250-sawmill'),
+    verified: true,
   },
   {
     label: 'Norwood LM Pro / HD36',
-    length: 4246, // 167"
+    length: 4246,
+    widths: [32, 35],
     source: 'https://www.logosol.com/us/accessories/bandsaw-blades/5-bandsaw-blades-standard-4246-x-33-x-1-1-mm.html',
-    verified: false,
+    verified: false, // Logosol's store gives it in mm; Norwood's own sheet not seen
   },
   {
     label: 'Logosol B701 / B751',
-    length: 3843, // 151"
-    source: 'https://www.logosol.com/us/sawmills/band-sawmills/b751-band-sawmill',
-    verified: false,
-  },
-  {
-    label: 'Serra / Jonsered',
-    length: 3570, // 140"
-    source: 'https://www.logosol.com/us/accessories/bandsaw-blades/',
-    verified: false,
+    length: 3843,
+    widths: [32, 35],
+    source: 'https://www.logosol.ca/store/en/b751-pro-band-sawmill-with-18hp-petrol-motor-and-electric-start.html',
+    verified: true, // Logosol's own store: blade length 3843 mm
   },
 ]
 
@@ -263,6 +325,7 @@ function buildReadyBlades(): ProductData[] {
     }
 
     for (const fit of SAWMILL_FITS) {
+      if (fit.widths && !fit.widths.includes(spec.width)) continue
       const unit = round2(row.pricePerMeter * (fit.length / 1000) + row.welding)
       const dims = `${spec.width}×${spec.thickness}`
       const base = `saw-meister-${spec.series.toLowerCase()}-${slugPart(spec.width)}x${slugPart(spec.thickness)}-l${fit.length}`
@@ -282,7 +345,7 @@ function buildReadyBlades(): ProductData[] {
           stock: isBox ? 10 : 20,
           // One flagship on the shelf, not sixty-four. ProCut 32×1.1 at the
           // Wood-Mizer length is the single most likely thing a yard needs.
-          featured: !isBox && spec.series === 'ProCut' && spec.width === 32 && fit.length === 4013,
+          featured: !isBox && spec.series === 'ProCut' && spec.width === 32 && fit.length === 4010,
           topProduct: !isBox && spec.series === 'ProCut',
           series: spec.series.toLowerCase(),
           width: spec.width,
@@ -290,7 +353,7 @@ function buildReadyBlades(): ProductData[] {
           length: fit.length,
           packQty: qty,
           // Boxes carry it too — a yard filtering by its mill wants the box.
-          machines: [fit.label],
+          machines: fit.machines ?? [fit.label],
         })
       }
     }

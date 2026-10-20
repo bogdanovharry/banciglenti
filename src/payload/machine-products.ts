@@ -67,11 +67,19 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
 
-/** Cheapest row matching the basis width, or the cheapest in the table. */
-function basisRow(basis: SpecBasis): BladeConfig | undefined {
-  const atWidth = basis.table.filter((b) => b.width === basis.width)
-  const pool = atWidth.length ? atWidth : basis.table
-  return [...pool].sort((a, b) => a.pricePerMeter - b.pricePerMeter)[0]
+/**
+ * The price row for the size being made. A machine that states 27×0.9 is priced
+ * from the 27×0.9 row — pricing it from the 13 mm basis quoted an Optimum S 275
+ * blade 15% under what the configurator charges for the same blade. Falls back
+ * to the basis width only where the source gave no size.
+ */
+function basisRow(basis: SpecBasis, width = basis.width, thickness?: number): BladeConfig | undefined {
+  const cheapest = (rows: BladeConfig[]) => [...rows].sort((a, b) => a.pricePerMeter - b.pricePerMeter)[0]
+  const exact = basis.table.filter((b) => b.width === width && (thickness === undefined || b.thickness === thickness))
+  if (exact.length) return cheapest(exact)
+  const atWidth = basis.table.filter((b) => b.width === width)
+  if (atWidth.length) return cheapest(atWidth)
+  return undefined
 }
 
 export type GeneratedProduct = {
@@ -114,12 +122,14 @@ export function planMachineProducts(existingLengths: Set<number>): MachinePlan {
 
     const industry = machines[0].industry
     const basis = BASIS[industry]
-    const row = basisRow(basis)
-    if (!row) continue
-
-    // Prefer a width the source actually stated for this machine.
+    // Prefer a size the source actually stated for this machine.
     const width = machines.find((m) => m.width)?.width ?? basis.width
-    const thickness = machines.find((m) => m.thickness)?.thickness ?? basis.thickness
+    const stated = machines.find((m) => m.thickness)?.thickness
+    const thickness = stated ?? basis.thickness
+    // No price row for the stated size means no product: a blade that cannot be
+    // priced from the table is not one the configurator could sell either.
+    const row = basisRow(basis, width, stated ?? (width === basis.width ? basis.thickness : undefined))
+    if (!row) continue
 
     const price = Math.round((row.pricePerMeter * (length / 1000) + row.welding) * 100) / 100
     const names = machines.map(machineLabel)

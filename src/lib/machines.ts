@@ -37,6 +37,11 @@ export const MACHINES: Machine[] = [
   { brand: "Einhell", model: "TC-SB 200/1", industry: "wood", length: 1400, thickness: 0.65, source: "catalogue", verified: true },
   { brand: "Parkside", model: "PBS 350", industry: "wood", length: 1400, thickness: 0.65, source: "catalogue", verified: true },
   { brand: "Raider", model: "RD-BSW18", industry: "wood", length: 1400, thickness: 0.65, source: "catalogue", verified: true },
+  {
+    brand: "Einhell", model: "TC-SB 245 L", industry: "wood", length: 1712, width: 10,
+    source: "https://einhell.de/en/p/4308036-tc-sb-245-l",
+    verified: true, // Einhell's technical data: saw band 1712 x 10 mm
+  },
   { brand: "Metabo", model: "BAS 261", industry: "wood", length: 1712, thickness: 0.65, source: "catalogue", verified: true },
 
   {
@@ -136,6 +141,28 @@ export const MACHINES: Machine[] = [
     source: "https://www.holzmann-maschinen.at/EN/metal-band-saw-226",
     verified: true,
   },
+  // Lengths below are stated in millimetres by the machine's own maker or its
+  // European dealer. Nothing here was converted from inches.
+  {
+    brand: "Optimum", model: "S 131 GH", industry: "metal", length: 1638, width: 13, thickness: 0.65,
+    source: "https://tbs-online.de/de/en/Tool/Bits-drills-cutting-grinding/Cutting-off/Bandsaw-blades/Band-saw-blade-set-OPTIMUM-OPTIsaw-3-piece-length-mm-1638-bi-metal-sid471323.html",
+    verified: false, // dealer listing of Optimum's own OPTIsaw 1638x13x0.65 set
+  },
+  {
+    brand: "Proma", model: "PPS-220H", industry: "metal", length: 2460, width: 27, thickness: 0.9,
+    source: "https://mb.mysky-shop.pl/PROMA-Metal-Band-Cutter-PPS-220H-p22117",
+    verified: false, // dealer listing
+  },
+  {
+    brand: "Proma", model: "PPS-250HPA", industry: "metal", length: 2680, width: 27, thickness: 0.9,
+    source: "https://intercars.md/en/catalog/product/battery-band-saw-D431ED",
+    verified: false, // dealer listing
+  },
+  {
+    brand: "Proma", model: "PPS-170H", industry: "metal", length: 2110, width: 20, thickness: 0.9,
+    source: "https://intercars.md/en/catalog/product/battery-band-saw-D4B5A1",
+    verified: false, // dealer listing
+  },
   {
     brand: "Holzmann", model: "BS125M", industry: "metal", length: 1435, width: 13, thickness: 0.65,
     source: "https://www.ebay.de/itm/143477509644",
@@ -172,6 +199,21 @@ export const MACHINES: Machine[] = [
     brand: "Sirman", model: "SO 1840 F3", industry: "meat", length: 1840, width: 16,
     source: "http://www.thomsonnthomsons.com/sirmanbonesawsbladelengthmm155016501840pulley210mm250mm/pid-2225597011",
     verified: false, // distributor table only
+  },
+  {
+    brand: "Mainca", model: "BC-2200", industry: "meat", length: 2280,
+    source: "https://www.butchersequipment.co.uk/butchers-machinery/meat-bandsaws/mainca-meat-bandsaw-bc2200",
+    verified: false, // UK dealer; the same dealer's BC-1800 figure matches Mainca's own
+  },
+  {
+    brand: "Mainca", model: "BC-2800", industry: "meat", length: 2720,
+    source: "https://www.butchersequipment.co.uk/butchers-machinery/meat-bandsaws/mainca-meat-bandsaw-bc2800",
+    verified: false,
+  },
+  {
+    brand: "Mainca", model: "BC-3200", industry: "meat", length: 3060,
+    source: "https://www.butchersequipment.co.uk/mainca-meat-bandsaw-bc3200-3398",
+    verified: false,
   },
 ];
 

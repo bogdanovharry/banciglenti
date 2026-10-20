@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       slug: string
       specs?: { length?: number | null }
       machines?: { brand: string; model: string }[]
+      basePrice?: number | null
     }[]
 
     // --- 1. Backfill length from the product name ---
@@ -92,9 +93,16 @@ export async function POST(request: Request) {
 
     let created = 0
     const skipped: string[] = []
+    const repriced: string[] = []
 
     for (const p of plan.creates) {
       if (existingSlugs.has(p.slug)) {
+        // Re-priced from the table, so a corrected price row reaches the shelf.
+        const have = docs.find((d) => d.slug === p.slug) as unknown as { id: number; basePrice?: number | null }
+        if (have && have.basePrice !== p.basePrice) {
+          await payload.update({ collection: 'products', id: have.id, data: { basePrice: p.basePrice } })
+          repriced.push(p.slug)
+        }
         skipped.push(p.slug)
         continue
       }
@@ -131,6 +139,7 @@ export async function POST(request: Request) {
       lengthsWritten,
       tagged,
       created,
+      repriced,
       skipped,
     })
   } catch (error) {

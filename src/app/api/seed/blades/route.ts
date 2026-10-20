@@ -107,7 +107,7 @@ export async function POST(request: Request) {
           await payload.update({
             collection: 'products',
             id: existing.docs[0].id,
-            data: { machines },
+            data: { machines, name: p.name },
           })
           patched.push(p.slug)
         }
@@ -143,8 +143,32 @@ export async function POST(request: Request) {
       created.push(p.slug)
     }
 
+    // Sizes the generator no longer makes — the 4013 mm Wood-Mizer blades came
+    // from an inch conversion, and Serra/Jonsered 3570 had no metric source.
+    // Retired, not deleted, so the URL resolves and old orders still read.
+    const live = new Set(READY_SAWMILL_BLADES.map((p) => p.slug))
+    const retired: string[] = []
+    for (const prefix of ['saw-meister-procut-', 'saw-meister-softcut-']) {
+      const owned = await payload.find({
+        collection: 'products',
+        where: { slug: { like: `${prefix}%` }, status: { not_equals: 'inactive' } },
+        limit: 1000,
+        depth: 0,
+      })
+      for (const doc of owned.docs) {
+        const slug = String(doc.slug)
+        // Only the ready-made loops (-l<length>); configurator and set rows are not ours.
+        if (!/-l\d{4}(-x\d+)?$/.test(slug) || live.has(slug)) continue
+        if (!dryRun) {
+          await payload.update({ collection: 'products', id: doc.id, data: { status: 'inactive', stock: 0 } })
+        }
+        retired.push(slug)
+      }
+    }
+
     return NextResponse.json({
       status: dryRun ? 'dry_run' : 'ok',
+      retired: retired.length,
       available: READY_SAWMILL_BLADES.length,
       created: created.length,
       skipped: skipped.length,
