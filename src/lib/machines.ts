@@ -164,6 +164,51 @@ export const MACHINES: Machine[] = [
     verified: false, // dealer listing
   },
   {
+    brand: "Optimum", model: "S 100 G", industry: "metal", length: 1470, width: 13, thickness: 0.65,
+    source: "https://stuermer-machines.com/metalworking/metalworking-machines-metal-band-saws/optisaw-s-100g-3300100",
+    verified: true, // Stürmer (Optimum's own brand shop): band 1470 x 13 x 0.65
+  },
+  {
+    brand: "Güde", model: "MBS 115 / MBS 116", industry: "metal", length: 1640, width: 13, thickness: 0.65,
+    source: "https://www.bauhaus.info/bandsaegeblaetter/guede-bandsaegeblatt/p/30323069",
+    verified: true, // Güde's own saw band, 1640 x 13 x 0.65
+  },
+  {
+    brand: "Güde", model: "MBS 1000 / MBS 1100", industry: "metal", length: 1140, width: 13, thickness: 0.65,
+    source: "https://www.kaufland.at/product/66173551/",
+    verified: true, // Güde's own saw band, 1140 x 13 x 0.65
+  },
+  {
+    brand: "Metallkraft", model: "BMBS 220 x 250 H-G", industry: "metal", length: 2450, width: 27, thickness: 0.9,
+    source: "https://www.maschinensucher.at/metallkraft-bmbs+220+x+250+h-g+-+sofort+verf%C3%BCgbar+-/i-6291004",
+    verified: false, // dealer listing
+  },
+  {
+    brand: "Metallkraft", model: "BMBS 240 x 280 HA-DG-F", industry: "metal", length: 2980, width: 27, thickness: 0.9,
+    source: "https://labor.bht-berlin.de/fileadmin/labor/prt/Diverses/Buegelmetallbandsaege.pdf",
+    verified: false, // university lab sheet
+  },
+  {
+    brand: "Metallkraft", model: "BMBS 300 x 320 H-DG", industry: "metal", length: 3660, width: 27, thickness: 0.9,
+    source: "https://www.harich.de/download/data_7315.pdf",
+    verified: false, // distributor data sheet
+  },
+  {
+    brand: "Bernardo", model: "MBS 280 DG", industry: "metal", length: 2480, width: 27, thickness: 0.9,
+    source: "https://www.ebay.de/p/1004800566",
+    verified: false, // dealer listing; same size as the Optimum S 275
+  },
+  {
+    brand: "Bernardo", model: "MBS 315 DG-VR", industry: "metal", length: 2750, width: 27, thickness: 0.9,
+    source: "https://www.ebay.de/p/1338150457",
+    verified: false, // dealer listing (Art.-Nr. 47-1034)
+  },
+  {
+    brand: "Bernardo", model: "MBS 350 DG", industry: "metal", length: 2925, width: 27, thickness: 0.9,
+    source: "https://www.ebay.de/p/1004800566",
+    verified: false, // dealer listing
+  },
+  {
     brand: "Holzmann", model: "BS125M", industry: "metal", length: 1435, width: 13, thickness: 0.65,
     source: "https://www.ebay.de/itm/143477509644",
     verified: false, // marketplace listing only
