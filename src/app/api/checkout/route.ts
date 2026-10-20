@@ -15,6 +15,7 @@ import { getMarket } from '@/i18n/locale'
 import { withOrderNumber } from '@/lib/order-number'
 import { clientIp, rateLimited } from '@/lib/rate-limit'
 import { serverText } from '@/lib/server-text'
+import { localizeName, textLang, type Override } from '@/lib/product-text'
 import { sendEmail, staffRecipients } from '@/lib/email'
 import { customerEmail, staffOrderEmail, type EmailOrder } from '@/lib/order-emails'
 import { siteOrigin } from '@/lib/site-url'
@@ -113,6 +114,8 @@ const receipt = (o: Stored) => ({
 export async function POST(request: Request) {
   const market = await getMarket()
   const say = serverText(market)
+  const lang = textLang(market.locale)
+  const shownNames = new Map<string, string>()
 
   // --- Bound what a stranger can send ---------------------------------------
   if (rateLimited(`checkout:${clientIp(request)}`, PER_IP)) {
@@ -273,14 +276,17 @@ export async function POST(request: Request) {
       const product = bySlug.get(sku)
       if (!product) return NextResponse.json({ error: say.unavailable(sku) }, { status: 409 })
       const productName = product.name ?? sku
+      // The order keeps the Bulgarian catalogue name; what the buyer is told is in their language.
+      const shownName = localizeName(productName, lang, (product as { ro?: Override }).ro)
+      shownNames.set(sku, shownName)
       if (product.status === 'inactive') {
-        return NextResponse.json({ error: say.retired(productName) }, { status: 409 })
+        return NextResponse.json({ error: say.retired(shownName) }, { status: 409 })
       }
       // The shop disables the button for a product with nothing in stock; the
       // route has to agree, or anyone can still buy it by hand. A made-to-order
       // product has no stock to run out of.
       if (!product.madeToOrder && (product.status === 'out_of_stock' || (product.stock ?? 0) <= 0)) {
-        return NextResponse.json({ error: say.outOfStock(productName) }, { status: 409 })
+        return NextResponse.json({ error: say.outOfStock(shownName) }, { status: 409 })
       }
 
       priced.push({
@@ -400,7 +406,7 @@ export async function POST(request: Request) {
       shippingMethod,
       paymentMethod,
       lines: priced.map((l) => ({
-        name: l.name,
+        name: shownNames.get(l.sku) ?? l.name,
         sku: l.sku,
         quantity: l.quantity,
         price: l.price,

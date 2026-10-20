@@ -37,6 +37,16 @@ export const Products: CollectionConfig = {
       label: 'Кратко описание',
     },
     {
+      name: 'ro',
+      type: 'group',
+      label: 'Română',
+      admin: { description: 'По избор. Ако е празно, румънският текст идва от речника в src/lib/product-text.ts.' },
+      fields: [
+        { name: 'name', type: 'text', label: 'Име (RO)' },
+        { name: 'shortDescription', type: 'textarea', label: 'Кратко описание (RO)' },
+      ],
+    },
+    {
       name: 'description',
       type: 'richText',
       label: 'Пълно описание',

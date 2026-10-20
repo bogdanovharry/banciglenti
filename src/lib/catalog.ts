@@ -6,6 +6,17 @@ import config from '@payload-config'
 import type { ProductCardData } from '@/components/product/ProductCard'
 import { isSeriesKey, type SeriesKey } from '@/lib/series'
 import { stockStateFor } from '@/lib/catalog-ui'
+import { getMarket } from '@/i18n/locale'
+import {
+  localizeCategory,
+  localizeDescription,
+  localizeMaterial,
+  localizeName,
+  localizeSetLine,
+  textLang,
+  type Override,
+  type TextLang,
+} from '@/lib/product-text'
 
 /**
  * Read side of the catalogue. Everything the storefront renders comes through
@@ -160,13 +171,20 @@ export const getCategories = cache(async (): Promise<CatalogCategory[]> => {
     sort: 'sortOrder',
   })
 
+  const lang = textLang((await getMarket()).locale)
+
   return result.docs.map((doc) => {
-    const category = doc as unknown as PayloadCategory
+    const category = doc as unknown as PayloadCategory & { ro?: Override }
+    const text = localizeCategory(
+      { slug: category.slug, name: category.name, description: category.description ?? '' },
+      lang,
+      category.ro,
+    )
     return {
       id: category.id,
-      name: category.name,
+      name: text.name,
       slug: category.slug,
-      description: category.description ?? '',
+      description: text.description,
       parentSlug: relationSlug(category.parent),
     }
   })
@@ -182,11 +200,12 @@ export const getCategoryBySlug = cache(async (slug: string): Promise<CatalogCate
  * and the label of a product with no category. They come from the `catalog`
  * messages so a Romanian visitor reads "mm", not "мм".
  */
-type ProductText = { mm: string; other: string }
+type ProductText = { mm: string; other: string; lang: TextLang }
 
 const getProductText = cache(async (): Promise<ProductText> => {
   const t = await getTranslations('catalog')
-  return { mm: t('unit.mm'), other: t('unit.otherIndustry') }
+  const lang = textLang((await getMarket()).locale)
+  return { mm: t('unit.mm'), other: t('unit.otherIndustry'), lang }
 })
 
 function toCatalogProduct(
@@ -212,6 +231,7 @@ function toCatalogProduct(
     length?: number
     material?: string
   }
+  const ro = doc.ro as Override
   const stockCount = typeof doc.stock === 'number' ? doc.stock : 0
   const madeToOrder = doc.madeToOrder === true
 
@@ -231,7 +251,7 @@ function toCatalogProduct(
   const setContents = (Array.isArray(doc.setContents) ? doc.setContents : [])
     .map((row) =>
       row && typeof row === 'object' && 'label' in row
-        ? String((row as { label?: unknown }).label ?? '')
+        ? localizeSetLine(String((row as { label?: unknown }).label ?? ''), text.lang)
         : '',
     )
     .filter(Boolean)
@@ -247,7 +267,7 @@ function toCatalogProduct(
   return {
     sku: String(doc.slug),
     slug: String(doc.slug),
-    name: String(doc.name),
+    name: localizeName(String(doc.name), text.lang, ro),
     price: typeof doc.basePrice === 'number' ? doc.basePrice : 0,
     dim: dimensionLabel(specs, text.mm),
     industry,
@@ -259,8 +279,12 @@ function toCatalogProduct(
     categorySlugs,
     brandName,
     series,
-    shortDescription: typeof doc.shortDescription === 'string' ? doc.shortDescription : undefined,
-    specs,
+    shortDescription:
+      typeof doc.shortDescription === 'string'
+        ? localizeDescription(doc.shortDescription, text.lang, ro)
+        : undefined,
+    // fallbackImage above matched on the raw material; only the displayed value is translated.
+    specs: specs.material ? { ...specs, material: localizeMaterial(specs.material, text.lang) } : specs,
     machines,
     setContents,
   }

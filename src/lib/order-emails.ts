@@ -196,7 +196,7 @@ export function staffOrderEmail(order: EmailOrder, market: Market, origin: strin
   const link = `${origin}/manage/orders/${order.id}`
   const shown =
     market.displayCurrency === 'EUR' ? '' : ` (${formatPrice(order.subtotal + order.tax, market)} за клиента)`
-  const sizes = order.lines.map((l) => `${l.quantity} × ${l.name}${l.madeToMeasure ? ' [по размер]' : ''}`)
+  const sizes = order.lines.map((l) => `${l.quantity} × ${l.name} (${l.sku})${l.madeToMeasure ? ' [по размер]' : ''}`)
 
   const text = [
     `Нова поръчка ${order.orderNumber} — ${market.country}`,

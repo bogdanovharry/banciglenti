@@ -37,6 +37,16 @@ export const Categories: CollectionConfig = {
       label: 'Описание',
     },
     {
+      name: 'ro',
+      type: 'group',
+      label: 'Română',
+      admin: { description: 'По избор. Ако е празно, румънският текст идва от речника в src/lib/product-text.ts.' },
+      fields: [
+        { name: 'name', type: 'text', label: 'Име (RO)' },
+        { name: 'description', type: 'textarea', label: 'Описание (RO)' },
+      ],
+    },
+    {
       name: 'image',
       type: 'upload',
       relationTo: 'media',

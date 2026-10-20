@@ -310,6 +310,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "ro_name": {
+          "name": "ro_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ro_short_description": {
+          "name": "ro_short_description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "description": {
           "name": "description",
           "type": "jsonb",
@@ -823,6 +835,18 @@
         },
         "description": {
           "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ro_name": {
+          "name": "ro_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ro_description": {
+          "name": "ro_description",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
@@ -3981,6 +4005,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "7661955b-5364-4fc5-8718-624eee10d2a2",
+  "id": "f9a6614f-451a-44ed-816a-bfa1282c212d",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }
