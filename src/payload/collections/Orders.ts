@@ -80,6 +80,49 @@ export const Orders: CollectionConfig = {
         return data
       },
     ],
+    /**
+     * Stock follows the order. The checkout takes goods off the shelf; an order
+     * that ends cancelled puts them back, and an administrator's correction
+     * that reopens one takes them out again. Made-to-order products have no
+     * stock, so they are left alone.
+     */
+    afterChange: [
+      async ({ doc, previousDoc, operation, req }) => {
+        if (operation !== 'update' || !previousDoc) return doc
+        const was = (previousDoc as { status?: string }).status
+        const now = (doc as { status?: string }).status
+        const direction = was !== 'cancelled' && now === 'cancelled' ? 1 : was === 'cancelled' && now !== 'cancelled' ? -1 : 0
+        if (direction === 0) return doc
+
+        const items = ((doc as { items?: { product?: unknown; quantity?: number }[] | null }).items ?? []) as {
+          product?: unknown
+          quantity?: number
+        }[]
+        for (const item of items) {
+          const id = typeof item.product === 'object' && item.product ? (item.product as { id?: number }).id : item.product
+          if (typeof id !== 'number' || !item.quantity) continue
+          const product = (await req.payload.findByID({ collection: 'products', id, depth: 0, req })) as unknown as {
+            stock?: number | null
+            madeToOrder?: boolean | null
+            status?: string | null
+          }
+          if (product.madeToOrder) continue
+          const stock = Math.max(0, (product.stock ?? 0) + direction * item.quantity)
+          await req.payload.update({
+            collection: 'products',
+            id,
+            data: {
+              stock,
+              // Back on sale only if it was sold out by this very stock running out.
+              ...(stock > 0 && product.status === 'out_of_stock' ? { status: 'active' as const } : {}),
+              ...(stock === 0 && product.status === 'active' ? { status: 'out_of_stock' as const } : {}),
+            },
+            req,
+          })
+        }
+        return doc
+      },
+    ],
   },
   fields: [
     // The order as a document, above the fields that edit it. See
