@@ -116,6 +116,7 @@ export async function POST(request: Request) {
   const say = serverText(market)
   const lang = textLang(market.locale)
   const shownNames = new Map<string, string>()
+  const wanted = new Map<number, number>()
 
   // --- Bound what a stranger can send ---------------------------------------
   if (rateLimited(`checkout:${clientIp(request)}`, PER_IP)) {
@@ -289,6 +290,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: say.outOfStock(shownName) }, { status: 409 })
       }
 
+      // The same product can arrive on two lines; stock is checked on the total.
+      if (!product.madeToOrder) {
+        const asked = (wanted.get(product.id) ?? 0) + quantity
+        wanted.set(product.id, asked)
+        if (asked > (product.stock ?? 0)) {
+          return NextResponse.json({ error: say.notEnoughStock(shownName, product.stock ?? 0) }, { status: 409 })
+        }
+      }
+
       priced.push({
         product: product.id,
         name: productName,
@@ -394,6 +404,26 @@ export async function POST(request: Request) {
         if (winner.docs[0]) return NextResponse.json(receipt(winner.docs[0] as unknown as Stored))
       }
       throw error
+    }
+
+    // --- Take the goods off the shelf --------------------------------------
+    // After the order exists, so a failed order never costs stock. Read-modify-
+    // write, not atomic: two buyers racing for the last unit can both get it,
+    // and staff see that on the order. Made-to-order products have no stock.
+    for (const [productId, qty] of wanted) {
+      try {
+        const current = (await payload.findByID({ collection: 'products', id: productId, depth: 0 })) as unknown as {
+          stock?: number | null
+        }
+        const left = Math.max(0, (current.stock ?? 0) - qty)
+        await payload.update({
+          collection: 'products',
+          id: productId,
+          data: { stock: left, ...(left === 0 ? { status: 'out_of_stock' as const } : {}) },
+        })
+      } catch (error) {
+        console.error('Stock decrement failed:', productId, error)
+      }
     }
 
     // --- Tell people, after the buyer has their answer ---------------------
