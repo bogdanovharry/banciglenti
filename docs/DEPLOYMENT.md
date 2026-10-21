@@ -110,3 +110,40 @@ WHERE status = 'active' AND coalesce(stock, 0) = 0;
 (All 22 products matching that in the development database are loops cut to one
 machine's exact length — made to order by nature. Check before running it on a
 database with a different catalogue.)
+
+## 8. Loading the catalogue range into production
+
+The ready-made blades by machine are generated from `src/lib/machines.ts` and
+`src/lib/products-data.ts`, not typed into the database. On the production
+database, after the migration in section 3 has run, load them once.
+
+Do **not** point a local dev server at the production database to do this: dev
+runs with `push: true` and would change the schema. Instead set `SETUP_TOKEN` on
+the deployed app, redeploy, run the calls below, then **remove `SETUP_TOKEN`
+again** (see section 1).
+
+```sh
+T=…   # the token you just set
+curl -X POST https://<domain>/api/seed/blades   -H "x-setup-token: $T"
+curl -X POST https://<domain>/api/seed/machines -H "x-setup-token: $T"
+curl -X POST https://<domain>/api/seed/series   -H "x-setup-token: $T"
+```
+
+In that order: `blades` makes the Wood-Mizer, Norwood and Logosol sizes (and
+retires the superseded 4013 mm and Serra 3570 mm ones), `machines` attaches
+machines to the blades that fit and creates the missing sizes, `series` puts the
+Saw-Meister names on them. Each is safe to run twice. `machines` takes about ten
+minutes against a remote database — raise the request timeout, and let it finish.
+
+Two things the seeds do not do:
+
+- **Prices of products that already exist** are only re-computed for the
+  machine blades the `machines` call creates itself. Check
+  `lenta-optimum-s-275-g-s-275-n-2480` by hand: it must be 24.08 EUR (it was
+  created at 20.41 from the wrong price row).
+- **Orders already taken** for a withdrawn size (Wood-Mizer 4013 mm) keep their
+  line; read them before the blade is cut.
+
+Every `verified: false` machine in `machines.ts` has a size taken from a dealer
+listing rather than the maker. Have the workshop confirm those before the first
+order for them.
