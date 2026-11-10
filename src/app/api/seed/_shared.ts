@@ -43,6 +43,7 @@ export async function seedGenerated({
   material,
   dryRun,
   retirePrefix,
+  madeToOrder = false,
 }: {
   products: ProductData[]
   categorySlug: string
@@ -53,6 +54,8 @@ export async function seedGenerated({
   dryRun: boolean
   /** Slug prefix this generator owns, so withdrawn sizes can be retired. */
   retirePrefix?: string
+  /** Cut when ordered: always buyable, never counted against stock. */
+  madeToOrder?: boolean
 }): Promise<SeedOutcome | { error: string; status: number }> {
   const payload = await getPayload({ config })
 
@@ -104,6 +107,7 @@ export async function seedGenerated({
       stock: p.stock,
       featured: p.featured,
       topProduct: p.topProduct,
+      ...(madeToOrder ? { madeToOrder: true } : {}),
       status: p.stock > 0 ? ('active' as const) : ('out_of_stock' as const),
       ...(p.series ? { series: p.series as 'procut' | 'softcut' | 'flexcut' } : {}),
       ...(brandId ? { brand: brandId } : {}),
