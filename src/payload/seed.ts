@@ -94,7 +94,7 @@ const slugifyBrand = (name: string) =>
 function parseSpecs(
   name: string,
   category: string,
-): { width?: number; thickness?: number; material?: string } {
+): { length?: number; width?: number; thickness?: number; material?: string } {
   const normalised = name.replace(/[хХ]/g, 'x').replace(/,/g, '.')
   const material = MATERIAL_PATTERNS.find((m) => m.test.test(name))?.material
   const withMaterial = material ? { material } : {}
@@ -104,7 +104,8 @@ function parseSpecs(
   if (category === 'nozhove-za-abriht') {
     const triple = normalised.match(new RegExp(`(${num})\\s*x\\s*(${num})\\s*x\\s*(${num})`, 'i'))
     if (triple) {
-      return { width: Number(triple[2]), thickness: Number(triple[3]), ...withMaterial }
+      // 260х25х2,5 reads length × width × thickness: the first figure is how long the knife is.
+      return { length: Number(triple[1]), width: Number(triple[2]), thickness: Number(triple[3]), ...withMaterial }
     }
   }
 

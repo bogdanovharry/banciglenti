@@ -9,6 +9,7 @@ import { DualPrice } from "@/components/ui/DualPrice";
 import { type StockState } from "@/lib/catalog-ui";
 import { packFromSlug, unitPriceInPack } from "@/lib/packs";
 import { useTranslations } from "next-intl";
+import { lengthKindFor } from "@/lib/category-facets";
 
 
 export interface ProductCardData {
@@ -23,6 +24,8 @@ export interface ProductCardData {
   image?: string;
   /** Drives the spec block that stands in for a photo. */
   specs?: { width?: number; thickness?: number; length?: number; material?: string };
+  /** Decides what the card calls a recorded length: a loop (band blade) or just a length (a knife). */
+  categorySlugs?: string[];
   brandName?: string | null;
   stockCount?: number;
 }
@@ -37,9 +40,11 @@ export interface ProductCardData {
 function SpecBlock({
   specs,
   material,
+  lengthKind,
 }: {
   specs: { width?: number; thickness?: number; length?: number };
   material?: string;
+  lengthKind: "loop" | "part";
 }) {
   const t = useTranslations("catalog");
   const hasDims = typeof specs.width === "number" && typeof specs.thickness === "number";
@@ -71,7 +76,7 @@ function SpecBlock({
               <span className="text-[15px] text-ink-50 font-normal ml-1.5">{t("unit.mm")}</span>
             </div>
             <div className="font-mono text-[10px] tracking-[0.16em] uppercase text-ink-50 mt-2">
-              {t("card.loopLength")}
+              {lengthKind === "part" ? t("card.partLength") : t("card.loopLength")}
             </div>
             {hasDims && (
               <div className="font-mono text-[12px] text-ink-70 mt-2.5 tabular-nums">
@@ -137,7 +142,11 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
               />
             </div>
           ) : (
-            <SpecBlock specs={p.specs ?? {}} material={p.specs?.material} />
+            <SpecBlock
+              specs={p.specs ?? {}}
+              material={p.specs?.material}
+              lengthKind={p.categorySlugs?.some((s) => lengthKindFor(s) === "part") ? "part" : "loop"}
+            />
           )}
 
           {p.badge && (

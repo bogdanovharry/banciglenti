@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
+import type { SpecFacet } from "@/lib/category-facets";
+
 /**
  * Loop length and machine fit — the two questions a buyer of these parts
  * actually arrives with.
@@ -17,13 +19,45 @@ import { useLocale, useTranslations } from "next-intl";
  */
 export type Filterable = {
   slug: string;
-  specs?: { length?: number };
+  specs?: { length?: number; width?: number; thickness?: number; material?: string };
   machines?: string[];
 };
 
-export function useSizeFilters<T extends Filterable>(products: T[]) {
+type FacetValue = string | number;
+
+export function useSizeFilters<T extends Filterable>(
+  products: T[],
+  opts: {
+    /** 'loop' for band blades (must match the machine), 'part' for something that is simply that long. */
+    lengthKind?: "loop" | "part";
+    /** Extra filters this category offers — see src/lib/category-facets.ts. */
+    facets?: SpecFacet[];
+  } = {},
+) {
+  const { lengthKind = "loop", facets = [] } = opts;
   const [length, setLength] = useState<number | null>(null);
   const [machines, setMachines] = useState<string[]>([]);
+  const [picks, setPicks] = useState<Record<string, FacetValue>>({});
+
+  // A facet is worth showing only when there is a choice: one value on every
+  // product (all the knives 2.5 mm thick) would be a filter that cannot filter.
+  const specFacets = useMemo(
+    () =>
+      facets
+        .map((def) => {
+          const counts = new Map<FacetValue, number>();
+          for (const p of products) {
+            const v = def.read(p);
+            if (v !== null) counts.set(v, (counts.get(v) ?? 0) + 1);
+          }
+          const values = [...counts.entries()]
+            .map(([value, count]) => ({ value, count }))
+            .sort((a, b) => (typeof a.value === "number" && typeof b.value === "number" ? a.value - b.value : String(a.value).localeCompare(String(b.value))));
+          return { def, values };
+        })
+        .filter((f) => f.values.length > 1),
+    [products, facets],
+  );
 
   const lengthFacets = useMemo(() => {
     const counts = new Map<number, number>();
@@ -51,23 +85,39 @@ export function useSizeFilters<T extends Filterable>(products: T[]) {
       products.filter((p) => {
         if (length !== null && p.specs?.length !== length) return false;
         if (machines.length && !(p.machines ?? []).some((m) => machines.includes(m))) return false;
+        for (const { def } of specFacets) {
+          const want = picks[def.id];
+          if (want !== undefined && def.read(p) !== want) return false;
+        }
         return true;
       }),
-    [products, length, machines],
+    [products, length, machines, picks, specFacets],
   );
 
-  const active = (length !== null ? 1 : 0) + machines.length;
+  const active = (length !== null ? 1 : 0) + machines.length + Object.keys(picks).length;
   /** False for a category of machines or consumables: nothing to filter on. */
-  const hasFilters = lengthFacets.length > 0 || machineFacets.length > 0;
+  const hasFilters = lengthFacets.length > 0 || machineFacets.length > 0 || specFacets.length > 0;
   const clear = () => {
     setLength(null);
     setMachines([]);
+    setPicks({});
   };
 
   const panel = (
     <SizeFilterPanel
       lengthFacets={lengthFacets}
+      lengthKind={lengthKind}
       machineFacets={machineFacets}
+      specFacets={specFacets}
+      picks={picks}
+      onPick={(id, v) =>
+        setPicks((cur) => {
+          const next = { ...cur };
+          if (next[id] === v) delete next[id];
+          else next[id] = v;
+          return next;
+        })
+      }
       length={length}
       machines={machines}
       onLength={(v) => setLength(length === v ? null : v)}
@@ -84,7 +134,11 @@ export function useSizeFilters<T extends Filterable>(products: T[]) {
 
 function SizeFilterPanel({
   lengthFacets,
+  lengthKind,
   machineFacets,
+  specFacets,
+  picks,
+  onPick,
   length,
   machines,
   onLength,
@@ -93,7 +147,11 @@ function SizeFilterPanel({
   onClear,
 }: {
   lengthFacets: { value: number; count: number }[];
+  lengthKind: "loop" | "part";
   machineFacets: { value: string; count: number }[];
+  specFacets: { def: SpecFacet; values: { value: FacetValue; count: number }[] }[];
+  picks: Record<string, FacetValue>;
+  onPick: (id: string, v: FacetValue) => void;
   length: number | null;
   machines: string[];
   onLength: (v: number) => void;
@@ -104,7 +162,7 @@ function SizeFilterPanel({
   const t = useTranslations("catalog");
   const locale = useLocale();
   // Nothing to filter on means no empty panel taking up a column.
-  if (!lengthFacets.length && !machineFacets.length) return null;
+  if (!lengthFacets.length && !machineFacets.length && !specFacets.length) return null;
 
   return (
     <div>
@@ -117,14 +175,45 @@ function SizeFilterPanel({
         </button>
       )}
 
+      {specFacets.map(({ def, values }) => (
+        <div key={def.id} className="mb-6 pb-6 border-b border-ink-15">
+          <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-3 font-semibold">
+            {t(`filters.${def.title}`)}
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            {values.map((f) => {
+              const on = picks[def.id] === f.value;
+              return (
+                <button
+                  key={String(f.value)}
+                  onClick={() => onPick(def.id, f.value)}
+                  aria-pressed={on}
+                  className={`px-2 py-1 border font-mono text-[11px] cursor-pointer transition-colors ${
+                    on ? "bg-ink text-white border-ink" : "bg-white text-ink-70 border-ink-15 hover:border-ink"
+                  }`}
+                >
+                  {def.messageValues
+                    ? t(`filters.${f.value}`)
+                    : `${def.prefix ?? ""}${typeof f.value === "number" ? f.value.toLocaleString(locale) : f.value}`}
+                  <span className={`ml-1 ${on ? "text-white/50" : "text-ink-30"}`}>{f.count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
       {lengthFacets.length > 0 && (
         <div className="mb-6 pb-6 border-b border-ink-15">
           <h4 className="font-mono text-[11px] tracking-[0.12em] uppercase text-ink m-0 mb-1.5 font-semibold">
-            {t("filters.loopLength")}
+            {lengthKind === "part" ? t("filters.partLength") : t("filters.loopLength")}
           </h4>
-          <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">
-            {t("filters.loopLengthHint")}
-          </p>
+          {lengthKind === "loop" && (
+            <p className="font-sans text-[12px] text-ink-50 m-0 mb-3">
+              {t("filters.loopLengthHint")}
+            </p>
+          )}
+          {lengthKind === "part" && <div className="mb-3" />}
           <div className="flex flex-wrap gap-1.5">
             {lengthFacets.map((f) => {
               const on = length === f.value;

@@ -91,6 +91,7 @@ export default async function HomePage() {
       brandName: p.brandName,
       machines: p.machines,
       stockCount: p.stockCount,
+      categorySlugs: p.categorySlugs,
     }));
 
   return (
