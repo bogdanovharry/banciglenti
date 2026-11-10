@@ -45,6 +45,15 @@ const HOMOGLYPH: Record<string, string> = {
 // --- Names ------------------------------------------------------------------
 
 const NAME_RO: Rule[] = [
+  // The pitch or edge profile a buyer chose on a ready-made blade, appended to the
+  // line's name at checkout (see nameWithPitch in product-pitch.ts). Anchored at the
+  // end, and first, so no later rule touches these words.
+  [/ · профил Зъб чистач$/, ' · profil Dinte cu curățitor'],
+  [/ · профил Вдлъбната вълна$/, ' · profil Val concav'],
+  [/ · профил Изпъкнала вълна$/, ' · profil Val convex'],
+  [/ · профил Гладко заточен$/, ' · profil Ascuțit neted'],
+  [/ · профил Вълна$/, ' · profil Val'],
+
   // What the product is — anchored at the start, longest first.
   [/^Въглеродна банцигова лента\s+/, 'Pânză de panglică din oțel carbon '],
   [/^Банцигова лента\s+/, 'Pânză de panglică '],

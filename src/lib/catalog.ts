@@ -55,7 +55,7 @@ export type CatalogProduct = ProductCardData & {
   /** Saw-Meister product line; null for bimetal, circulars, knives, abrasives. */
   series: SeriesKey | null
   shortDescription?: string
-  specs: { width?: number; thickness?: number; length?: number; material?: string }
+  specs: { width?: number; thickness?: number; length?: number; material?: string; toothPitch?: string }
   /** Machines this size fits — "Holzmann BS128HDR". Drives the machine filter. */
   machines: string[]
   /** One line per blade in a mixed set; empty for everything else. */
@@ -230,6 +230,7 @@ function toCatalogProduct(
     thickness?: number
     length?: number
     material?: string
+    toothPitch?: string
   }
   const ro = doc.ro as Override
   const stockCount = typeof doc.stock === 'number' ? doc.stock : 0
