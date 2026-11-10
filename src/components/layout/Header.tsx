@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { companyFor } from "@/lib/company";
+import { localizeHref } from "@/lib/slugs";
 import { SawMeisterLogo } from "@/components/layout/SawMeisterLogo";
 import { SAW_MEISTER } from "@/lib/series";
 import { useLocale, useTranslations } from "next-intl";
@@ -258,7 +259,7 @@ export function Header() {
                 onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(null); }}
               >
                 <Link
-                  href={cat.href}
+                  href={localizeHref(cat.href, locale)}
                   aria-haspopup={cat.children ? "true" : undefined}
                   aria-expanded={cat.children ? isOpen : undefined}
                   className={`flex items-center gap-2 px-[18px] h-12 font-sans text-[13px] font-medium text-ink no-underline transition-colors hover:text-blue ${isOpen ? "border-b-2 border-orange" : "border-b-2 border-transparent"}`}
@@ -279,7 +280,7 @@ export function Header() {
                         <ul className="list-none p-0 m-0 flex flex-col gap-2">
                           {grp.items.map((it) => (
                             <li key={it.label}>
-                              <Link href={it.href} className="font-sans text-[13px] text-ink-70 no-underline hover:text-ink transition-colors">
+                              <Link href={localizeHref(it.href, locale)} className="font-sans text-[13px] text-ink-70 no-underline hover:text-ink transition-colors">
                                 {navText(tNav, it.label)}
                               </Link>
                             </li>
@@ -335,7 +336,7 @@ export function Header() {
             const CatIcon = cat.Icon;
             return (
               <div key={cat.name}>
-                <Link href={cat.href} className="flex items-center gap-3 px-4 py-3 text-ink font-medium no-underline border-b border-ink-05" onClick={() => setMobileOpen(false)}>
+                <Link href={localizeHref(cat.href, locale)} className="flex items-center gap-3 px-4 py-3 text-ink font-medium no-underline border-b border-ink-05" onClick={() => setMobileOpen(false)}>
                   <CatIcon size={16} /> {tNav(cat.name)}
                 </Link>
                 {cat.children && (
@@ -344,7 +345,7 @@ export function Header() {
                       <div key={grp.group} className="mb-2">
                         <div className="font-mono text-[9px] tracking-[0.12em] uppercase text-ink-50 mb-1">{tNav(grp.group)}</div>
                         {grp.items.map((it) => (
-                          <Link key={it.label} href={it.href} className="block py-1 pl-4 text-[13px] text-ink-70 no-underline" onClick={() => setMobileOpen(false)}>
+                          <Link key={it.label} href={localizeHref(it.href, locale)} className="block py-1 pl-4 text-[13px] text-ink-70 no-underline" onClick={() => setMobileOpen(false)}>
                             {navText(tNav, it.label)}
                           </Link>
                         ))}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { canonicalCategorySlug } from "@/lib/slugs";
 import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconClose, IconRuler, IconArrowRight } from "@/components/ui/icons";
@@ -121,7 +122,7 @@ export function ShopClient({
 
   const [sort, setSort] = useState<SortKey>("popularity");
   const [query, setQuery] = useState(() => params.get("q") ?? "");
-  const [activeCategory, setActiveCategory] = useState(() => params.get("category") ?? "");
+  const [activeCategory, setActiveCategory] = useState(() => canonicalCategorySlug(params.get("category") ?? ""));
   const [materials, setMaterials] = useState<string[]>(() => params.getAll("material"));
   const [brands, setBrands] = useState<string[]>(() => params.getAll("brand"));
   const [series, setSeries] = useState<string[]>(() => params.getAll("series").filter(isSeriesKey));
@@ -143,7 +144,7 @@ export function ShopClient({
     setSeenParams(paramsKey);
     setMode(params.get("mode") === "custom" ? "custom" : "stock");
     setQuery(params.get("q") ?? "");
-    setActiveCategory(params.get("category") ?? "");
+    setActiveCategory(canonicalCategorySlug(params.get("category") ?? ""));
     setMaterials(params.getAll("material"));
     setBrands(params.getAll("brand"));
     setSeries(params.getAll("series").filter(isSeriesKey));

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { localizeHref } from "@/lib/slugs";
 import { Placeholder, Tag, Btn } from "@/components/ui/primitives";
 import { IconArrowRight, IconMinus, IconPlus, IconTruck, IconShield, IconWrench } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
@@ -58,6 +59,7 @@ export function ProductClient({ product }: { product: ProductView }) {
   const { addItem } = useCart();
   const { market, gross, amount, price, symbol } = usePrices();
   const t = useTranslations("catalog");
+  const locale = useLocale();
   const tc = useTranslations("common");
   const tStock = useTranslations("stock");
 
@@ -121,7 +123,7 @@ export function ProductClient({ product }: { product: ProductView }) {
           {product.breadcrumb ? (
             <>
               <Link
-                href={`/category/${product.breadcrumb.slug}`}
+                href={localizeHref(`/category/${product.breadcrumb.slug}`, locale)}
                 className="cursor-pointer no-underline text-ink-50 hover:text-ink"
               >
                 {product.breadcrumb.name}

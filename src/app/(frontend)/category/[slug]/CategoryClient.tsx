@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { localizeHref } from "@/lib/slugs";
 import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconRuler, IconArrowRight } from "@/components/ui/icons";
@@ -31,6 +32,7 @@ export function CategoryClient({
   products: (ProductCardData & { machines?: string[] })[];
 }) {
   const t = useTranslations("catalog");
+  const locale = useLocale();
   const tc = useTranslations("common");
   const tSort = useTranslations("sort");
   const [sort, setSort] = useState<SortKey>("popularity");
@@ -48,7 +50,7 @@ export function CategoryClient({
         imageAlt=""
         crumbs={[
           { label: tc("home"), href: "/" },
-          ...(parent ? [{ label: parent.name, href: `/category/${parent.slug}` }] : []),
+          ...(parent ? [{ label: parent.name, href: localizeHref(`/category/${parent.slug}`, locale) }] : []),
           { label: categoryName },
         ]}
         title={categoryName}
@@ -66,7 +68,7 @@ export function CategoryClient({
             {subcategories.map((sub) => (
               <Link
                 key={sub.slug}
-                href={`/category/${sub.slug}`}
+                href={localizeHref(`/category/${sub.slug}`, locale)}
                 className="px-4 py-2.5 border border-ink-15 font-sans text-sm text-ink no-underline hover:border-ink hover:bg-paper transition-colors"
               >
                 {sub.name} <span className="text-ink-50 ml-1 font-mono text-[11px]">{sub.count}</span>

@@ -24,6 +24,7 @@ import { companyFor } from "@/lib/company";
 import { CATALOG_FACTS } from "@/lib/catalog-facts";
 import { ConfiguratorPanel } from "@/components/configurator/ConfiguratorPanel";
 import { useTranslations, useLocale } from "next-intl";
+import { localizeHref } from "@/lib/slugs";
 
 /** 1000 -> "1 000" (non-breaking space). Intl leaves 4-digit numbers ungrouped in bg/ro. */
 const spaced = (n: number) => n.toLocaleString("en-US").replace(/,/g, String.fromCharCode(160));
@@ -195,6 +196,7 @@ const industriesBase = [
 function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
   const t = useTranslations("home.industries");
   const th = useTranslations("homepage");
+  const locale = useLocale();
   // Counts come from the catalogue itself. They used to be hardcoded marketing
   // numbers ("1 240 артикула") that overstated the real range by tenfold.
   const industries = industriesBase.map((c) => ({
@@ -223,7 +225,7 @@ function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
             return (
               <Link
                 key={c.name}
-                href={c.href}
+                href={localizeHref(c.href, locale)}
                 className="group relative isolate no-underline text-white min-h-[340px] flex flex-col justify-end p-7 overflow-hidden bg-ink"
               >
                 <Image

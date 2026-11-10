@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Btn } from "@/components/ui/primitives";
 import { IconArrowRight } from "@/components/ui/icons";
 import { COMPANY, COMPANY_LATIN, companyFor } from "@/lib/company";
+import { localizeHref } from "@/lib/slugs";
 import { CATALOG_FACTS } from "@/lib/catalog-facts";
 import { getLocale, getMarket } from "@/i18n/locale";
 
@@ -123,7 +124,7 @@ export async function Footer() {
               <ul className="list-none m-0 p-0 flex flex-col gap-2.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <Link href={l.href} className="font-sans text-sm text-white/75 no-underline hover:text-white transition-colors">
+                    <Link href={localizeHref(l.href, locale)} className="font-sans text-sm text-white/75 no-underline hover:text-white transition-colors">
                       {t(l.label)}
                     </Link>
                   </li>
