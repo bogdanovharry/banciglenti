@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { localizeHref } from "@/lib/slugs";
+import { facetsFor, lengthKindFor } from "@/lib/category-facets";
 import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconRuler, IconArrowRight } from "@/components/ui/icons";
@@ -15,6 +16,7 @@ import { FilterDrawer } from "@/components/catalog/FilterDrawer";
 export type Subcategory = { slug: string; name: string; count: number };
 
 export function CategoryClient({
+  categorySlug,
   configuratorHref,
   categoryName,
   categoryDescription,
@@ -23,6 +25,8 @@ export function CategoryClient({
   subcategories,
   products,
 }: {
+  /** The category's canonical slug — decides which extra filters it offers. */
+  categorySlug: string;
   /** Where "custom size" leads: the configurator, on this category's tab. */
   configuratorHref: string;
   categoryName: string;
@@ -41,7 +45,7 @@ export function CategoryClient({
   const [sort, setSort] = useState<SortKey>("popularity");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const { filtered, panel, clear, active, hasFilters } = useSizeFilters(products);
+  const { filtered, panel, clear, active, hasFilters } = useSizeFilters(products, { facets: facetsFor(categorySlug), lengthKind: lengthKindFor(categorySlug) });
   const sortedProducts = [...filtered].sort(compareBy(sort));
 
   return (

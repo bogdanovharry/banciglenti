@@ -79,6 +79,7 @@ export default async function CategoryPage({ params }: PageProps) {
   return (
     <CategoryClient
       // A sub-category opens its own tab, a top-level one the tab of its first kind of blade.
+      categorySlug={category.slug}
       configuratorHref={configuratorHref(category.slug)}
       categoryName={category.name}
       categoryDescription={category.description}
@@ -103,6 +104,7 @@ export default async function CategoryPage({ params }: PageProps) {
         series: p.series,
         machines: p.machines,
         stockCount: p.stockCount,
+        categorySlugs: p.categorySlugs,
       }))}
     />
   );
