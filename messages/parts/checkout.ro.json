@@ -61,6 +61,7 @@
     "bankReference": "Mențiune: numărul comenzii",
     "codInstruction": "Plătiți totalul comenzii curierului, la livrare, în numerar.",
     "invoiceToggle": "Factură pe firmă",
+    "einvoiceConsent": "Sunt de acord să primesc factura în format electronic",
     "invoiceCompany": "Denumirea firmei",
     "invoiceTaxId": "CUI",
     "invoiceVat": "Cod de TVA (opțional)",

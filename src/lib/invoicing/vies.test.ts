@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { checkVat, parseVatNumber } from './vies'
+import { checkVat, parseVatNumber, withCountryPrefix } from './vies'
 
 const reply = (body: unknown, status = 200) =>
   vi.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch
@@ -46,5 +46,17 @@ describe('checkVat', () => {
   })
   it('answer without a valid flag → unavailable', async () => {
     expect((await checkVat('RO12345678', { fetchImpl: reply({ userError: 'VALID' }) })).result).toBe('unavailable')
+  })
+})
+
+describe('withCountryPrefix', () => {
+  it('adds the market country when the buyer typed only digits', () => {
+    expect(withCountryPrefix('1234 5678', 'ro')).toBe('RO12345678')
+  })
+  it('keeps an existing prefix', () => {
+    expect(withCountryPrefix('RO 12345678', 'ro')).toBe('RO12345678')
+  })
+  it('uses EL for Greece', () => {
+    expect(withCountryPrefix('123456789', 'gr')).toBe('EL123456789')
   })
 })

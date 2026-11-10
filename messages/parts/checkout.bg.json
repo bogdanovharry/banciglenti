@@ -61,6 +61,7 @@
     "bankReference": "Основание: номерът на поръчката",
     "codInstruction": "Плащате при доставка на куриера.",
     "invoiceToggle": "Фактура на фирма",
+    "einvoiceConsent": "Съгласен съм да получа фактурата по електронен път",
     "invoiceCompany": "Име на фирмата",
     "invoiceTaxId": "ЕИК",
     "invoiceVat": "ИН по ДДС (незадължително)",

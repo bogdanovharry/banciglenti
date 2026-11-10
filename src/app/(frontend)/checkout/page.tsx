@@ -123,6 +123,7 @@ export default function CheckoutPage() {
   const [billing, setBilling] = useState<Record<BillingField, string>>(
     () => Object.fromEntries(BILLING_FIELDS.map((f) => [f, ""])) as Record<BillingField, string>,
   );
+  const [einvoiceConsent, setEinvoiceConsent] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [idempotencyKey] = useState(newIdempotencyKey);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -210,6 +211,7 @@ export default function CheckoutPage() {
           notes,
           billing: {
             invoice,
+            einvoiceConsent: market.code === "ro" && einvoiceConsent,
             company: invoice ? billing.company.trim() : "",
             taxId: invoice ? billing.taxId.trim() : "",
             vatNumber: invoice ? billing.vatNumber.trim() : "",
@@ -383,6 +385,19 @@ export default function CheckoutPage() {
                       value={billing.address} onChange={setBill("address")} error={fieldErrors.billingAddress} />
                   </div>
                 </div>
+              )}
+              {/* An invoice is issued for every Romanian order, so the consent to
+                  receive it electronically is asked of everyone, not only companies. */}
+              {market.code === "ro" && (
+                <label className="flex items-center gap-3 mt-4 cursor-pointer font-sans text-sm text-ink">
+                  <input
+                    type="checkbox"
+                    checked={einvoiceConsent}
+                    onChange={(e) => setEinvoiceConsent(e.target.checked)}
+                    className="w-5 h-5 accent-orange shrink-0"
+                  />
+                  {t("einvoiceConsent")}
+                </label>
               )}
             </CheckoutCard>
 

@@ -35,6 +35,17 @@ export function parseVatNumber(input: string): { countryCode: string; vatNumber:
   return m && /[0-9]/.test(m[2]) ? { countryCode: m[1], vatNumber: m[2] } : null
 }
 
+/**
+ * A buyer in Romania often types only the digits ("12345678"). Put the market's
+ * country in front when there is no prefix; VIES calls Greece "EL", not "GR".
+ */
+export function withCountryPrefix(input: string, marketCountry: string): string {
+  const clean = input.replace(/[\s.\-]/g, '')
+  if (/^[A-Za-z]{2}/.test(clean)) return clean
+  const code = marketCountry.toUpperCase() === 'GR' ? 'EL' : marketCountry.toUpperCase()
+  return code + clean
+}
+
 export async function checkVat(
   input: string,
   options: {
