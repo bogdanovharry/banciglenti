@@ -6,6 +6,7 @@ import { getCategories, getCategoryBySlug, getCategoryCounts, getProducts } from
 import { absoluteUrl } from "@/lib/site-url";
 import { getLocale } from "@/i18n/locale";
 import { canonicalCategorySlug, categoryPublicSlug } from "@/lib/slugs";
+import { configuratorHref } from "@/lib/configurator-tabs";
 import { CategoryClient, type Subcategory } from "./CategoryClient";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -77,6 +78,8 @@ export default async function CategoryPage({ params }: PageProps) {
 
   return (
     <CategoryClient
+      // A sub-category opens its own tab, a top-level one the tab of its first kind of blade.
+      configuratorHref={configuratorHref(category.slug)}
       categoryName={category.name}
       categoryDescription={category.description}
       categoryImage={

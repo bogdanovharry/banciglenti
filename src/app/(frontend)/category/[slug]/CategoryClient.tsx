@@ -15,6 +15,7 @@ import { FilterDrawer } from "@/components/catalog/FilterDrawer";
 export type Subcategory = { slug: string; name: string; count: number };
 
 export function CategoryClient({
+  configuratorHref,
   categoryName,
   categoryDescription,
   categoryImage,
@@ -22,6 +23,8 @@ export function CategoryClient({
   subcategories,
   products,
 }: {
+  /** Where "custom size" leads: the configurator, on this category's tab. */
+  configuratorHref: string;
   categoryName: string;
   categoryDescription: string;
   categoryImage?: string;
@@ -121,7 +124,7 @@ export function CategoryClient({
 
       {/* Products + Configurator CTA */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-10 pb-20">
-        <Link href="/configurator" className="no-underline block mb-8">
+        <Link href={configuratorHref} className="no-underline block mb-8">
           <div className="bg-paper border border-ink-15 p-5 flex items-center justify-between gap-4 hover:border-ink transition-colors">
             <div className="flex items-center gap-4">
               <IconRuler size={28} className="text-blue shrink-0" />
@@ -138,7 +141,7 @@ export function CategoryClient({
           <div className="text-center py-20">
             <h2 className="font-display text-2xl font-bold text-ink mb-2">{t("category.emptyTitle")}</h2>
             <p className="text-ink-50 mb-6">{t("category.emptyHint")}</p>
-            <Link href="/configurator"><Btn variant="primary" size="lg">{tc("configurator")}</Btn></Link>
+            <Link href={configuratorHref}><Btn variant="primary" size="lg">{tc("configurator")}</Btn></Link>
           </div>
         ) : (
           /* Sidebar only where there is something to filter on — a category of

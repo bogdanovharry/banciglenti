@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { canonicalCategorySlug } from "@/lib/slugs";
+import { configuratorHref, configuratorTabFor } from "@/lib/configurator-tabs";
 import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconClose, IconRuler, IconArrowRight } from "@/components/ui/icons";
@@ -515,7 +516,7 @@ export function ShopClient({
   );
 
   const configuratorCard = (
-    <Link href="/configurator" className="block no-underline mb-6">
+    <Link href={configuratorHref(activeCategory)} className="block no-underline mb-6">
       <div className="bg-ink text-white p-5 hover:bg-ink-80 transition-colors">
         <div className="flex items-center gap-3 mb-3">
           <IconRuler size={24} className="text-orange" />
@@ -572,7 +573,7 @@ export function ShopClient({
       </div>
 
       {mode === "custom" ? (
-        <ConfiguratorPanel />
+        <ConfiguratorPanel initialTab={configuratorTabFor(activeCategory) ?? undefined} />
       ) : (
       <>
       {/* Toolbar. Sticks under the header: 169-173px is the tablet/desktop header (utility
@@ -652,7 +653,7 @@ export function ShopClient({
                 {t("shop.emptyText", { min: lengthMinLabel })}
               </p>
               <div className="flex gap-3 justify-center flex-wrap">
-                <Link href="/configurator">
+                <Link href={configuratorHref(activeCategory)}>
                   <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("shop.emptyCta")}</Btn>
                 </Link>
                 <button onClick={clearAll} className="bg-transparent border-none cursor-pointer">
@@ -662,7 +663,7 @@ export function ShopClient({
             </div>
           ) : (
             <>
-              <Link href="/configurator" className="no-underline block mb-6">
+              <Link href={configuratorHref(activeCategory)} className="no-underline block mb-6">
                 <div className="bg-paper border border-ink-15 p-5 flex items-center justify-between gap-4 hover:border-ink transition-colors">
                   <div className="flex items-center gap-4">
                     <IconRuler size={28} className="text-blue shrink-0" />

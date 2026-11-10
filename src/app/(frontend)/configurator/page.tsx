@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ConfiguratorPanel } from "@/components/configurator/ConfiguratorPanel";
 import { absoluteUrl } from "@/lib/site-url";
+import { isConfigTab } from "@/lib/configurator-tabs";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("catalog");
@@ -22,8 +23,15 @@ export async function generateMetadata(): Promise<Metadata> {
  * A server component: the masthead is static text, and only the panel needs the
  * browser. That also lets the route carry its own title and canonical link.
  */
-export default async function ConfiguratorPage() {
-  const [t, tc] = await Promise.all([getTranslations("catalog"), getTranslations("common")]);
+export default async function ConfiguratorPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [t, tc, sp] = await Promise.all([getTranslations("catalog"), getTranslations("common"), searchParams]);
+  // ?type=meat opens the meat tab; anything unknown falls back to the first one.
+  const type = Array.isArray(sp.type) ? sp.type[0] : sp.type;
+  const initialTab = isConfigTab(type) ? type : undefined;
 
   return (
     <div className="bg-white">
@@ -41,7 +49,7 @@ export default async function ConfiguratorPage() {
         }
         description={t("configurator.description")}
       />
-      <ConfiguratorPanel />
+      <ConfiguratorPanel initialTab={initialTab} />
     </div>
   );
 }

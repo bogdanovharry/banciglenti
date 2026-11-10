@@ -31,7 +31,7 @@ const NAV_CATS: NavCat[] = [
       { group: "bandsawBlades", items: [
         { label: "horizontal", href: "/category/horizontalni-bantsizi" },
         { label: "vertical", href: "/category/vertikalni-bantsizi" },
-        { label: "custom", href: "/configurator" },
+        { label: "custom", href: "/configurator?type=wood-h" },
       ]},
       { group: "circular", items: [
         { label: "circularSaws", href: "/category/tsirkulyarni-trioni" },
@@ -49,7 +49,7 @@ const NAV_CATS: NavCat[] = [
       { group: "bimetal", items: [
         { label: "!M42 HSS", href: "/category/bimetalni-lenti" },
         { label: "!M51 / M90", href: "/category/bimetalni-lenti" },
-        { label: "custom", href: "/configurator" },
+        { label: "custom", href: "/configurator?type=metal-bi" },
       ]},
       { group: "carbonSteel", items: [
         { label: "!CS Flexback", href: "/category/vyglerodna-lenti-cs" },
