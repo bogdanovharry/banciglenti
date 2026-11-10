@@ -9,6 +9,7 @@ import { PrintButton, RemoveLineButton } from './LineActions'
 import { StatusControl } from './StatusControl'
 import { StatusPill } from '../../../_components/StatusPill'
 import { getOrder } from '@/lib/manage/order'
+import { getIssuedInvoice } from '@/lib/manage/invoices'
 import { currentUser, getClient, isAdmin } from '@/lib/manage/session'
 import { customerMoney, money, shortDate, shortTime } from '@/lib/manage/format'
 import { marketForOrder } from '@/lib/market'
@@ -81,7 +82,7 @@ export default async function OrderPage({
   const order = await getOrder(numericId)
   if (!order) notFound()
 
-  const [products, user] = await Promise.all([catalogueOptions(), currentUser()])
+  const [products, user, invoice] = await Promise.all([catalogueOptions(), currentUser(), getIssuedInvoice(numericId)])
 
   // Left behind by the navigation a successful mutation ends on — see done() in
   // actions.ts. The screen itself already shows the result; this just names what
@@ -367,6 +368,30 @@ export default async function OrderPage({
 
         {/* --- Controls ------------------------------------------------- */}
         <aside className="tl-no-print min-w-0">
+          {orderMarket.code === 'ro' && (
+            <section className={`${PANEL} border-0 border-b`}>
+              <div className={PANEL_HEAD}>Фактура</div>
+              <div className="px-4 py-3 text-[13px]">
+                {invoice ? (
+                  <>
+                    <div>
+                      Издадена № <strong className="font-mono">{invoice.number}</strong>
+                    </div>
+                    <Link href={`/manage/orders/${order.id}/invoice`} className="text-blue underline mt-1 inline-block">
+                      Отвори фактурата
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-ink-70 mb-1">Още не е издадена. Издава се при изпращане, след като я прегледате.</div>
+                    <Link href={`/manage/orders/${order.id}/invoice`} className="text-blue underline">
+                      Преглед на фактурата
+                    </Link>
+                  </>
+                )}
+              </div>
+            </section>
+          )}
           <section className={`${PANEL} border-0 border-b`}>
             <div className={PANEL_HEAD}>Статус</div>
             {/* Keyed on the saved status so the control remounts when the

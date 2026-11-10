@@ -81,18 +81,32 @@ export type InvoiceAmounts = {
   totalBani: number
 }
 
-/** Split `total` over lines in proportion to `exact`, summing exactly to `total`. */
+/** Split `total` (whole bani) over lines in proportion to `exact`, summing exactly to `total`. */
 function allocate(exact: number[], total: number): number[] {
   const parts = exact.map(Math.floor)
   let diff = total - parts.reduce((a, b) => a + b, 0)
   const byFraction = exact
     .map((x, i) => ({ i, frac: x - Math.floor(x) }))
     .sort((a, b) => (diff > 0 ? b.frac - a.frac : a.frac - b.frac) || a.i - b.i)
-  for (let k = 0; diff !== 0 && k < byFraction.length * 2; k++) {
+  // One bani at a time, round and round. The guard only stops a runaway loop.
+  for (let k = 0; diff !== 0 && k < 100_000; k++) {
     const idx = byFraction[k % byFraction.length].i
     if (diff > 0) { parts[idx]++; diff-- } else if (parts[idx] > 0) { parts[idx]--; diff++ }
   }
   return parts
+}
+
+/**
+ * Spread a whole-bani `total` over lines by their `weights` (any positive
+ * numbers), largest remainder, so the parts add up to the total exactly.
+ * Used to turn per-line prices into line amounts that sum to the figure the
+ * courier collects.
+ */
+export function distribute(weights: number[], total: number): number[] {
+  const sum = weights.reduce((a, b) => a + b, 0)
+  if (weights.length === 0) return []
+  if (sum <= 0) return allocate(weights.map(() => total / weights.length), total)
+  return allocate(weights.map((w) => (total * w) / sum), total)
 }
 
 export function computeInvoice(

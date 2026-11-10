@@ -49,6 +49,16 @@ export type BusinessPricing = 'same-gross' | 'net'
 export type InvoiceCurrencies = { primary: 'RON'; alsoShow: 'EUR' | null }
 
 export const INVOICE_SETTINGS = {
+  /**
+   * Numbering — PROVISIONAL, chosen by Claude on 2026-11-10 at the owner's
+   * request ("think it up for now"); the accountant has not seen it.
+   * A separate series for the website. The number is ten digits, unique within
+   * the series, and given by a counter inside the same transaction that stores
+   * the invoice, so there are no duplicates and no gaps. It starts at a high
+   * value so it cannot collide with the numbers of the company's own invoices,
+   * whatever range those are in. Changing `code` starts a new series.
+   */
+  series: { code: 'RO', firstNumber: 9_000_000_001 },
   currencies: { primary: 'RON', alsoShow: 'EUR' } as InvoiceCurrencies,
   /**
    * Which rate converts lei to euro on the invoice, and for which date.
