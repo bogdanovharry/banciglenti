@@ -641,12 +641,12 @@ function RealDataConfigurator({
 }
 
 // ===== Main page =====
-export function ConfiguratorPanel() {
+export function ConfiguratorPanel({ initialTab }: { initialTab?: ConfigType } = {}) {
   const locale = useLocale();
   const t = useTranslations("configurator");
   const tc = useTranslations("common");
   const { market, price } = usePrices();
-  const [activeTab, setActiveTab] = useState<ConfigType>("wood-h");
+  const [activeTab, setActiveTab] = useState<ConfigType>(initialTab ?? "wood-h");
 
   return (
     <div className="bg-white">

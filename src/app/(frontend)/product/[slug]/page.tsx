@@ -82,6 +82,7 @@ export default async function ProductPage({ params }: PageProps) {
     machines: product.machines,
     image: product.image ?? null,
     breadcrumb: leaf ? { slug: leaf.slug, name: leaf.name } : null,
+    categorySlugs: product.categorySlugs,
     // The pitches this size is made in, from the same price tables the configurator reads.
     pitch: pitchInfoFor({
       categorySlugs: product.categorySlugs,

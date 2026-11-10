@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { PitchPicker } from "./PitchPicker";
+import { configuratorHrefForAny } from "@/lib/configurator-tabs";
 import type { PitchInfo } from "@/lib/product-pitch";
 import { useLocale, useTranslations } from "next-intl";
 import { localizeHref } from "@/lib/slugs";
@@ -36,6 +37,8 @@ export type ProductView = {
   /** Uploaded photo, or the representative one — same as the product card. */
   image?: string | null;
   breadcrumb: { slug: string; name: string } | null;
+  /** Every category the product is in, for choosing the configurator tab. */
+  categorySlugs: string[];
   /** The pitches (or edge profiles) this size is made in; null when the product has none to choose. */
   pitch?: PitchInfo | null;
 };
@@ -238,7 +241,7 @@ export function ProductClient({ product }: { product: ProductView }) {
             {/* Custom size CTA */}
             <div className="mb-8 p-4 border border-ink-15 flex items-center justify-between gap-4">
               <div className="font-sans text-sm text-ink-70">{t("product.otherSize")}</div>
-              <Link href="/configurator" className="font-mono text-[11px] text-orange underline">
+              <Link href={configuratorHrefForAny(product.categorySlugs)} className="font-mono text-[11px] text-orange underline">
                 {t("product.openConfigurator")}
               </Link>
             </div>
