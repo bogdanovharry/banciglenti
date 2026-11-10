@@ -40,7 +40,24 @@ export type SupplierDetails = {
 /** How a company with a valid VAT number is priced (decision 7, still open). */
 export type BusinessPricing = 'same-gross' | 'net'
 
+/**
+ * Which currencies the invoice shows. Decided 2026-11-10: ONE invoice, with the
+ * amounts in lei and their euro equivalent side by side (no second, mirror
+ * invoice). The euro figures need an exchange rate that is not chosen yet — see
+ * `euroRate` below — so until it is, the euro column is not printed.
+ */
+export type InvoiceCurrencies = { primary: 'RON'; alsoShow: 'EUR' | null }
+
 export const INVOICE_SETTINGS = {
+  currencies: { primary: 'RON', alsoShow: 'EUR' } as InvoiceCurrencies,
+  /**
+   * Which rate converts lei to euro on the invoice, and for which date.
+   * NOT DECIDED (owner: "we will sort the rate out later"). Null = the euro
+   * column is not printed. Never fill this in from the shop's price rate
+   * (5.2567): that rate explains the lei price, it is not an official rate for
+   * the day of the tax event.
+   */
+  euroRate: null as null | { source: 'ECB' | 'BNR'; date: 'dispatch' | 'delivery' },
   /** Countries where a VIES-valid buyer, delivered inside that country, is zero-rated. */
   zeroRateCountries: ['RO'],
   /** Open decision 7. Must be chosen explicitly by the owner before go-live. */
