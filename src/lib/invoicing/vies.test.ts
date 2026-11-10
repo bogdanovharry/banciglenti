@@ -37,12 +37,42 @@ describe('checkVat', () => {
   it.each(['MS_UNAVAILABLE', 'TIMEOUT', 'SERVICE_UNAVAILABLE', 'MS_MAX_CONCURRENT_REQ'])('%s → unavailable, never valid', async (code) => {
     expect((await checkVat('RO12345678', { fetchImpl: reply({ valid: true, userError: code }) })).result).toBe('unavailable')
   })
-  it('HTTP 500 → unavailable', async () => {
-    expect((await checkVat('RO12345678', { fetchImpl: reply({}, 500) })).result).toBe('unavailable')
+  it('HTTP 500 → unavailable, and the status and body are kept', async () => {
+    const r = await checkVat('RO12345678', { fetchImpl: reply({ errorWrappers: [{ error: 'MS_UNAVAILABLE' }] }, 500) })
+    expect(r.result).toBe('unavailable')
+    expect(r.raw).toMatchObject({ httpStatus: 500, body: { errorWrappers: [{ error: 'MS_UNAVAILABLE' }] } })
   })
-  it('network error → unavailable, does not throw', async () => {
+  it('a non-JSON error page is kept as text', async () => {
+    const f = vi.fn(async () => new Response('<html>Bad gateway</html>', { status: 502 })) as unknown as typeof fetch
+    const r = await checkVat('RO12345678', { fetchImpl: f })
+    expect(r.result).toBe('unavailable')
+    expect(r.raw).toMatchObject({ httpStatus: 502, body: '<html>Bad gateway</html>' })
+  })
+  it('HTTP 400 INVALID_INPUT → invalid', async () => {
+    const r = await checkVat('RO12345678', { fetchImpl: reply({ errorWrappers: [{ error: 'INVALID_INPUT' }] }, 400) })
+    expect(r.result).toBe('invalid')
+  })
+  it('INVALID_REQUESTER_INFO → asks again without the requester and uses that answer', async () => {
+    let call = 0
+    const f = vi.fn(async (_u: unknown, init?: RequestInit) => {
+      call++
+      const sent = JSON.parse(String(init?.body))
+      return call === 1
+        ? new Response(JSON.stringify({ errorWrappers: [{ error: 'INVALID_REQUESTER_INFO' }] }), { status: 400 })
+        : new Response(JSON.stringify({ valid: true, userError: 'VALID', echoed: sent }), { status: 200 })
+    }) as unknown as typeof fetch
+    const r = await checkVat('RO12345678', { fetchImpl: f, requester: { countryCode: 'BG', vatNumber: '000000000' } })
+    expect(f).toHaveBeenCalledTimes(2)
+    expect(r.result).toBe('valid')
+    expect(r.requestIdentifier).toBeNull()
+    expect(r.raw).toMatchObject({ retriedWithoutRequester: true })
+    expect(JSON.stringify(r.raw)).not.toContain('requesterNumber')
+  })
+  it('network error → unavailable, does not throw, and says why', async () => {
     const f = vi.fn(async () => { throw new Error('down') }) as unknown as typeof fetch
-    expect((await checkVat('RO12345678', { fetchImpl: f })).result).toBe('unavailable')
+    const r = await checkVat('RO12345678', { fetchImpl: f })
+    expect(r.result).toBe('unavailable')
+    expect(JSON.stringify(r.raw)).toContain('down')
   })
   it('answer without a valid flag → unavailable', async () => {
     expect((await checkVat('RO12345678', { fetchImpl: reply({ userError: 'VALID' }) })).result).toBe('unavailable')

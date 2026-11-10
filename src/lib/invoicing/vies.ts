@@ -46,6 +46,21 @@ export function withCountryPrefix(input: string, marketCountry: string): string 
   return code + clean
 }
 
+type ViesBody = {
+  valid?: unknown
+  userError?: unknown
+  requestIdentifier?: unknown
+  errorWrappers?: { error?: unknown }[]
+}
+
+/** The error codes VIES puts in a 4xx/5xx body ({ errorWrappers: [{ error }] }) or in `userError`. */
+const errorCodes = (data: ViesBody | null): string[] => {
+  if (!data) return []
+  const codes = (data.errorWrappers ?? []).map((e) => String(e?.error ?? ''))
+  if (typeof data.userError === 'string') codes.push(data.userError)
+  return codes.filter(Boolean)
+}
+
 export async function checkVat(
   input: string,
   options: {
@@ -57,37 +72,63 @@ export async function checkVat(
 ): Promise<ViesCheckResult> {
   const { requester, fetchImpl = fetch, timeoutMs = 10000, now = () => new Date() } = options
   const parsed = parseVatNumber(input)
-  const base = { checkedAt: now().toISOString(), requestIdentifier: null, raw: null }
+  const base = { checkedAt: now().toISOString(), requestIdentifier: null, raw: null as unknown }
 
   // Not even shaped like a VAT number: no need to ask anyone.
   if (!parsed) return { ...base, result: 'invalid', countryCode: '', vatNumber: input.trim() }
 
-  const body: Record<string, string> = { ...parsed }
-  if (requester) {
-    body.requesterMemberStateCode = requester.countryCode
-    body.requesterNumber = requester.vatNumber
-  }
-
-  try {
+  const ask = async (withRequester: boolean) => {
+    const body: Record<string, string> = { ...parsed }
+    if (withRequester && requester) {
+      body.requesterMemberStateCode = requester.countryCode
+      body.requesterNumber = requester.vatNumber
+    }
     const res = await fetchImpl(VIES_URL, {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'application/json' },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(timeoutMs),
     })
-    if (!res.ok) return { ...base, ...parsed, result: 'unavailable' }
-    const data = (await res.json()) as { valid?: unknown; userError?: unknown; requestIdentifier?: unknown }
-    const requestIdentifier = typeof data.requestIdentifier === 'string' && data.requestIdentifier ? data.requestIdentifier : null
+    const text = await res.text()
+    let data: ViesBody | null = null
+    try {
+      data = JSON.parse(text) as ViesBody
+    } catch {
+      /* not JSON — kept as text below */
+    }
+    return { httpStatus: res.status, ok: res.ok, data, text: text.slice(0, 2000) }
+  }
+
+  try {
+    let answer = await ask(true)
+    let retriedWithoutRequester = false
+
+    // VIES refuses the whole request when the requester's own number is not
+    // accepted. We still want the answer about the buyer's number, so ask again
+    // without it. The identifier (proof of the check) is lost; the raw record
+    // says why.
+    if (requester && errorCodes(answer.data).includes('INVALID_REQUESTER_INFO')) {
+      answer = await ask(false)
+      retriedWithoutRequester = true
+    }
+
+    // Everything VIES said — or the HTTP status and body when it was not JSON —
+    // is kept, so "no answer" can always be explained afterwards.
+    const raw = { httpStatus: answer.httpStatus, ...(retriedWithoutRequester ? { retriedWithoutRequester } : {}), body: answer.data ?? answer.text }
+    const codes = errorCodes(answer.data)
+    const requestIdentifier =
+      typeof answer.data?.requestIdentifier === 'string' && answer.data.requestIdentifier ? answer.data.requestIdentifier : null
+
+    if (codes.includes('INVALID_INPUT')) return { ...base, ...parsed, result: 'invalid', raw }
+    if (!answer.ok) return { ...base, ...parsed, result: 'unavailable', raw }
 
     // Member-state outages and timeouts come back as 200 with an error code.
-    const err = typeof data.userError === 'string' ? data.userError : 'VALID'
-    if (err === 'INVALID_INPUT') return { ...base, ...parsed, result: 'invalid', raw: data }
-    if (err !== 'VALID' && err !== 'INVALID') return { ...base, ...parsed, result: 'unavailable', raw: data }
+    if (codes.some((c) => c !== 'VALID' && c !== 'INVALID')) return { ...base, ...parsed, result: 'unavailable', raw }
 
-    if (data.valid === true) return { ...base, ...parsed, result: 'valid', requestIdentifier, raw: data }
-    if (data.valid === false) return { ...base, ...parsed, result: 'invalid', requestIdentifier, raw: data }
-    return { ...base, ...parsed, result: 'unavailable', raw: data }
-  } catch {
-    return { ...base, ...parsed, result: 'unavailable' }
+    if (answer.data?.valid === true) return { ...base, ...parsed, result: 'valid', requestIdentifier, raw }
+    if (answer.data?.valid === false) return { ...base, ...parsed, result: 'invalid', requestIdentifier, raw }
+    return { ...base, ...parsed, result: 'unavailable', raw }
+  } catch (error) {
+    return { ...base, ...parsed, result: 'unavailable', raw: { error: String(error).slice(0, 500) } }
   }
 }
