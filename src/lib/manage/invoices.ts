@@ -98,6 +98,8 @@ export function previewSnapshot(order: OrderDetail, number: string | null = null
   return buildSnapshot({
     order: {
       orderNumber: order.orderNumber,
+      subtotalEur: order.subtotal,
+      taxEur: order.tax,
       totalEur: order.total,
       vatRate: order.vatRate,
       exchangeRate: order.exchangeRate,

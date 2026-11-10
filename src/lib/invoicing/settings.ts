@@ -43,8 +43,7 @@ export type BusinessPricing = 'same-gross' | 'net'
 /**
  * Which currencies the invoice shows. Decided 2026-11-10: ONE invoice, with the
  * amounts in lei and their euro equivalent side by side (no second, mirror
- * invoice). The euro figures need an exchange rate that is not chosen yet — see
- * `euroRate` below — so until it is, the euro column is not printed.
+ * invoice). See `euroRate` below for which rate the euro figures use.
  */
 export type InvoiceCurrencies = { primary: 'RON'; alsoShow: 'EUR' | null }
 
@@ -61,14 +60,15 @@ export const INVOICE_SETTINGS = {
   series: { code: 'RO', firstNumber: 9_000_000_001 },
   currencies: { primary: 'RON', alsoShow: 'EUR' } as InvoiceCurrencies,
   /**
-   * Which rate converts lei to euro on the invoice, and for which date.
-   * NOT DECIDED (owner: "we will sort the rate out later"). Null = the euro
-   * column is not printed. Never fill this in from the shop's price rate
-   * (5.2567): that rate explains the lei price, it is not an official rate for
-   * the day of the tax event.
+   * How the euro equivalent is worked out. PROVISIONAL.
+   * 'SHOP' = the order's own euro amounts, i.e. the same fixed rate that turned
+   * the euro price into lei at checkout (5.2567, BNR of 14 Sep). It is exact for
+   * what the buyer was charged, but it is NOT an official rate for the day of
+   * the tax event; the owner said the real rate ("ECB" or "BNR", for which date)
+   * will be chosen later, with the accountant. The preview says so.
    */
-  euroRate: null as null | { source: 'ECB' | 'BNR'; date: 'dispatch' | 'delivery' },
-  /** Countries where a VIES-valid buyer, delivered inside that country, is zero-rated. */
+  euroRate: { source: 'SHOP', date: 'order' } as null | { source: 'ECB' | 'BNR' | 'SHOP'; date: 'dispatch' | 'delivery' | 'order' },
+  /** Countries where a buyer with an accepted VAT number, delivered inside that country, is zero-rated. */
   zeroRateCountries: ['RO'],
   /** Open decision 7. Must be chosen explicitly by the owner before go-live. */
   businessPricing: 'same-gross' as BusinessPricing,

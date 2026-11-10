@@ -72,13 +72,19 @@ export type InvoiceSnapshot = {
   totals: { netBani: number; vatBani: number; totalBani: number }
   /** The rate that turned the euro price into lei at checkout — recorded, not an official rate. */
   shopRate: number
-  /** Euro equivalent. Null until the rate to use is decided (INVOICE_SETTINGS.euroRate). */
-  euro: null | { rate: number; rateSource: string; rateDate: string; totalCents: number; vatCents: number }
+  /**
+   * Euro equivalent of the totals, in cents. `source` says which rate it rests
+   * on ('SHOP' = the shop's own fixed rate, not an official one). Null if the
+   * setting is off.
+   */
+  euro: null | { source: 'ECB' | 'BNR' | 'SHOP'; rate: number; netCents: number; vatCents: number; totalCents: number }
 }
 
 export type OrderForInvoice = {
   orderNumber: string
-  /** EUR, as stored. */
+  /** EUR, as stored: what the buyer was charged before conversion to lei. */
+  subtotalEur: number
+  taxEur: number
   totalEur: number
   vatRate: number
   /** EUR → RON at checkout. */
@@ -143,8 +149,17 @@ export function buildSnapshot({ order, supplier, series, number, issueDate, toRo
     lines,
     totals: { netBani: amounts.netBani, vatBani: amounts.vatBani, totalBani: amounts.totalBani },
     shopRate: order.exchangeRate,
-    // Needs an official rate, which INVOICE_SETTINGS.euroRate does not hold yet.
-    euro: null,
+    // Only the shop's own rate is available so far; an official rate comes with the decision.
+    euro:
+      INVOICE_SETTINGS.euroRate?.source === 'SHOP'
+        ? {
+            source: 'SHOP',
+            rate: order.exchangeRate,
+            netCents: Math.round(order.subtotalEur * 100),
+            vatCents: Math.round(order.taxEur * 100),
+            totalCents: Math.round(order.totalEur * 100),
+          }
+        : null,
   }
 }
 
@@ -156,7 +171,8 @@ export function previewWarnings(s: InvoiceSnapshot, orderStatus: string | null):
   if (!s.buyer.address.trim()) w.push('Липсва адрес на получателя.')
   if (s.buyer.isCompany && !s.buyer.vatNumber) w.push('Получателят е фирма без ДДС номер: фактурата е със стандартна ставка.')
   if (!s.order.waybill) w.push('Няма товарителница към поръчката.')
-  if (!INVOICE_SETTINGS.euroRate) w.push('Колоната в евро не е включена: курсът още не е избран.')
+  if (s.euro?.source === 'SHOP') w.push('Еврото е по курса на магазина, не по официален курс за деня на данъчното събитие. Счетоводителят трябва да потвърди кой курс се ползва.')
+  if (!s.euro) w.push('Равностойността в евро не е включена.')
   w.push('Румънските текстове на фактурата са чернова и трябва да се прочетат от човек, който говори румънски.')
   if (orderStatus !== 'shipped' && orderStatus !== 'delivered') w.push('Фактурата се издава при изпращане: поръчката още не е изпратена.')
   return w
@@ -190,4 +206,5 @@ export const LABELS = {
   waybill: { ro: 'AWB', bg: 'Товарителница' },
   currency: { ro: 'Moneda: RON (lei)', bg: 'Валута: RON (леи)' },
   rate: { ro: 'Cursul de conversie EUR → RON din magazin', bg: 'Курс EUR → RON в магазина' },
+  euroEquivalent: { ro: 'Echivalent în euro', bg: 'Равностойност в евро' },
 } as const

@@ -21,7 +21,7 @@ const supplier: InvoiceSupplier = {
 const snapshotFor = (series: string) => (number: string) =>
   buildSnapshot({
     order: {
-      orderNumber: 'X', totalEur: 121, vatRate: 0.21, exchangeRate: 1, paymentMethod: 'cod', waybill: null,
+      orderNumber: 'X', subtotalEur: 100, taxEur: 21, totalEur: 121, vatRate: 0.21, exchangeRate: 1, paymentMethod: 'cod', waybill: null,
       lines: [{ name: 'x', quantity: 1, priceEur: 100 }],
       buyer: { name: 'b', isCompany: false, taxId: null, vatNumber: null, address: 'a' },
     },

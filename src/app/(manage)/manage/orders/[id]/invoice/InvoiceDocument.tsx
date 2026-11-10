@@ -10,6 +10,8 @@ import { LABELS, type InvoiceSnapshot } from '@/lib/invoicing/document'
 
 const NUMBER = new Intl.NumberFormat('ro-RO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const lei = (bani: number): string => NUMBER.format(bani / 100)
+const EURO = new Intl.NumberFormat('ro-RO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const eur = (cents: number): string => `${EURO.format(cents / 100)} EUR`
 const day = (iso: string): string => iso.split('-').reverse().join('.')
 
 type Label = { ro: string; bg: string }
@@ -139,6 +141,26 @@ export function InvoiceDocument({ s }: { s: InvoiceSnapshot }) {
           <span className="tl-figures">{lei(s.totals.totalBani)} RON</span>
         </div>
       </section>
+
+      {s.euro && (
+        <section className="mt-4 ml-auto max-w-[360px] text-[12.5px] text-ink-70 border-t border-ink-15 pt-3">
+          <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mb-1">
+            {LABELS.euroEquivalent.ro} / {LABELS.euroEquivalent.bg}
+          </div>
+          <div className="flex justify-between py-0.5">
+            <span>{LABELS.taxBase.ro} / {LABELS.taxBase.bg}</span>
+            <span className="tl-figures">{eur(s.euro.netCents)}</span>
+          </div>
+          <div className="flex justify-between py-0.5">
+            <span>{LABELS.vatAmount.ro} {vat}% / {LABELS.vatAmount.bg} {vat}%</span>
+            <span className="tl-figures">{eur(s.euro.vatCents)}</span>
+          </div>
+          <div className="flex justify-between py-0.5 font-semibold text-ink">
+            <span>{LABELS.totalDue.ro} / {LABELS.totalDue.bg}</span>
+            <span className="tl-figures">{eur(s.euro.totalCents)}</span>
+          </div>
+        </section>
+      )}
 
       <footer className="mt-8 pt-4 border-t border-ink-15 text-[12px] text-ink-70 space-y-1">
         <div>
