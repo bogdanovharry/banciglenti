@@ -37,6 +37,9 @@ export async function POST(request: Request) {
       // Only the generated slugs. The legacy hobby rows carry their own names
       // and must never be retired by a generator that did not create them.
       retirePrefix: 'flexcut-',
+      // The hobby bands are cut and welded to the machine's length and, now, to the
+      // pitch the buyer chooses — there is no shelf stock of one pitch.
+      madeToOrder: true,
     })
 
     if ('error' in result) return NextResponse.json({ error: result.error }, { status: result.status })
