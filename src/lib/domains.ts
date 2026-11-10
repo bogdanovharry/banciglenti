@@ -26,6 +26,9 @@ export const DOMAIN_MARKET: Record<string, MarketCode> = {
 
   // Romania — launches first. Add the domain and its www. form once bought,
   // e.g.  'example.ro': 'ro',  'www.example.ro': 'ro',
+  // Until then the Romanian deployment (its own Vercel project and database)
+  // answers on its vercel.app address. Remove this line when the domain is live.
+  'banciglenti-ro.vercel.app': 'ro',
 
   // Local development
   'bg.localhost': 'bg',
