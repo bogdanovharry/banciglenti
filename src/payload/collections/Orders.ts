@@ -1,6 +1,6 @@
 import { ValidationError, type CollectionConfig } from 'payload'
 
-import { isAdmin, isStaff } from '../access'
+import { isAdmin, isStaff, serverOnly } from '../access'
 
 type LogRow = { id?: string | null; note?: string | null; author?: unknown; at?: string | null }
 
@@ -376,6 +376,10 @@ export const Orders: CollectionConfig = {
           ],
         },
         { name: 'address', type: 'textarea', label: 'Седалище' },
+        // Consent to receive the invoice electronically (art. 114(9) ЗДДС).
+        // Written by the order route only; without it no invoice is e-mailed.
+        { name: 'einvoiceConsent', type: 'checkbox', label: 'Съгласие за електронна фактура', defaultValue: false, access: serverOnly },
+        { name: 'einvoiceConsentAt', type: 'date', label: 'Съгласие дадено на', access: serverOnly },
       ],
     },
     // The three money fields sit in the sidebar, read-only, because /api/checkout

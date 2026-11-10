@@ -17,6 +17,7 @@ import { Articles } from './payload/collections/Articles'
 import { Pages } from './payload/collections/Pages'
 import { Media } from './payload/collections/Media'
 import { Users } from './payload/collections/Users'
+import { Invoices, ViesChecks, InvoiceEvents, InvoiceCounters } from './payload/collections/Invoices'
 import { emailConfigured, sendEmail } from './lib/email'
 import { PRODUCTION_ORIGINS } from './lib/domains'
 
@@ -170,6 +171,10 @@ export default buildConfig({
     Pages,
     Media,
     Users,
+    Invoices,
+    ViesChecks,
+    InvoiceEvents,
+    InvoiceCounters,
   ],
   editor: lexicalEditor(),
   db: postgresAdapter({
