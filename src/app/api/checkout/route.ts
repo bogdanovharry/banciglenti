@@ -19,6 +19,8 @@ import { localizeName, textLang, type Override } from '@/lib/product-text'
 import { sendEmail, staffRecipients } from '@/lib/email'
 import { customerEmail, staffOrderEmail, type EmailOrder } from '@/lib/order-emails'
 import { siteOrigin } from '@/lib/site-url'
+import { COMPANY } from '@/lib/company'
+import { checkVat, parseVatNumber, withCountryPrefix } from '@/lib/invoicing/vies'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -187,6 +189,10 @@ export async function POST(request: Request) {
         address: text(billingIn.address, LIMITS.billingAddress),
       }
     : null
+  // Consent to receive the invoice electronically (art. 114(9) ЗДДС). Only the
+  // Romanian checkout offers the box; without it no invoice is e-mailed.
+  const einvoiceConsent = market.code === 'ro' && billingIn.einvoiceConsent === true
+
   if (billing) {
     if (!billing.company) errors.billingCompany = say.billingCompany
     if (!billing.taxId) errors.billingTaxId = say.billingTaxId
@@ -374,7 +380,15 @@ export async function POST(request: Request) {
             customer: customerId,
             // What was typed, kept on the order itself — see Orders.ts.
             contact: { name, email, phone, ...(company ? { company } : {}) },
-            ...(billing ? { billing: { invoice: true, ...billing } } : {}),
+            ...(billing || einvoiceConsent
+              ? {
+                  billing: {
+                    invoice: Boolean(billing),
+                    ...(billing ?? {}),
+                    ...(einvoiceConsent ? { einvoiceConsent: true, einvoiceConsentAt: new Date().toISOString() } : {}),
+                  },
+                }
+              : {}),
             items: priced,
             status: 'pending',
             payment: { method: paymentMethod, status: 'pending' },
@@ -450,7 +464,14 @@ export async function POST(request: Request) {
       billing,
       notes: notes || undefined,
     }
-    after(() => notify(order.id, emailOrder, market, origin))
+    // Mail first, then the VIES lookup: VIES can take seconds and must not delay
+    // the confirmation. Sequential, because both may append to the order's history.
+    after(async () => {
+      await notify(order.id, emailOrder, market, origin)
+      if (billing?.vatNumber && market.code !== 'bg') {
+        await recordViesCheck(order.id, billing.vatNumber, market)
+      }
+    })
 
     return NextResponse.json(receipt(order))
   } catch (error) {
@@ -515,5 +536,57 @@ async function notify(orderId: number, order: EmailOrder, market: Market, origin
     })
   } catch (error) {
     console.error('[order] notification step failed:', error)
+  }
+}
+
+/**
+ * Look the buyer's VAT number up in VIES and keep the answer.
+ *
+ * Only records. It changes neither the price nor the VAT charged — zero-rating
+ * is decided when the invoice is issued, from a second check made then. A buyer
+ * who typed only digits gets the market's country put in front. Never throws:
+ * an order that has been taken must not fail on a lookup.
+ */
+async function recordViesCheck(orderId: number, vatNumber: string, market: Market) {
+  try {
+    const requester = parseVatNumber(COMPANY.vatNumber) ?? undefined
+    const check = await checkVat(withCountryPrefix(vatNumber, market.code), { requester })
+    const payload = await getPayload({ config })
+
+    await payload.create({
+      collection: 'vies-checks',
+      data: {
+        order: orderId,
+        vatNumber: check.vatNumber,
+        countryCode: check.countryCode,
+        stage: 'order',
+        result: check.result,
+        checkedAt: check.checkedAt,
+        requestIdentifier: check.requestIdentifier,
+        raw: check.raw as never,
+      },
+    })
+
+    // Staff should see a number that did not check out without opening anything.
+    if (check.result === 'valid') return
+    const say =
+      check.result === 'invalid'
+        ? `ДДС номер ${check.countryCode}${check.vatNumber}: НЕВАЛИДЕН във VIES — ще се фактурира със стандартна ставка`
+        : `ДДС номер ${check.countryCode}${check.vatNumber}: VIES не отговори — проверката ще се повтори преди фактурата`
+    const doc = (await payload.findByID({ collection: 'orders', id: orderId, depth: 0 })) as unknown as {
+      log?: { id?: string | null; note?: string | null; at?: string | null; author?: number | null }[] | null
+    }
+    await payload.update({
+      collection: 'orders',
+      id: orderId,
+      data: {
+        log: [
+          ...(doc.log ?? []).map((e) => ({ id: e.id ?? undefined, note: e.note ?? '', at: e.at ?? null, author: e.author ?? null })),
+          { note: say, at: new Date().toISOString() },
+        ],
+      },
+    })
+  } catch (error) {
+    console.error('[order] VIES check failed:', error)
   }
 }
