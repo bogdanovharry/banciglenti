@@ -19,6 +19,7 @@ import { localizeName, textLang, type Override } from '@/lib/product-text'
 import { sendEmail, staffRecipients } from '@/lib/email'
 import { customerEmail, staffOrderEmail, type EmailOrder } from '@/lib/order-emails'
 import { siteOrigin } from '@/lib/site-url'
+import { nameWithPitch, pitchInfoFor, pitchText } from '@/lib/product-pitch'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -66,7 +67,7 @@ const LIMITS = {
 const PER_IP = { windowMs: 10 * 60_000, max: 12 }
 const PER_CUSTOMER = { minutes: 10, max: 5 }
 
-type IncomingLine = { sku?: unknown; quantity?: unknown; customSpecs?: unknown }
+type IncomingLine = { sku?: unknown; quantity?: unknown; customSpecs?: unknown; pitch?: unknown }
 
 type PricedLine = {
   product?: number
@@ -75,6 +76,8 @@ type PricedLine = {
   quantity: number
   price: number
   customSpecs?: CustomSpecs
+  /** Not stored: tells the confirmation e-mail which name to show. The pitch is in `name`. */
+  pitch?: string
 }
 
 type ProductDoc = {
@@ -84,6 +87,10 @@ type ProductDoc = {
   status?: string | null
   stock?: number | null
   madeToOrder?: boolean | null
+  /** Populated (depth 1) so the pitch choices can be worked out. */
+  categories?: ({ slug?: string } | number)[] | null
+  series?: string | null
+  specs?: { width?: number | null; thickness?: number | null; length?: number | null; toothPitch?: string | null } | null
 }
 
 const isNonEmpty = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0
@@ -235,7 +242,8 @@ export async function POST(request: Request) {
         collection: 'products',
         where: { slug: { in: [...catalogueSkus] } },
         limit: catalogueSkus.size,
-        depth: 0,
+        // Depth 1: the pitch choices are worked out from the product's categories.
+        depth: 1,
         pagination: false,
       })
       for (const doc of found.docs as unknown as (ProductDoc & { slug?: string })[]) {
@@ -299,12 +307,37 @@ export async function POST(request: Request) {
         }
       }
 
+      // A ready-made blade can be had in several pitches. What the buyer chose is
+      // checked against the same price tables the product page read, and — for the
+      // meat blades, whose edge profile is priced — re-priced here, never trusted.
+      const chosenPitch = typeof line.pitch === 'string' ? line.pitch.trim().slice(0, 40) : ''
+      let unitPrice = round2(product.basePrice ?? 0)
+      let lineName = productName
+      if (chosenPitch) {
+        const info = pitchInfoFor({
+          categorySlugs: (product.categories ?? []).map((c) => (typeof c === 'object' ? (c.slug ?? '') : '')).filter(Boolean),
+          series: product.series ?? null,
+          name: productName,
+          width: product.specs?.width ?? null,
+          thickness: product.specs?.thickness ?? null,
+          length: product.specs?.length ?? null,
+          toothPitch: product.specs?.toothPitch ?? null,
+          price: unitPrice,
+        })
+        const option = info?.options.find((o) => o.pitch === chosenPitch)
+        if (!option) return NextResponse.json({ error: say.invalidPitch(sku) }, { status: 400 })
+        unitPrice = round2(option.unitPrice)
+        lineName = nameWithPitch(productName, chosenPitch)
+        shownNames.set(`${sku}|${chosenPitch}`, `${shownName} · ${pitchText(chosenPitch, lang)}`)
+      }
+
       priced.push({
         product: product.id,
-        name: productName,
+        name: lineName,
         sku,
         quantity,
-        price: round2(product.basePrice ?? 0),
+        price: unitPrice,
+        ...(chosenPitch ? { pitch: chosenPitch } : {}),
       })
     }
 
@@ -375,7 +408,12 @@ export async function POST(request: Request) {
             // What was typed, kept on the order itself — see Orders.ts.
             contact: { name, email, phone, ...(company ? { company } : {}) },
             ...(billing ? { billing: { invoice: true, ...billing } } : {}),
-            items: priced,
+            // `pitch` is only a note for the e-mail below; the order keeps it in the line's name.
+            items: priced.map((l) => {
+              const { pitch, ...stored } = l
+              void pitch
+              return stored
+            }),
             status: 'pending',
             payment: { method: paymentMethod, status: 'pending' },
             shipping: { method: shippingMethod, address, cost: shippingCost },
@@ -436,7 +474,7 @@ export async function POST(request: Request) {
       shippingMethod,
       paymentMethod,
       lines: priced.map((l) => ({
-        name: shownNames.get(l.sku) ?? l.name,
+        name: shownNames.get(`${l.sku}|${l.pitch ?? ''}`) ?? shownNames.get(l.sku) ?? l.name,
         sku: l.sku,
         quantity: l.quantity,
         price: l.price,

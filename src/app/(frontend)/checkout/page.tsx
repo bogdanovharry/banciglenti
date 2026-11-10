@@ -222,6 +222,7 @@ export default function CheckoutPage() {
             sku: i.sku,
             quantity: i.quantity,
             ...(i.customSpecs ? { customSpecs: i.customSpecs } : {}),
+            ...(i.pitch ? { pitch: i.pitch } : {}),
           })),
         }),
       });

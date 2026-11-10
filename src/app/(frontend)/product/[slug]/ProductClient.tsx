@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+
+import { PitchPicker } from "./PitchPicker";
+import type { PitchInfo } from "@/lib/product-pitch";
+import { useLocale, useTranslations } from "next-intl";
+import { localizeHref } from "@/lib/slugs";
 import { Placeholder, Tag, Btn } from "@/components/ui/primitives";
 import { IconArrowRight, IconMinus, IconPlus, IconTruck, IconShield, IconWrench } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
@@ -32,6 +36,8 @@ export type ProductView = {
   /** Uploaded photo, or the representative one — same as the product card. */
   image?: string | null;
   breadcrumb: { slug: string; name: string } | null;
+  /** The pitches (or edge profiles) this size is made in; null when the product has none to choose. */
+  pitch?: PitchInfo | null;
 };
 
 function SpecTable({ title, rows }: { title: string; rows: [string, string][] }) {
@@ -55,6 +61,8 @@ function SpecTable({ title, rows }: { title: string; rows: [string, string][] })
 export function ProductClient({ product }: { product: ProductView }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  // The product's own pitch where it has one; otherwise nothing is chosen yet.
+  const [pitchChoice, setPitchChoice] = useState<string | null>(product.pitch?.defaultPitch ?? null);
   const { addItem } = useCart();
   const { market, gross, amount, price, symbol } = usePrices();
   const t = useTranslations("catalog");
@@ -72,14 +80,23 @@ export function ProductClient({ product }: { product: ProductView }) {
   const mm = t("unit.mm");
   const machines = product.machines ?? [];
 
+  // A pitch has to be chosen when there is more than one and none is preselected.
+  const pitchOption = product.pitch?.options.find((o) => o.pitch === pitchChoice) ?? null;
+  const needsPitch = Boolean(product.pitch && product.pitch.options.length > 1 && !pitchOption);
+  // Meat blades price the edge profile; everything else keeps the product's own price.
+  const unitPrice = pitchOption?.unitPrice ?? product.price;
+  const pitchLabel = (p: string) => (/^[a-z-]+$/.test(p) ? t(`pitch.${p}`) : p);
+
   const handleAddToCart = () => {
+    if (needsPitch) return;
     addItem({
       sku: product.slug,
       name: product.name,
-      dim: product.dim,
-      price: product.price,
+      dim: pitchOption ? `${product.dim} · ${pitchLabel(pitchOption.pitch)}` : product.dim,
+      price: unitPrice,
       quantity: qty,
       image: product.image ?? undefined,
+      ...(pitchOption ? { pitch: pitchOption.pitch } : {}),
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -278,6 +295,17 @@ export function ProductClient({ product }: { product: ProductView }) {
                 </div>
               )}
 
+              {product.pitch && product.specs.width && product.specs.thickness && (
+                <PitchPicker
+                  info={product.pitch}
+                  width={product.specs.width}
+                  thickness={product.specs.thickness}
+                  value={pitchChoice}
+                  onChange={setPitchChoice}
+                  priceOf={(net) => price(gross(net))}
+                />
+              )}
+
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-5">
                 <div>
                   <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
@@ -287,7 +315,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                         ? t("product.boxPrice", { qty: pack.qty })
                         : t("product.unitPrice")}
                   </div>
-                  <DualPrice net={product.price} size="lg" className="mt-1" />
+                  <DualPrice net={unitPrice} size="lg" className="mt-1" />
                   {pack?.kind === "set" ? (
                     // Different blades — an average price describes none of
                     // them, so the count is stated and the contents are listed
@@ -342,13 +370,15 @@ export function ProductClient({ product }: { product: ProductView }) {
                     fullWidth
                     iconRight={<IconArrowRight size={16} />}
                     onClick={handleAddToCart}
-                    disabled={!inStock}
+                    disabled={!inStock || needsPitch}
                   >
                     {!inStock
                       ? tStock("out")
-                      : added
-                        ? t("product.added")
-                        : t("product.addToCart", { price: price(gross(product.price * qty)) })}
+                      : needsPitch
+                        ? t("product.pitchChooseShort")
+                        : added
+                          ? t("product.added")
+                          : t("product.addToCart", { price: price(gross(unitPrice * qty)) })}
                   </Btn>
                 </div>
               </div>
