@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
 import { LOGOUT_PATH, NAV_ITEMS, PAYLOAD_ADMIN, type NavItem } from '@/lib/manage/routes'
+import type { ShopLink } from '@/lib/manage/shops'
 
 /**
  * The one piece of chrome.
@@ -40,7 +41,52 @@ function Row({ item, active }: { item: NavItem; active: boolean }) {
   )
 }
 
-export function Nav({ user }: { user: { name: string | null; email: string } }) {
+/**
+ * Which shop this /manage belongs to, and a way to the other.
+ *
+ * Every shop has its own /manage, its own orders and its own staff logins; this
+ * does not merge them, it only makes the other one a click away. The link leaves
+ * for the other shop's own address, so it is a plain anchor, and signs in there
+ * separately.
+ */
+function ShopSwitch({ shops }: { shops: ShopLink[] }) {
+  if (shops.length < 2) return null
+  return (
+    <div className="px-4 py-3 border-b border-ink-15">
+      <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mb-2">Магазин</div>
+      <div className="flex gap-1.5">
+        {shops.map((s) =>
+          s.current ? (
+            <span
+              key={s.code}
+              aria-current="true"
+              className="flex-1 text-center px-2 py-1.5 text-[12.5px] font-semibold bg-ink text-white"
+            >
+              {s.name}
+            </span>
+          ) : (
+            <a
+              key={s.code}
+              href={s.href}
+              title={`Към управлението на магазин ${s.name}`}
+              className="flex-1 text-center px-2 py-1.5 text-[12.5px] border border-ink-15 bg-white text-ink-70 hover:border-ink hover:text-ink no-underline"
+            >
+              {s.name}
+            </a>
+          ),
+        )}
+      </div>
+    </div>
+  )
+}
+
+export function Nav({
+  user,
+  shops = [],
+}: {
+  user: { name: string | null; email: string }
+  shops?: ShopLink[]
+}) {
   const pathname = usePathname()
 
   // Remembers where the menu was opened rather than a plain boolean, so it
@@ -83,6 +129,8 @@ export function Nav({ user }: { user: { name: string | null; email: string } }) 
         id="manage-nav"
         className={`${open ? 'block' : 'hidden'} border-t border-ink-15 lg:border-t-0 lg:flex lg:flex-col lg:flex-1 lg:min-h-0`}
       >
+        <ShopSwitch shops={shops} />
+
         <div className="py-2 lg:flex-1">
           {NAV_ITEMS.map((item) => (
             <Row key={item.href} item={item} active={isActive(item)} />
