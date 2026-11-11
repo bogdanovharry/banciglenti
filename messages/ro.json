@@ -203,8 +203,8 @@
     "support": {
       "eyebrow": "№ 08 — Suport tehnic",
       "title": "Căutați o dimensiune care nu este în catalog?",
-      "lede": "Un inginer răspunde la telefon și dimensionează pânza împreună cu dumneavoastră. Gratuit, inclusiv dacă utilajul este vechi și fără marcaj.",
-      "directLine": "Linie directă · Lu–Vi 8:00–17:30",
+      "lede": "Un inginer vă răspunde în scris și dimensionează pânza împreună cu dumneavoastră. Gratuit, inclusiv dacă utilajul este vechi și fără marcaj.",
+      "directLine": "Scrieți-ne · Lu–Vi 8:00–17:30",
       "mobile": "mobil",
       "orSend": "Sau trimiteți o solicitare"
     }
@@ -260,7 +260,7 @@
     "length": {
       "hint": "De la {min} mm în sus, fără limită superioară. Măsurați conturul pânzei, nu diametrul volanților.",
       "tooShort": "Minimum {min} mm. Un contur mai scurt nu se sudează — nu există mașină pe care să se întindă.",
-      "tooLong": "Peste {max} mm se stabilește telefonic — limită superioară nu există, dar un contur atât de lung îl confirmăm manual."
+      "tooLong": "Peste {max} mm stabilim lungimea împreună, în scris — limită superioară nu există, dar un contur atât de lung îl confirmăm manual."
     },
     "extras": {
       "welding": "Sudură",

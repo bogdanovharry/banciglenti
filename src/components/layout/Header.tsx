@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { companyFor } from "@/lib/company";
+import { useMarket } from "@/lib/market-context";
 import { localizeHref } from "@/lib/slugs";
 import { SawMeisterLogo } from "@/components/layout/SawMeisterLogo";
 import { SAW_MEISTER } from "@/lib/series";
@@ -112,6 +113,7 @@ export function Header() {
   const locale = useLocale();
   const isBulgaria = locale.startsWith("bg");
   const company = companyFor(locale);
+  const { writtenOnly } = useMarket();
   const menuId = useId();
   const tSite = useTranslations("siteHeader");
   const tCommon = useTranslations("common");
@@ -148,15 +150,22 @@ export function Header() {
           <div className="flex gap-5 items-center ml-auto">
             {/* Below 640px only the icon shows, so the link carries its own name
                 and a 40px tap target. */}
+            {!writtenOnly && (
+              <a
+                href={company.phone.office.href}
+                aria-label={tSite("phoneCall", { number: company.phone.office.display })}
+                className="flex items-center justify-center gap-1.5 min-w-10 h-10 text-inherit no-underline hover:text-white transition-colors"
+              >
+                <IconPhone size={12} /> <span className="hidden sm:inline tabular-nums">{company.phone.office.display}</span>
+              </a>
+            )}
+            {/* Written contact only: the e-mail is the way in, so it shows on a phone too. */}
             <a
-              href={company.phone.office.href}
-              aria-label={tSite("phoneCall", { number: company.phone.office.display })}
-              className="flex items-center justify-center gap-1.5 min-w-10 h-10 text-inherit no-underline hover:text-white transition-colors"
+              href={`mailto:${company.email}`}
+              aria-label={company.email}
+              className={`${writtenOnly ? "flex min-w-10 h-10 justify-center" : "hidden md:flex"} items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors`}
             >
-              <IconPhone size={12} /> <span className="hidden sm:inline tabular-nums">{company.phone.office.display}</span>
-            </a>
-            <a href={`mailto:${company.email}`} className="hidden md:flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
-              <IconMail size={12} /> {company.email}
+              <IconMail size={12} /> <span className={writtenOnly ? "hidden sm:inline" : ""}>{company.email}</span>
             </a>
           </div>
         </div>

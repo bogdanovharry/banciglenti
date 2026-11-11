@@ -63,6 +63,13 @@ export type Market = {
    * other, so a method switched off here cannot be posted by hand.
    */
   paymentMethods: CheckoutPaymentMethod[]
+  /**
+   * Written contact only: no phone number anywhere on the storefront, and every
+   * "call us" is "write to us" — the contact form and the e-mail address. Set where
+   * nobody can yet answer the phone in the visitor's language. Services without a
+   * fixed price are offered as a written enquiry.
+   */
+  writtenOnly: boolean
 }
 
 export const MARKETS: Record<MarketCode, Market> = {
@@ -79,6 +86,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     couriers: ['Еконт', 'Спиди'],
     pickup: true,
     paymentMethods: ['bank_transfer', 'cod'],
+    writtenOnly: false,
   },
   ro: {
     code: 'ro',
@@ -107,6 +115,8 @@ export const MARKETS: Record<MarketCode, Market> = {
     // Cash on delivery only at launch — the courier collects lei, so no RON
     // bank account is needed. Cards are to follow once a provider is connected.
     paymentMethods: ['cod'],
+    // Owner's decision, 11 Nov 2026: nobody can answer the phone in Romanian for now.
+    writtenOnly: true,
   },
   gr: {
     code: 'gr',
@@ -124,6 +134,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     pickup: false,
     // TODO: follows whatever Romania proves out.
     paymentMethods: ['cod'],
+    writtenOnly: false,
   },
 }
 

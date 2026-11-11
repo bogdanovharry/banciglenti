@@ -76,6 +76,7 @@ const CUSTOMER = {
     madeToMeasure: 'Изработва се по ваш размер — не подлежи на връщане.',
     invoice: 'Фактура на',
     questions: 'Въпроси? Отговорете на този имейл или се обадете на',
+    questionsWritten: 'Въпроси? Отговорете на този имейл или пишете на',
     terms: 'Общи условия',
   },
   ro: {
@@ -103,6 +104,7 @@ const CUSTOMER = {
     madeToMeasure: 'Se fabrică la dimensiunea dvs. — nu se poate returna.',
     invoice: 'Factură pe',
     questions: 'Întrebări? Răspundeți la acest e-mail sau sunați la',
+    questionsWritten: 'Întrebări? Răspundeți la acest e-mail sau scrieți-ne la',
     terms: 'Termeni și condiții',
   },
 } as const
@@ -155,7 +157,7 @@ export function customerEmail(market: Market, order: EmailOrder, origin: string)
     ...notes,
     ...(order.billing ? ['', `${L.invoice}: ${order.billing.company}, ${order.billing.taxId}`] : []),
     '',
-    `${L.questions} ${company.phone.office.display} · ${company.email}`,
+    market.writtenOnly ? `${L.questionsWritten} ${company.email}` : `${L.questions} ${company.phone.office.display} · ${company.email}`,
     `${L.terms}: ${origin}/terms`,
   ].join('\n')
 
@@ -182,7 +184,7 @@ export function customerEmail(market: Market, order: EmailOrder, origin: string)
     ${notes.map((n) => `<p style="margin:0 0 10px;line-height:1.5">${escapeHtml(n)}</p>`).join('')}
     ${order.billing ? `<p style="margin:16px 0 0;font-size:13px;color:#4d4d4d">${L.invoice}: ${escapeHtml(order.billing.company)}, ${escapeHtml(order.billing.taxId)}</p>` : ''}
     <hr style="border:0;border-top:1px solid #ededed;margin:24px 0">
-    <p style="margin:0;font-size:13px;color:#4d4d4d;line-height:1.5">${L.questions} <a href="${escapeHtml(company.phone.office.href)}">${escapeHtml(company.phone.office.display)}</a> · ${escapeHtml(company.email)}<br><a href="${escapeHtml(origin)}/terms">${L.terms}</a></p>`)
+    <p style="margin:0;font-size:13px;color:#4d4d4d;line-height:1.5">${market.writtenOnly ? `${L.questionsWritten} ${escapeHtml(company.email)}` : `${L.questions} <a href="${escapeHtml(company.phone.office.href)}">${escapeHtml(company.phone.office.display)}</a> · ${escapeHtml(company.email)}`}<br><a href="${escapeHtml(origin)}/terms">${L.terms}</a></p>`)
 
   return { subject: L.subject(order.orderNumber), html, text }
 }

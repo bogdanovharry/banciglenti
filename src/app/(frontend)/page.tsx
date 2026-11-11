@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { getCategoryCounts, getProducts } from "@/lib/catalog";
 import { companyFor } from "@/lib/company";
 import { CATALOG_FACTS } from "@/lib/catalog-facts";
-import { getLocale } from "@/i18n/locale";
+import { getLocale, getMarket } from "@/i18n/locale";
 import { absoluteUrl } from "@/lib/site-url";
 import { HomeClient } from "./HomeClient";
 import type { ProductCardData } from "@/components/product/ProductCard";
@@ -35,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * and the contact page. No sameAs list — there are no verified profiles to
  * point at.
  */
-async function organizationJsonLd(locale: string) {
+async function organizationJsonLd(locale: string, writtenOnly: boolean) {
   const company = companyFor(locale);
   const bulgarian = locale.startsWith("bg");
   const logo = bulgarian ? "/images/hero/tehnoles-logo.png" : "/images/brands/saw-meister-brushed.png";
@@ -49,7 +49,8 @@ async function organizationJsonLd(locale: string) {
     legalName: company.legalName,
     url: await absoluteUrl("/"),
     logo: await absoluteUrl(logo),
-    telephone: company.phone.office.href.replace(/^tel:/, ""),
+    // Written contact only: the phone is not published at all.
+    ...(writtenOnly ? {} : { telephone: company.phone.office.href.replace(/^tel:/, "") }),
     email: company.email,
     foundingDate: String(company.foundedYear),
     address: {
@@ -64,7 +65,7 @@ async function organizationJsonLd(locale: string) {
 
 export default async function HomePage() {
   const locale = await getLocale();
-  const jsonLd = await organizationJsonLd(locale);
+  const jsonLd = await organizationJsonLd(locale, (await getMarket()).writtenOnly);
   const [products, categoryCounts] = await Promise.all([getProducts(), getCategoryCounts()]);
 
   // Bestsellers are the products actually flagged TOP in the CMS. Previously

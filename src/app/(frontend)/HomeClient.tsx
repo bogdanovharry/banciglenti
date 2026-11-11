@@ -19,7 +19,7 @@ import {
   IconArrowRight, IconPhone, IconWood, IconMetal, IconFood,
   IconHobby, IconMachine, IconAbrasive,
 } from "@/components/ui/icons";
-import { usePrices } from "@/lib/market-context";
+import { useMarket, usePrices } from "@/lib/market-context";
 import { companyFor } from "@/lib/company";
 import { CATALOG_FACTS } from "@/lib/catalog-facts";
 import { ConfiguratorPanel } from "@/components/configurator/ConfiguratorPanel";
@@ -471,7 +471,13 @@ const SERVICES = [
   { key: "heat", name: "heatTitle", detail: "heatDesc", perMetre: true, rate: minRate("heatTreatment") },
 ] as const;
 
+// What the workshop does for a tool the buyer already owns, for markets that are served in
+// writing only: no prices, each job is quoted in answer to an enquiry.
+const WRITTEN_SERVICES = ["bands", "circular", "pcd", "edm"] as const;
+
 function ServicesBlock() {
+  const { writtenOnly } = useMarket();
+  const tw = useTranslations("home.written");
   const tSvc = useTranslations("home.services");
   const tc = useTranslations("common");
   const tq = useTranslations("home.quote");
@@ -511,10 +517,32 @@ function ServicesBlock() {
                 <span className={`${accent} text-orange-light`}>{tSvc("title2")}</span>
               </h2>
               <p className="font-sans text-[17px] leading-relaxed text-white/70 max-w-[520px] mb-10">
-                {tSvc("lede")}
+                {writtenOnly ? tw("lede") : tSvc("lede")}
               </p>
             </Reveal>
 
+            {writtenOnly ? (
+            <Reveal delay={80} stagger className="border-t border-white/15">
+              {WRITTEN_SERVICES.map((key) => (
+                <div
+                  key={key}
+                  className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-x-6 gap-y-2 items-baseline py-6 border-b border-white/15"
+                >
+                  <div>
+                    <h3 className="font-display text-xl md:text-[22px] font-semibold tracking-tight m-0 mb-1.5">
+                      {tw(`${key}.title`)}
+                    </h3>
+                    <p className="font-sans text-[14px] leading-snug text-white/60 m-0 max-w-[52ch]">
+                      {tw(`${key}.desc`)}
+                    </p>
+                  </div>
+                  <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/45 sm:text-right shrink-0">
+                    {tw("quote")}
+                  </div>
+                </div>
+              ))}
+            </Reveal>
+            ) : (
             <Reveal delay={80} stagger className="border-t border-white/15">
               {SERVICES.map((s) => (
                 <div
@@ -542,16 +570,23 @@ function ServicesBlock() {
                 </div>
               ))}
             </Reveal>
+            )}
 
             <div className="mt-8 flex gap-3 flex-wrap">
               <Link href="/contact">
                 <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>
-                  {tSvc("cta")}
+                  {writtenOnly ? tw("cta") : tSvc("cta")}
                 </Btn>
               </Link>
-              <a href={company.phone.office.href}>
-                <Btn variant="ghostLight" size="lg" icon={<IconPhone size={16} />}>{company.phone.office.display}</Btn>
-              </a>
+              {writtenOnly ? (
+                <a href={`mailto:${company.email}`}>
+                  <Btn variant="ghostLight" size="lg">{company.email}</Btn>
+                </a>
+              ) : (
+                <a href={company.phone.office.href}>
+                  <Btn variant="ghostLight" size="lg" icon={<IconPhone size={16} />}>{company.phone.office.display}</Btn>
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -569,6 +604,8 @@ function ServicesBlock() {
  * as the workshop rather than as a coloured rectangle.
  */
 function ContactCTA() {
+  const { writtenOnly } = useMarket();
+  const tw = useTranslations("home.written");
   const tSup = useTranslations("home.support");
   const company = companyFor(useLocale());
   return (
@@ -592,14 +629,37 @@ function ContactCTA() {
               {tSup("eyebrow")}
             </div>
             <h2 className="font-display text-3xl md:text-4xl lg:text-[52px] leading-[1.02] tracking-[-0.035em] font-bold m-0 max-w-[16ch]">
-              {tSup("title")}
+              {writtenOnly ? tw("supportTitle") : tSup("title")}
             </h2>
             <p className="font-sans text-[16px] leading-relaxed text-white/80 max-w-[440px] mt-5">
-              {tSup("lede")}
+              {writtenOnly ? tw("supportLede") : tSup("lede")}
             </p>
           </Reveal>
 
-          {/* Call panel — the number set as display type, not as a button label */}
+          {/* Written contact only: the e-mail address takes the place of the number. */}
+          {writtenOnly ? (
+          <Reveal delay={120} className="w-full lg:w-auto">
+            <div className="bg-ink text-white p-7 md:p-8 lg:min-w-[380px]">
+              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-3">
+                {tw("panelLabel")}
+              </div>
+              <a
+                href={`mailto:${company.email}`}
+                className="group block no-underline text-white break-all font-display text-[24px] md:text-[28px] font-extrabold tracking-tight leading-tight hover:text-orange-light transition-colors"
+              >
+                {company.email}
+              </a>
+              <div className="mt-6 pt-6 border-t border-white/15">
+                <Link href="/contact" className="block">
+                  <Btn variant="primary" size="md" fullWidth iconRight={<IconArrowRight size={14} />}>
+                    {tw("writeForm")}
+                  </Btn>
+                </Link>
+              </div>
+            </div>
+          </Reveal>
+          ) : (
+          /* Call panel — the number set as display type, not as a button label */
           <Reveal delay={120} className="w-full lg:w-auto">
             <div className="bg-ink text-white p-7 md:p-8 lg:min-w-[380px]">
               <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-3">
@@ -629,6 +689,7 @@ function ContactCTA() {
               </div>
             </div>
           </Reveal>
+          )}
         </div>
       </div>
     </section>

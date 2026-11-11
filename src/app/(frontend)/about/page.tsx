@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 
 import { LegalPage, LegalSection } from "@/components/layout/LegalPage";
 import { companyFor, COMPANY, TERMS } from "@/lib/company";
-import { getLocale } from "@/i18n/locale";
+import { getLocale, getMarket } from "@/i18n/locale";
 import { absoluteUrl } from "@/lib/site-url";
 
 /** 1000 -> "1 000" (non-breaking space), the grouping both languages use here. */
@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * out rather than repeated here, since this is the page people cite.
  */
 export default async function AboutPage() {
-  const [t, locale] = await Promise.all([getTranslations("aboutPage"), getLocale()]);
+  const [t, locale, market] = await Promise.all([getTranslations("aboutPage"), getLocale(), getMarket()]);
   const company = companyFor(locale);
   const year = COMPANY.foundedYear;
   const years = new Date().getFullYear() - year;
@@ -75,14 +75,18 @@ export default async function AboutPage() {
 
       <LegalSection n="03" title={t("s3")}>
         <dl>
-          <dt>{t("phone")}</dt>
-          <dd>
-            <a href={company.phone.office.href}>{company.phone.office.display}</a>
-          </dd>
-          <dt>{t("mobile")}</dt>
-          <dd>
-            <a href={company.phone.mobile.href}>{company.phone.mobile.display}</a>
-          </dd>
+          {!market.writtenOnly && (
+            <>
+              <dt>{t("phone")}</dt>
+              <dd>
+                <a href={company.phone.office.href}>{company.phone.office.display}</a>
+              </dd>
+              <dt>{t("mobile")}</dt>
+              <dd>
+                <a href={company.phone.mobile.href}>{company.phone.mobile.display}</a>
+              </dd>
+            </>
+          )}
           <dt>{t("email")}</dt>
           <dd>
             <a href={`mailto:${company.email}`}>{company.email}</a>

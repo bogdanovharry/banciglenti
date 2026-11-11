@@ -54,7 +54,7 @@
     "courier": "Curier",
     "pickup": "Ridicare personală",
     "pickupDetail": "Atelier {city} · gratuit",
-    "pickupNote": "Ridicare de la atelier: {address}. Vă sunăm când pânza este gata.",
+    "pickupNote": "Ridicare de la atelier: {address}. Vă anunțăm prin e-mail când pânza este gata.",
     "bankTransfer": "Transfer bancar",
     "cod": "Plată la livrare (ramburs)",
     "bankTransferTitle": "Transfer bancar:",
@@ -117,6 +117,6 @@
     "send": "Trimite solicitarea",
     "sending": "Se trimite...",
     "genericError": "A apărut o eroare la trimitere.",
-    "networkError": "Nu există conexiune cu serverul. Verificați internetul sau sunați-ne."
+    "networkError": "Nu există conexiune cu serverul. Verificați internetul sau scrieți-ne."
   }
 }
