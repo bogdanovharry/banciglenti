@@ -22,7 +22,7 @@ type NavCat = { name: string; href: string; Icon: typeof IconWood; children: Nav
 
 /**
  * Navigation carries translation keys, not words. Steel grades (M42 HSS,
- * CS Flexback) are deliberately literal — they are the same in every market
+ * Flexback) are deliberately literal — they are the same in every market
  * and translating them would be wrong.
  */
 const NAV_CATS: NavCat[] = [
@@ -49,12 +49,17 @@ const NAV_CATS: NavCat[] = [
     children: [
       { group: "bimetal", items: [
         { label: "!M42 HSS", href: "/category/bimetalni-lenti" },
-        { label: "!M51 / M90", href: "/category/bimetalni-lenti" },
+        { label: "!M51", href: "/category/bimetalni-lenti" },
         { label: "custom", href: "/configurator?type=metal-bi" },
       ]},
-      { group: "carbonSteel", items: [
-        { label: "!CS Flexback", href: "/category/vyglerodna-lenti-cs" },
-        { label: "!CS Hardback", href: "/category/vyglerodna-lenti-cs" },
+    ],
+  },
+  {
+    name: "other", href: "/category/vyglerodna-lenti-cs", Icon: IconMetal,
+    children: [
+      { group: "plasticNonferrous", items: [
+        { label: "!Flexback", href: "/category/vyglerodna-lenti-cs" },
+        { label: "custom", href: "/configurator?type=metal-cs" },
       ]},
     ],
   },
