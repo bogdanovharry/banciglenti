@@ -159,9 +159,12 @@ export function ProductClient({ product }: { product: ProductView }) {
           <span className="text-ink">{product.name}</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+        {/* Photo and what the product is on the left, what to choose and buy on the right.
+            On a phone the order is photo, buy, description — the buy box is not pushed
+            down the page by the text about the product. */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-[auto_1fr] gap-x-16 gap-y-10">
           {/* Gallery */}
-          <div>
+          <div className="lg:col-start-1 lg:row-start-1">
             {product.image ? (
               <div className="relative">
                 <Placeholder
@@ -183,8 +186,58 @@ export function ProductClient({ product }: { product: ProductView }) {
             )}
           </div>
 
-          {/* Info */}
-          <div>
+          {/* Description, series and specs — under the photo */}
+          <div className="lg:col-start-1 lg:row-start-2 order-last lg:order-none">
+          {product.shortDescription && (
+            <p className="font-sans text-[15px] leading-relaxed text-ink-70 m-0 mb-8">
+              {product.shortDescription}
+            </p>
+          )}
+
+          {/* What the series is for — the question behind "is this the right blade?" */}
+          {series && (
+            <div className="mb-8 border-l-2 border-orange pl-5">
+              <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-1.5">
+                {t("product.series")} · {t(`series.${series.key}.type`)} · {t(`series.${series.key}.application`)}
+              </div>
+              <div className="font-display text-xl font-bold text-ink mb-2 tracking-tight">
+                {SAW_MEISTER} {series.name}
+              </div>
+              <p className="font-sans text-[14px] leading-relaxed text-ink-70 m-0">
+                {t(`series.${series.key}.description`)}
+              </p>
+            </div>
+          )}
+
+          {/* Key specs */}
+          {(product.specs.material || product.specs.width || product.specs.thickness) && (
+            <div className="flex gap-0 border border-ink-15 mb-8">
+              {[
+                product.specs.material ? [product.specs.material, t("product.materialLower")] : null,
+                product.specs.width ? [`${product.specs.width} ${mm}`, t("product.widthDiameterLower")] : null,
+                product.specs.thickness ? [`${product.specs.thickness} ${mm}`, t("product.thicknessLower")] : null,
+              ]
+                .filter((x): x is string[] => x !== null)
+                .map(([v, l], i, arr) => (
+                  <div key={l} className={`p-4 flex-1 ${i < arr.length - 1 ? "border-r border-ink-15" : ""}`}>
+                    <div className="font-mono text-[9px] text-ink-50 tracking-[0.12em] uppercase">{l}</div>
+                    <div className="font-display text-lg font-bold mt-1 text-ink">{v}</div>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          {/* Custom size CTA */}
+          <div className="mb-8 p-4 border border-ink-15 flex items-center justify-between gap-4">
+            <div className="font-sans text-sm text-ink-70">{t("product.otherSize")}</div>
+            <Link href={configuratorHrefForAny(product.categorySlugs)} className="font-mono text-[11px] text-orange underline">
+              {t("product.openConfigurator")}
+            </Link>
+          </div>
+          </div>
+
+          {/* Choose and buy */}
+          <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2">
             <div className="flex gap-2 mb-5 flex-wrap">
               {product.topProduct && <Tag tone="orange">TOP</Tag>}
               <Tag tone={inStock ? "ok" : "outline"}>{stockText}</Tag>
@@ -207,52 +260,6 @@ export function ProductClient({ product }: { product: ProductView }) {
               )}
             </h1>
 
-            {product.shortDescription && (
-              <p className="font-sans text-[15px] leading-relaxed text-ink-70 m-0 mb-8">
-                {product.shortDescription}
-              </p>
-            )}
-
-            {/* What the series is for — the question behind "is this the right blade?" */}
-            {series && (
-              <div className="mb-8 border-l-2 border-orange pl-5">
-                <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-1.5">
-                  {t("product.series")} · {t(`series.${series.key}.type`)} · {t(`series.${series.key}.application`)}
-                </div>
-                <div className="font-display text-xl font-bold text-ink mb-2 tracking-tight">
-                  {SAW_MEISTER} {series.name}
-                </div>
-                <p className="font-sans text-[14px] leading-relaxed text-ink-70 m-0">
-                  {t(`series.${series.key}.description`)}
-                </p>
-              </div>
-            )}
-
-            {/* Key specs */}
-            {(product.specs.material || product.specs.width || product.specs.thickness) && (
-              <div className="flex gap-0 border border-ink-15 mb-8">
-                {[
-                  product.specs.material ? [product.specs.material, t("product.materialLower")] : null,
-                  product.specs.width ? [`${product.specs.width} ${mm}`, t("product.widthDiameterLower")] : null,
-                  product.specs.thickness ? [`${product.specs.thickness} ${mm}`, t("product.thicknessLower")] : null,
-                ]
-                  .filter((x): x is string[] => x !== null)
-                  .map(([v, l], i, arr) => (
-                    <div key={l} className={`p-4 flex-1 ${i < arr.length - 1 ? "border-r border-ink-15" : ""}`}>
-                      <div className="font-mono text-[9px] text-ink-50 tracking-[0.12em] uppercase">{l}</div>
-                      <div className="font-display text-lg font-bold mt-1 text-ink">{v}</div>
-                    </div>
-                  ))}
-              </div>
-            )}
-
-            {/* Custom size CTA */}
-            <div className="mb-8 p-4 border border-ink-15 flex items-center justify-between gap-4">
-              <div className="font-sans text-sm text-ink-70">{t("product.otherSize")}</div>
-              <Link href={configuratorHrefForAny(product.categorySlugs)} className="font-mono text-[11px] text-orange underline">
-                {t("product.openConfigurator")}
-              </Link>
-            </div>
 
             {/* What is in the box. The whole reason a set sells is that
                 somebody already worked out which three blades cover the job —
