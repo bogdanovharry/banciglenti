@@ -109,6 +109,21 @@ function Select({ label, options, required, value, onChange, format }: {
 }
 
 /**
+ * What the quantity comes to, live. The big figure is per piece, so changing
+ * the quantity moved nothing on screen and looked broken. Always shown, even for
+ * one piece, so the column keeps its shape.
+ */
+function OrderTotal({ unitPrice, qty }: { unitPrice: number; qty: number }) {
+  const t = useTranslations("configurator");
+  return (
+    <div className="mt-4 mb-5 pt-3 border-t border-ink-15">
+      <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">{t("price.total", { qty })}</div>
+      <DualPrice net={Math.round(unitPrice * qty * 100) / 100} size="sm" className="mt-1" />
+    </div>
+  );
+}
+
+/**
  * One choice for the whole cross-section: "27 × 0,9".
  *
  * Width and thickness used to be two dropdowns, and the second could only be
@@ -558,7 +573,8 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">
             {t("price.label")}
           </div>
-          <DualPrice net={unitPrice} size="lg" className="mt-1 mb-5" />
+          <DualPrice net={unitPrice} size="lg" className="mt-1" />
+          <OrderTotal unitPrice={unitPrice} qty={qty} />
           <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAdd} disabled={!canAdd}>
             {added ? t("price.added") : t("price.add")}
           </Btn>
@@ -671,7 +687,8 @@ function RealDataConfigurator({
         )}
         <div className="mt-auto border-t-2 border-ink pt-4">
           <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">{t("price.label")}</div>
-          <DualPrice net={unitPrice} size="lg" className="mt-1 mb-5" />
+          <DualPrice net={unitPrice} size="lg" className="mt-1" />
+          <OrderTotal unitPrice={unitPrice} qty={qty} />
           <Btn variant="primary" size="lg" fullWidth onClick={handleAdd} disabled={!canAdd}>
             {added ? t("price.addedShort") : t("price.add")}
           </Btn>
