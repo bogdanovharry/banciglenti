@@ -30,8 +30,19 @@ function publicHost(code: MarketCode): string | null {
   return entry ? entry[0] : null
 }
 
+/**
+ * Each shop's address on Vercel itself. Opened from one of these, the switcher
+ * stays on Vercel addresses, so the owner can move between the two test
+ * versions without landing on the live shop.
+ */
+const VERCEL_HOST: Partial<Record<MarketCode, string>> = {
+  bg: 'banciglenti.vercel.app',
+  ro: 'banciglenti-ro.vercel.app',
+}
+
 export function shopLinks(currentCode: MarketCode, currentHost: string): ShopLink[] {
   const local = /(^|\.)localhost(:\d+)?$/.test(currentHost)
+  const onVercel = /\.vercel\.app(:\d+)?$/.test(currentHost)
   const port = /:(\d+)$/.exec(currentHost)?.[1]
 
   const links: ShopLink[] = []
@@ -43,9 +54,11 @@ export function shopLinks(currentCode: MarketCode, currentHost: string): ShopLin
     }
     const origin = local
       ? `http://${shop.code}.localhost${port ? `:${port}` : ''}`
-      : publicHost(shop.code)
-        ? `https://${publicHost(shop.code)}`
-        : null
+      : onVercel && VERCEL_HOST[shop.code]
+        ? `https://${VERCEL_HOST[shop.code]}`
+        : publicHost(shop.code)
+          ? `https://${publicHost(shop.code)}`
+          : null
     // A shop with no address yet cannot be linked to.
     if (origin) links.push({ ...shop, href: `${origin}/manage`, current })
   }
