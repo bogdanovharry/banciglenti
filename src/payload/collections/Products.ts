@@ -68,7 +68,7 @@ export const Products: CollectionConfig = {
       name: 'brand',
       type: 'relationship',
       relationTo: 'brands',
-      label: 'Марка',
+      label: 'Тип/модел',
     },
     {
       name: 'series',
