@@ -262,6 +262,7 @@
       "tooShort": "Minimum {min} mm. Un contur mai scurt nu se sudează — nu există mașină pe care să se întindă.",
       "tooLong": "Peste {max} mm stabilim lungimea împreună, în scris — limită superioară nu există, dar un contur atât de lung îl confirmăm manual."
     },
+    "includedNote": "Pânzele sunt livrate cu sudură, ascuțire și avoiere incluse în preț. Dacă doriți pânză la rolă sau fără aceste operațiuni, <link>contactați-ne în scris</link>.",
     "extras": {
       "welding": "Sudură",
       "setting": "Avoiere",

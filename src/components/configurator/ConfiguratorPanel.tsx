@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { Btn } from "@/components/ui/primitives";
 import { IconArrowRight, IconEdge, IconRuler } from "@/components/ui/icons";
@@ -45,6 +46,9 @@ type ConfigType = "wood-h" | "wood-v" | "metal-bi" | "metal-cs" | "hobby" | "mea
  * never sold blades for. What is actually priced here is band knives for soft
  * materials, and the label now says so in every language.
  */
+// The tabs whose blades come welded, ground and set, whatever the market offers on top.
+const INCLUDED_NOTE_TABS: ConfigType[] = ["wood-h", "wood-v", "metal-bi", "metal-cs", "hobby"];
+
 const TAB_ORDER: ConfigType[] = [
   "wood-h", "wood-v", "metal-bi", "metal-cs", "hobby", "meat", "bread", "slicer",
 ];
@@ -675,6 +679,24 @@ export function ConfiguratorPanel({ initialTab }: { initialTab?: ConfigType } = 
           ))}
         </div>
       </div>
+
+      {/* Where the optional processes are not offered, say what the blade comes with.
+          Only the tabs of blades that are welded, ground and set: the food and textile
+          blades have a smooth edge and nothing to set. */}
+      {!market.processingOptions && INCLUDED_NOTE_TABS.includes(activeTab) && (
+        <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-8">
+          <p className="m-0 border border-ink-15 bg-paper px-4 py-3 font-sans text-[14px] leading-relaxed text-ink-70">
+            <span aria-hidden className="text-ok mr-2">✓</span>
+            {t.rich("includedNote", {
+              link: (chunks) => (
+                <Link href="/contact" className="text-blue underline">
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </p>
+        </div>
+      )}
 
       {/* Configurator body */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-10 md:py-14">
