@@ -161,7 +161,7 @@ export function CategoryClient({
                 <Btn variant="ghost" size="md" onClick={clear}>{t("filters.clearAll")}</Btn>
               </div>
             ) : (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-5 ${hasFilters ? "xl:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-4"}`}>
+              <div className={`grid content-start grid-cols-1 sm:grid-cols-2 gap-5 ${hasFilters ? "xl:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-4"}`}>
                 {sortedProducts.map((p) => (
                   <ProductCard key={p.sku} p={p} compact />
                 ))}
