@@ -19,3 +19,11 @@ describe('the pitch a buyer chose, in the line name', () => {
     expect(out).not.toMatch(/[А-Яа-я]{4,}\s*$/)
   })
 })
+
+describe('bimetal cut-off bands', () => {
+  it('read as a Romanian workshop would say it, whichever M the name was typed with', () => {
+    const expected = 'Pânză de panglică bimetalică M42 pentru metal 27×0.9 L=2480 mm — Optimum S 275 G'
+    expect(localizeName('Биметална отрезна лента M42 27×0.9 L=2480мм — Optimum S 275 G', 'ro')).toBe(expected)
+    expect(localizeName('Биметална отрезна лента М42 27×0.9 L=2480мм — Optimum S 275 G', 'ro')).toBe(expected)
+  })
+})
