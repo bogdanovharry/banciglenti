@@ -50,14 +50,17 @@ const NAV_CATS: NavCat[] = [
         { label: "!M51", href: "/category/bimetalni-lenti" },
         { label: "custom", href: "/configurator?type=metal-bi" },
       ]},
+      { group: "carbonSteel", items: [
+        { label: "!Flexback", href: "/category/vyglerodna-lenti-cs" },
+        { label: "custom", href: "/configurator?type=metal-cs" },
+      ]},
     ],
   },
   {
-    name: "other", href: "/category/vyglerodna-lenti-cs", Icon: IconMetal,
+    name: "other", href: "/configurator?type=slicer", Icon: IconMetal,
     children: [
-      { group: "plasticNonferrous", items: [
-        { label: "!Flexback", href: "/category/vyglerodna-lenti-cs" },
-        { label: "custom", href: "/configurator?type=metal-cs" },
+      { group: "softMaterials", items: [
+        { label: "softKnives", href: "/configurator?type=slicer" },
       ]},
     ],
   },
