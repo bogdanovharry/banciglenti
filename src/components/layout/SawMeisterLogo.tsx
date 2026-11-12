@@ -101,7 +101,8 @@ export function SawMeisterLogo({
       alt="Saw-Meister"
       width={LOGO_W}
       height={LOGO_H}
-      preload={preload}
+      // Eager, not preloaded: a preload of its own would queue ahead of the page's hero photo.
+      loading={preload ? "eager" : undefined}
       className={`max-w-full ${className}`}
     />
   );

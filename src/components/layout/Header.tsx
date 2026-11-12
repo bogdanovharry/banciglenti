@@ -201,7 +201,7 @@ export function Header() {
               alt={tCommon("brand")}
               width={1177}
               height={210}
-              preload
+              loading="eager"
               className="h-8 w-auto md:h-9"
             />
           ) : (

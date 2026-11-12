@@ -62,7 +62,11 @@ function HeroCustom() {
           src="/images/hero/shutterstock_1753030058.webp"
           alt={t("imageAlt")}
           fill
-          preload
+          // The largest thing on the first screen, so it is fetched first (fetchPriority) and not
+          // alongside the logo and the fonts; quality 60 because a blue tint and two dark
+          // gradients sit on top of it and hide the difference.
+          fetchPriority="high"
+          quality={60}
           sizes="100vw"
           className="object-cover object-center"
         />
