@@ -19,6 +19,7 @@ import { serverText } from '@/lib/server-text'
 import { localizeName, textLang, type Override } from '@/lib/product-text'
 import { sendEmail, staffRecipients } from '@/lib/email'
 import { customerEmail, staffOrderEmail, type EmailOrder } from '@/lib/order-emails'
+import { getAccount } from '@/lib/account'
 import { siteOrigin } from '@/lib/site-url'
 import { nameWithPitch, pitchInfoFor, pitchText } from '@/lib/product-pitch'
 
@@ -406,6 +407,9 @@ export async function POST(request: Request) {
     const address = shippingMethod === 'pickup' ? 'Лично вземане · Габрово' : addressLines.join('\n')
     const notes = text(body.notes, LIMITS.notes)
 
+    // The profile this order belongs to, from the session cookie and nothing the page sent.
+    const account = await getAccount()
+
     let order: Stored
     try {
       order = (await withOrderNumber((orderNumber) =>
@@ -415,6 +419,7 @@ export async function POST(request: Request) {
             orderNumber,
             ...(clientKey ? { clientKey } : {}),
             customer: customerId,
+            ...(account ? { account: account.id } : {}),
             // What was typed, kept on the order itself — see Orders.ts.
             contact: { name, email, phone, ...(company ? { company } : {}) },
             ...(billing || einvoiceConsent

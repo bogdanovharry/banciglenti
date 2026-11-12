@@ -13,6 +13,7 @@ import { Brands } from './payload/collections/Brands'
 import { Orders } from './payload/collections/Orders'
 import { Enquiries } from './payload/collections/Enquiries'
 import { Customers } from './payload/collections/Customers'
+import { Accounts } from './payload/collections/Accounts'
 import { Articles } from './payload/collections/Articles'
 import { Pages } from './payload/collections/Pages'
 import { Media } from './payload/collections/Media'
@@ -167,6 +168,7 @@ export default buildConfig({
     Orders,
     Enquiries,
     Customers,
+    Accounts,
     Articles,
     Pages,
     Media,

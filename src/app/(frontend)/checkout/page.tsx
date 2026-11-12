@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { Placeholder, Btn } from "@/components/ui/primitives";
@@ -107,6 +107,7 @@ export default function CheckoutPage() {
   const tc = useTranslations("common");
   const tcart = useTranslations("cart");
   const t = useTranslations("checkout");
+  const ta = useTranslations("account");
   const locale = useLocale();
   const company = companyFor(locale);
 
@@ -124,6 +125,10 @@ export default function CheckoutPage() {
     () => Object.fromEntries(BILLING_FIELDS.map((f) => [f, ""])) as Record<BillingField, string>,
   );
   const [einvoiceConsent, setEinvoiceConsent] = useState(false);
+  // Who is logged in, if anyone: fills the form once, and the order route reads the
+  // same session itself — nothing here is trusted to say which profile an order belongs to.
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  const [accountChecked, setAccountChecked] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [idempotencyKey] = useState(newIdempotencyKey);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -153,6 +158,42 @@ export default function CheckoutPage() {
       ? [["pickup", t("pickup"), t("pickupDetail", { city: company.address.city })] as DeliveryOption]
       : []),
   ];
+
+  useEffect(() => {
+    let live = true;
+    fetch("/api/account/me", { credentials: "same-origin", cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { account: null }))
+      .then(({ account }) => {
+        if (!live) return;
+        setAccountChecked(true);
+        if (!account) return;
+        setAccountEmail(account.email);
+        const home = (account.addresses ?? []).find((a: { isDefault?: boolean }) => a.isDefault) ?? account.addresses?.[0];
+        // Only into empty fields: whatever the buyer typed first is theirs to keep.
+        setForm((prev) => ({
+          ...prev,
+          name: prev.name || account.name || "",
+          email: prev.email || account.email || "",
+          phone: prev.phone || account.phone || "",
+          company: prev.company || account.company || "",
+          street: prev.street || home?.street || "",
+          city: prev.city || home?.city || "",
+          postalCode: prev.postalCode || home?.postalCode || "",
+        }));
+        setBilling((prev) => ({
+          ...prev,
+          company: prev.company || account.company || "",
+          taxId: prev.taxId || account.taxId || "",
+          vatNumber: prev.vatNumber || account.vatNumber || "",
+        }));
+      })
+      .catch(() => {
+        if (live) setAccountChecked(true);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
 
   const set = (field: Field) => (v: string) => setForm((prev) => ({ ...prev, [field]: v }));
   const setBill = (field: BillingField) => (v: string) => setBilling((prev) => ({ ...prev, [field]: v }));
@@ -348,6 +389,18 @@ export default function CheckoutPage() {
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-12 pb-[120px]">
 
+        {accountChecked && (
+          <p className="font-sans text-[13px] text-ink-70 m-0 mb-5">
+            {accountEmail ? (
+              <>✓ {ta("checkout.loggedInAs", { email: accountEmail })} · {ta("checkout.filled")}</>
+            ) : (
+              <>
+                {ta("checkout.loginPrompt")}{" "}
+                <Link href="/account" className="text-blue underline">{ta("checkout.loginLink")}</Link>
+              </>
+            )}
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8">
           <div className="flex flex-col gap-6 min-w-0">
             <CheckoutCard num="01" title={t("cardContact")}>

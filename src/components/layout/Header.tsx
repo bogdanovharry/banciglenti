@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useId } from "react";
 import {
   IconSearch, IconCart, IconPhone, IconMail, IconMenu,
-  IconChevron, IconWood, IconMetal, IconHobby, IconFood, IconMachine, IconRuler, IconClose,
+  IconChevron, IconWood, IconMetal, IconHobby, IconFood, IconMachine, IconRuler, IconClose, IconUser,
 } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { companyFor } from "@/lib/company";
@@ -125,6 +125,7 @@ export function Header() {
   const menuId = useId();
   const tSite = useTranslations("siteHeader");
   const tCommon = useTranslations("common");
+  const tAccount = useTranslations("account");
   const tHeader = useTranslations("header");
   const tNav = useTranslations("nav");
 
@@ -241,6 +242,10 @@ export function Header() {
         {/* Actions. The wishlist carried a hardcoded badge of 3 and the profile
             linked to /account, which does not exist — both removed. */}
         <div className="flex items-center gap-1 ml-auto">
+          {/* Beside the cart from tablet up; on a phone the row has no room, and it is in the menu. */}
+          <div className="hidden md:block">
+            <HeaderIconBtn icon={<IconUser size={18} />} label={tAccount("navLabel")} href="/account" />
+          </div>
           <HeaderIconBtn icon={<IconCart size={18} />} label={tCommon("cart")} badge={itemCount || undefined} href="/cart" />
           <button
             className="md:hidden p-2 ml-2"
@@ -373,6 +378,9 @@ export function Header() {
               </div>
             );
           })}
+          <Link href="/account" className="flex items-center gap-3 px-4 py-3 text-ink font-medium no-underline border-t border-ink-05" onClick={() => setMobileOpen(false)}>
+            <IconUser size={16} /> {tAccount("navLabel")}
+          </Link>
           <Link href="/contact" className="block px-4 py-3 text-ink-70 no-underline border-t border-b border-ink-05" onClick={() => setMobileOpen(false)}>{tCommon("contact")}</Link>
         </nav>
       )}

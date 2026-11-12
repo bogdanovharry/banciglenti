@@ -43,7 +43,7 @@ async function loadMessages(language: string) {
  * by whoever is translating it, and every file is optional — a missing one is
  * simply nothing to merge. Add a name here when a new area file is created.
  */
-const AREAS = ['chrome', 'checkout', 'catalog', 'home', 'legal', 'seo'] as const
+const AREAS = ['chrome', 'checkout', 'catalog', 'home', 'legal', 'seo', 'account'] as const
 
 async function loadAreas(language: string): Promise<Messages> {
   let out: Messages = {}
