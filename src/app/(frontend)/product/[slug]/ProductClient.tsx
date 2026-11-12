@@ -211,7 +211,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                   preload
                 />
                 {hasDimensionLabel(product.image) && (
-                  <PhotoDimensions width={product.specs.width} thickness={product.specs.thickness} size={dimensionLabelSize(product.image)} />
+                  <PhotoDimensions width={product.specs.width} size={dimensionLabelSize(product.image)} />
                 )}
               </div>
             ) : (

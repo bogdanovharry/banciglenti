@@ -143,7 +143,7 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
                 background={hasDimensionLabel(p.image) ? "#fff" : undefined}
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
-              {hasDimensionLabel(p.image) && <PhotoDimensions width={p.specs?.width} thickness={p.specs?.thickness} size={dimensionLabelSize(p.image)} />}
+              {hasDimensionLabel(p.image) && <PhotoDimensions width={p.specs?.width} size={dimensionLabelSize(p.image)} />}
             </div>
           ) : (
             <SpecBlock
