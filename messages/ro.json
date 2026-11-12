@@ -274,6 +274,7 @@
       "heatShort": "Termic"
     },
     "price": {
+      "total": "Total pentru {qty} buc.",
       "label": "Preț per bucată",
       "perMeter": "Preț/m",
       "perPiece": "{price}/buc",

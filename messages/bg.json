@@ -273,6 +273,7 @@
       "heatShort": "Термо"
     },
     "price": {
+      "total": "Общо за {qty} бр.",
       "label": "Цена за брой",
       "perMeter": "Цена/м",
       "perPiece": "{price}/бр",
