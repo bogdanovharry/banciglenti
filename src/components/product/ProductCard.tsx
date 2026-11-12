@@ -10,6 +10,8 @@ import { type StockState } from "@/lib/catalog-ui";
 import { packFromSlug, unitPriceInPack } from "@/lib/packs";
 import { useTranslations } from "next-intl";
 import { lengthKindFor } from "@/lib/category-facets";
+import { PhotoDimensions } from "@/components/product/PhotoDimensions";
+import { hasDimensionLabel } from "@/lib/product-images";
 
 
 export interface ProductCardData {
@@ -131,15 +133,17 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
           {p.image ? (
             // Same 4:3 as the spec tile, so cards with and without photography
             // line up in the grid instead of stepping up and down.
-            <div className="transition-transform duration-500 ease-out group-hover:scale-[1.04]">
+            <div className="relative transition-transform duration-500 ease-out group-hover:scale-[1.04]">
               <Placeholder
                 tone="paper"
                 ratio="4/3"
                 src={p.image}
                 alt={p.name}
                 fit="contain"
+                background={hasDimensionLabel(p.image) ? "#fff" : undefined}
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
+              {hasDimensionLabel(p.image) && <PhotoDimensions width={p.specs?.width} thickness={p.specs?.thickness} />}
             </div>
           ) : (
             <SpecBlock

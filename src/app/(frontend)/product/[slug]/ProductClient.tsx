@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { PitchPicker } from "./PitchPicker";
+import { PhotoDimensions } from "@/components/product/PhotoDimensions";
+import { hasDimensionLabel } from "@/lib/product-images";
 import { configuratorHrefForAny } from "@/lib/configurator-tabs";
 import type { PitchInfo } from "@/lib/product-pitch";
 import { useLocale, useTranslations } from "next-intl";
@@ -162,15 +164,21 @@ export function ProductClient({ product }: { product: ProductView }) {
           {/* Gallery */}
           <div>
             {product.image ? (
-              <Placeholder
-                tone="paper"
-                ratio="1/1"
-                src={product.image}
-                alt={product.name}
-                fit="contain"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                preload
-              />
+              <div className="relative">
+                <Placeholder
+                  tone="paper"
+                  ratio="1/1"
+                  src={product.image}
+                  alt={product.name}
+                  fit="contain"
+                  background={hasDimensionLabel(product.image) ? "#fff" : undefined}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  preload
+                />
+                {hasDimensionLabel(product.image) && (
+                  <PhotoDimensions width={product.specs.width} thickness={product.specs.thickness} />
+                )}
+              </div>
             ) : (
               <Placeholder tone="paper" ratio="1/1" caption={product.name} />
             )}
