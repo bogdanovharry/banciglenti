@@ -1,6 +1,6 @@
 import { ValidationError, type CollectionConfig } from 'payload'
 
-import { isAdmin, isStaff } from '../access'
+import { isAdmin, isStaff, serverOnly } from '../access'
 
 type LogRow = { id?: string | null; note?: string | null; author?: unknown; at?: string | null }
 
@@ -167,6 +167,15 @@ export const Orders: CollectionConfig = {
       type: 'relationship',
       relationTo: 'customers',
       required: true,
+      admin: { hidden: true },
+    },
+    {
+      // The shopper's own profile, set only when the order was placed while logged in.
+      // Never matched by e-mail: that would show an order to whoever registers the address.
+      name: 'account',
+      type: 'relationship',
+      relationTo: 'accounts',
+      access: serverOnly,
       admin: { hidden: true },
     },
     // Hidden from the form: every line, its sizes and its totals are in the
