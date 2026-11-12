@@ -44,9 +44,12 @@ export function DualPrice({
     <div className={className}>
       <div className={`font-display ${s.main} ${strong} tabular-nums leading-none`}>
         {amount(gross(net))} <span className={`${s.symbol} ${muted} font-normal`}>{symbol}</span>
+        {/* "with VAT" sits on the figure it describes — on the line below it read as
+            belonging to the other price. */}
+        <span className={`font-mono ${s.sub.split(" ")[0]} ${muted} font-normal tracking-normal ml-1.5 whitespace-nowrap`}>{t("incVat")}</span>
       </div>
       <div className={`font-mono ${s.sub} ${muted} tabular-nums`}>
-        {t("incVat")} · {price(net)} {t("exVat")}
+        {price(net)} {t("exVat")}
       </div>
     </div>
   );
