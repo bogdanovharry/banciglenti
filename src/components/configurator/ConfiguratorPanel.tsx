@@ -94,6 +94,9 @@ function Select({ label, options, required, value, onChange, format }: {
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        // One option left is chosen for the buyer: it stays on screen, so the
+        // form never changes shape, but there is nothing to open.
+        disabled={options.length === 1}
         className="w-full h-12 px-3.5 border border-ink-15 bg-white font-sans text-[15px] text-ink outline-none focus:border-blue hover:border-ink-30 transition-colors cursor-pointer"
       >
         <option value="">{t("field.choose")}</option>
@@ -511,12 +514,8 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
       {/* Form */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Select label={t("field.size")} options={sizeField.options} required value={size} onChange={handleSizeChange} format={sizeField.format} />
-        {brandOptions.length !== 1 && (
-          <Select label={t("field.brand")} options={brandOptions} required value={brand} onChange={handleBrandChange} />
-        )}
-        {availablePitches.length !== 1 && (
-          <Select label={t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
-        )}
+        <Select label={t("field.brand")} options={brandOptions} required value={brand} onChange={handleBrandChange} />
+        <Select label={t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
         <LengthInput value={length} onChange={setLength} />
         <QuantityStepper value={qty} onChange={setQty} />
         {selectedBlade && (
@@ -648,12 +647,12 @@ function RealDataConfigurator({
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 lg:gap-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Select label={t("field.size")} options={sizeField.options} required value={size} onChange={handleSizeChange} format={sizeField.format} />
-        {brandOptions.length > 1 && (
-          <Select label={t("field.brand")} options={brandOptions} required value={brand} onChange={handleBrandChange} />
+        {/* Shown whenever the table has more than one brand, not only when this size does,
+            so the form keeps its shape as the buyer chooses. */}
+        {new Set(blades.map((b) => b.brand)).size > 1 && (
+          <Select label={t("field.brand")} options={brandOptions} required value={effectiveBrand} onChange={handleBrandChange} />
         )}
-        {availablePitches.length !== 1 && (
-          <Select label={availablePitches.some(isProfilePitch) ? t("field.profileAndPitch") : t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
-        )}
+        <Select label={availablePitches.some(isProfilePitch) ? t("field.profileAndPitch") : t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
         {/* Length belongs with width, thickness and profile — it is the fourth
             dimension of the blade, not a commercial control like quantity.
             Sitting alone in the price column it read as an afterthought on the
