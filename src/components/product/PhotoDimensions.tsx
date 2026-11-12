@@ -3,7 +3,7 @@
 import { useLocale } from "next-intl";
 
 /**
- * "13 mm" (the width), in the brand orange, in the top-left corner of the photo.
+ * "13mm" (the width), in the brand orange, in the top-left corner of the photo.
  *
  * Sized in container-query units (cqw) of the square photo it sits on, so the
  * label is the same share of the picture on a small card and on the product page.
@@ -25,7 +25,7 @@ export function PhotoDimensions({ width, size = 10 }: { width?: number; size?: n
           className="absolute top-[4%] left-[5%] font-display font-extrabold text-orange tabular-nums tracking-tight"
           style={{ fontSize: `${size}cqw`, lineHeight: 1.05, whiteSpace: "nowrap", textShadow: "0 0 0.35em #fff, 0 0 0.2em #fff" }}
         >
-          {f(width)} mm
+          {f(width)}mm
         </div>
       </div>
     </div>
