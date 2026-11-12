@@ -248,6 +248,7 @@
       }
     },
     "field": {
+      "size": "Dimensiune (lățime × grosime)",
       "choose": "— alege —",
       "width": "Lățime",
       "thickness": "Grosime",

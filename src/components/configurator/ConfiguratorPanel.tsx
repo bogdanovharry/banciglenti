@@ -15,8 +15,6 @@ import {
   BREAD_BLADES,
   TEXTILE_BLADES,
   calculateBladePrice,
-  getUniqueValues,
-  getOptionsForWidth,
   getAvailablePitches,
   findBlade,
   isProfilePitch,
@@ -105,6 +103,34 @@ function Select({ label, options, required, value, onChange, format }: {
       </select>
     </div>
   );
+}
+
+/**
+ * One choice for the whole cross-section: "27 × 0,9".
+ *
+ * Width and thickness used to be two dropdowns, and the second could only be
+ * opened after the first — a buyer who knows he wants "27 × 0,9" had to say it
+ * in two goes. The sizes the table really has are listed together, widest
+ * thickness range last, one under another.
+ */
+const sizeKey = (width: number, thickness: number) => `${width}x${thickness}`;
+
+function sizesOf(blades: BladeConfig[]) {
+  const seen = new Map<string, { width: number; thickness: number }>();
+  for (const b of blades) seen.set(sizeKey(b.width, b.thickness), { width: b.width, thickness: b.thickness });
+  return [...seen.values()].sort((a, b) => a.width - b.width || a.thickness - b.thickness);
+}
+
+function useSizeField(blades: BladeConfig[]) {
+  const locale = useLocale();
+  const sizes = sizesOf(blades);
+  const fmt = (n: number) => n.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+  const labels = Object.fromEntries(sizes.map((z) => [sizeKey(z.width, z.thickness), `${z.width} × ${fmt(z.thickness)}`]));
+  return {
+    options: sizes.map((z) => sizeKey(z.width, z.thickness)),
+    format: (k: string) => labels[k] ?? k,
+    parse: (k: string) => sizes.find((z) => sizeKey(z.width, z.thickness) === k) ?? { width: 0, thickness: 0 },
+  };
 }
 
 /**
@@ -390,12 +416,10 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const { price, market } = usePrices();
   const blades = type === "v" ? VERTICAL_WOOD_BLADES : HORIZONTAL_WOOD_BLADES;
 
-  const { widths } = getUniqueValues(blades);
-
-  const [width, setWidth] = useState("");
-  const [thickness, setThickness] = useState("");
-  const [pitch, setPitch] = useState("");
-  const [brand, setBrand] = useState("");
+  const sizeField = useSizeField(blades);
+  const [size, setSize] = useState("");
+  const [pitchChoice, setPitch] = useState("");
+  const [brandChoice, setBrand] = useState("");
   const [length, setLength] = useState(0);
   const [qty, setQty] = useState(1);
   // The optional paid processes start unticked: a pre-ticked extra is a charge
@@ -408,12 +432,16 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const { addItem } = useCart();
 
   // Cascading dropdowns
-  const widthNum = parseFloat(width) || 0;
-  const thicknessNum = parseFloat(thickness) || 0;
-  const widthOptions = getOptionsForWidth(blades, widthNum);
+  const { width: widthNum, thickness: thicknessNum } = sizeField.parse(size);
+  const width = widthNum ? String(widthNum) : "";
+  const thickness = thicknessNum ? String(thicknessNum) : "";
+  const brandOptions = size ? [...new Set(blades.filter((b) => b.width === widthNum && b.thickness === thicknessNum).map((b) => b.brand))] : [];
+  // A choice of one is not a choice: it is taken for the buyer.
+  const brand = brandOptions.length === 1 ? brandOptions[0] : brandChoice;
   const availablePitches = brand && widthNum && thicknessNum
     ? getAvailablePitches(blades, widthNum, thicknessNum, brand)
     : [];
+  const pitch = availablePitches.length === 1 ? availablePitches[0] : pitchChoice;
 
   // Find selected blade config
   const selectedBlade = width && thickness && pitch && brand
@@ -448,8 +476,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const unitPrice = prices?.totalWithoutVat ?? 0;
 
   // Reset downstream when upstream changes
-  const handleWidthChange = (v: string) => { setWidth(v); setThickness(""); setPitch(""); setBrand(""); };
-  const handleThicknessChange = (v: string) => { setThickness(v); setPitch(""); };
+  const handleSizeChange = (v: string) => { setSize(v); setPitch(""); setBrand(""); };
   const handleBrandChange = (v: string) => { setBrand(v); setPitch(""); };
 
   const canAdd = !!selectedBlade && isWeldableLength(length);
@@ -483,10 +510,13 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-12">
       {/* Form */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Select label={t("field.width")} options={widths.map(String)} required value={width} onChange={handleWidthChange} />
-        <Select label={t("field.thickness")} options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
-        <Select label={t("field.brand")} options={widthNum ? widthOptions.brands : []} required value={brand} onChange={handleBrandChange} />
-        <Select label={t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
+        <Select label={t("field.size")} options={sizeField.options} required value={size} onChange={handleSizeChange} format={sizeField.format} />
+        {brandOptions.length !== 1 && (
+          <Select label={t("field.brand")} options={brandOptions} required value={brand} onChange={handleBrandChange} />
+        )}
+        {availablePitches.length !== 1 && (
+          <Select label={t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
+        )}
         <LengthInput value={length} onChange={setLength} />
         <QuantityStepper value={qty} onChange={setQty} />
         {selectedBlade && (
@@ -556,25 +586,26 @@ function RealDataConfigurator({
   const { t: tCat, pitchText } = useCatalogText();
   const { price, market } = usePrices();
   const { processingOptions } = market;
-  const { widths } = getUniqueValues(blades);
-  const [width, setWidth] = useState("");
-  const [thickness, setThickness] = useState("");
-  const [pitch, setPitch] = useState("");
+  const sizeField = useSizeField(blades);
+  const [size, setSize] = useState("");
+  const [pitchChoice, setPitch] = useState("");
   const [brand, setBrand] = useState("");
   const [length, setLength] = useState(0);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
 
-  const widthNum = parseFloat(width) || 0;
-  const thicknessNum = parseFloat(thickness) || 0;
-  const widthOptions = getOptionsForWidth(blades, widthNum);
+  const { width: widthNum, thickness: thicknessNum } = sizeField.parse(size);
+  const width = widthNum ? String(widthNum) : "";
+  const thickness = thicknessNum ? String(thicknessNum) : "";
+  const brandOptions = size ? [...new Set(blades.filter((b) => b.width === widthNum && b.thickness === thicknessNum).map((b) => b.brand))] : [];
 
-  // Auto-select brand if only one
-  const effectiveBrand = widthOptions.brands.length === 1 ? widthOptions.brands[0] : brand;
+  // A choice of one is not a choice: brand and pitch are taken for the buyer.
+  const effectiveBrand = brandOptions.length === 1 ? brandOptions[0] : brand;
   const availablePitches = effectiveBrand && widthNum && thicknessNum
     ? getAvailablePitches(blades, widthNum, thicknessNum, effectiveBrand)
     : [];
+  const pitch = availablePitches.length === 1 ? availablePitches[0] : pitchChoice;
 
   const selectedBlade = width && thickness && pitch && effectiveBrand
     ? findBlade(blades, widthNum, thicknessNum, pitch, effectiveBrand)
@@ -586,8 +617,7 @@ function RealDataConfigurator({
 
   const unitPrice = prices?.totalWithoutVat ?? 0;
 
-  const handleWidthChange = (v: string) => { setWidth(v); setThickness(""); setPitch(""); setBrand(""); };
-  const handleThicknessChange = (v: string) => { setThickness(v); setPitch(""); };
+  const handleSizeChange = (v: string) => { setSize(v); setPitch(""); setBrand(""); };
   const handleBrandChange = (v: string) => { setBrand(v); setPitch(""); };
 
   const canAdd = !!selectedBlade && isWeldableLength(length);
@@ -617,12 +647,13 @@ function RealDataConfigurator({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 lg:gap-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Select label={t("field.width")} options={widths.map(String)} required value={width} onChange={handleWidthChange} />
-        <Select label={t("field.thickness")} options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
-        {widthOptions.brands.length > 1 && (
-          <Select label={t("field.brand")} options={widthOptions.brands} required value={brand} onChange={handleBrandChange} />
+        <Select label={t("field.size")} options={sizeField.options} required value={size} onChange={handleSizeChange} format={sizeField.format} />
+        {brandOptions.length > 1 && (
+          <Select label={t("field.brand")} options={brandOptions} required value={brand} onChange={handleBrandChange} />
         )}
-        <Select label={availablePitches.some(isProfilePitch) ? t("field.profileAndPitch") : t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
+        {availablePitches.length !== 1 && (
+          <Select label={availablePitches.some(isProfilePitch) ? t("field.profileAndPitch") : t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
+        )}
         {/* Length belongs with width, thickness and profile — it is the fourth
             dimension of the blade, not a commercial control like quantity.
             Sitting alone in the price column it read as an afterthought on the
