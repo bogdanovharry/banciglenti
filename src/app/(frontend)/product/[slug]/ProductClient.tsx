@@ -138,22 +138,22 @@ export function ProductClient({ product }: { product: ProductView }) {
   // the buy column on a desktop, beside the photo.
   const titleBlock = (
     <div>
-      <div className="flex gap-2 mb-5 flex-wrap">
+      <div className="flex gap-2 mb-3 flex-wrap">
         {product.topProduct && <Tag tone="orange">TOP</Tag>}
         <Tag tone={inStock ? "ok" : "outline"}>{stockText}</Tag>
       </div>
 
-      <div className="font-mono text-[11px] text-ink-50 tracking-[0.1em] uppercase mb-2">
+      <div className="font-mono text-[11px] text-ink-50 tracking-[0.1em] uppercase mb-1.5 hidden lg:block">
         SKU · {product.slug}
         {product.brand ? ` · ${product.brand}` : ""}
       </div>
 
-      <h1 className="font-display text-3xl md:text-[44px] leading-[1.05] tracking-[-0.03em] font-bold m-0 mb-4 text-ink">
+      <h1 className="font-display text-[22px] lg:text-[34px] leading-[1.15] lg:leading-[1.05] tracking-[-0.02em] font-bold m-0 mb-1 lg:mb-3 text-ink">
         {product.name}
         {product.dim && (
           <>
-            <br />
-            <span className="font-mono text-lg md:text-xl font-medium text-ink-70 tracking-[0.02em]">
+            <br className="hidden lg:inline" />
+            <span className="hidden lg:inline font-mono text-lg md:text-xl font-medium text-ink-70 tracking-[0.02em]">
               {product.dim}
             </span>
           </>
@@ -166,7 +166,7 @@ export function ProductClient({ product }: { product: ProductView }) {
     <div className="bg-white">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-8 pb-20">
         {/* Breadcrumbs */}
-        <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 flex gap-2 mb-10 flex-wrap">
+        <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 flex gap-2 mb-4 md:mb-10 flex-wrap">
           <Link href="/" className="cursor-pointer no-underline text-ink-50 hover:text-ink">{tc("home")}</Link>
           <span>/</span>
           {product.breadcrumb ? (
@@ -177,7 +177,7 @@ export function ProductClient({ product }: { product: ProductView }) {
               >
                 {product.breadcrumb.name}
               </Link>
-              <span>/</span>
+              <span className="hidden md:inline">/</span>
             </>
           ) : (
             <>
@@ -185,13 +185,14 @@ export function ProductClient({ product }: { product: ProductView }) {
               <span>/</span>
             </>
           )}
-          <span className="text-ink">{product.name}</span>
+          {/* On a phone the name is the heading right below; saying it a third time is noise. */}
+          <span className="text-ink hidden md:inline">{product.name}</span>
         </div>
 
         {/* Photo and what the product is on the left, what to choose and buy on the right.
             On a phone the order is photo, buy, description — the buy box is not pushed
             down the page by the text about the product. */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-[auto_1fr] gap-x-16 gap-y-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-[auto_1fr] gap-x-16 gap-y-5 lg:gap-y-10">
           <div className="lg:hidden">{titleBlock}</div>
 
           {/* Gallery */}
@@ -219,6 +220,10 @@ export function ProductClient({ product }: { product: ProductView }) {
 
           {/* Description, series and specs — under the photo */}
           <div className="lg:col-start-1 lg:row-start-2 order-last lg:order-none">
+            <div className="lg:hidden font-mono text-[11px] text-ink-50 tracking-[0.1em] uppercase mb-5">
+              SKU · {product.slug}
+              {product.brand ? ` · ${product.brand}` : ""}
+            </div>
           {product.shortDescription && (
             <p className="font-sans text-[15px] leading-relaxed text-ink-70 m-0 mb-8">
               {product.shortDescription}
