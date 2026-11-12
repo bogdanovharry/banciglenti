@@ -58,9 +58,9 @@ const NAME_RO: Rule[] = [
   [/^Въглеродна банцигова лента\s+/, 'Pânză de panglică din oțel carbon '],
   [/^Банцигова лента\s+/, 'Pânză de panglică '],
   [/^Лента за банциг\s+/, 'Pânză pentru ferăstrău panglică '],
-  // Written the way a Romanian workshop says it, not word for word: "pânză de panglică" is the band blade, "bimetalică ... pentru metal" its kind.
-  [/^Биметална отрезна лента\s+[MМ]42\s+/, 'Pânză de panglică bimetalică M42 pentru metal '],
-  [/^Биметална отрезна лента\s+/, 'Pânză de panglică bimetalică pentru metal '],
+  // Written the way a Romanian workshop says it, not word for word: "pânză de panglică" is the band blade, "bimetalică" its kind.
+  [/^Биметална отрезна лента\s+[MМ]42\s+/, 'Pânză de panglică bimetalică M42 '],
+  [/^Биметална отрезна лента\s+/, 'Pânză de panglică bimetalică '],
   [/^Циркулярен трион\s+/, 'Pânză de ferăstrău circular '],
   [/^Нож за абрихт\s+/, 'Cuțit de rindea '],
   [/^Абразивен диск за заточване\s+/, 'Disc abraziv de ascuțire '],
