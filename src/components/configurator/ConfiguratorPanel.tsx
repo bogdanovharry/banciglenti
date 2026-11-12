@@ -383,7 +383,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const t = useTranslations("configurator");
   const tc = useTranslations("common");
   const { t: tCat, pitchText } = useCatalogText();
-  const { price } = usePrices();
+  const { price, market } = usePrices();
   const blades = type === "v" ? VERTICAL_WOOD_BLADES : HORIZONTAL_WOOD_BLADES;
 
   const { widths } = getUniqueValues(blades);
@@ -429,9 +429,11 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   // it. It was an unticked box, which quoted an unwelded strip to anyone who did
   // not guess that — and every other tab already includes it the same way.
   const welding = avail.welding;
-  const setting = settingOpt && avail.setting;
-  const sharpening = sharpeningOpt && avail.sharpening;
-  const heatTreat = heatTreatOpt && avail.heatTreatment;
+  // Where the processes are not offered the choice is not shown, and counts as off.
+  const { processingOptions } = market;
+  const setting = processingOptions && settingOpt && avail.setting;
+  const sharpening = processingOptions && sharpeningOpt && avail.sharpening;
+  const heatTreat = processingOptions && heatTreatOpt && avail.heatTreatment;
 
   // Only quote a length the workshop will actually weld — a price against a
   // 400 mm loop is a promise the checkout would then break.
@@ -491,14 +493,18 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
       {/* Right — extras + price */}
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-3">
-          {avail.welding && (
-            <p className="font-mono text-[11px] tracking-[0.05em] text-ink-70 m-0">
-              ✓ {tCat("configurator.weldingIncluded")}
-            </p>
+          {processingOptions && (
+            <>
+              {avail.welding && (
+                <p className="font-mono text-[11px] tracking-[0.05em] text-ink-70 m-0">
+                  ✓ {tCat("configurator.weldingIncluded")}
+                </p>
+              )}
+              <Checkbox label={tCat("configurator.setting")} checked={settingOpt} onChange={setSetting} unavailable={!avail.setting} unavailableLabel={tCat("configurator.unavailable")} />
+              <Checkbox label={t("extras.sharpening")} checked={sharpeningOpt} onChange={setSharpening} unavailable={!avail.sharpening} unavailableLabel={tCat("configurator.unavailable")} />
+              <Checkbox label={t("extras.heatTreatment")} checked={heatTreatOpt} onChange={setHeatTreat} unavailable={!avail.heatTreatment} unavailableLabel={tCat("configurator.unavailable")} />
+            </>
           )}
-          <Checkbox label={tCat("configurator.setting")} checked={settingOpt} onChange={setSetting} unavailable={!avail.setting} unavailableLabel={tCat("configurator.unavailable")} />
-          <Checkbox label={t("extras.sharpening")} checked={sharpeningOpt} onChange={setSharpening} unavailable={!avail.sharpening} unavailableLabel={tCat("configurator.unavailable")} />
-          <Checkbox label={t("extras.heatTreatment")} checked={heatTreatOpt} onChange={setHeatTreat} unavailable={!avail.heatTreatment} unavailableLabel={tCat("configurator.unavailable")} />
         </div>
 
         {selectedBlade && (
@@ -506,7 +512,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           // the end rather than after every figure.
           <div className="p-3 bg-paper font-mono text-[10px] text-ink-50 tracking-[0.05em]">
             {t("price.perMeter")}: {price(selectedBlade.pricePerMeter)}
-            {welding && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
+            {processingOptions && welding && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
             {sharpening && selectedBlade.sharpening > 0 && <> · {t("extras.sharpening")}: {t("price.perMetreUnit", { price: price(selectedBlade.sharpening) })}</>}
             {heatTreat && selectedBlade.heatTreatment > 0 && <> · {t("extras.heatShort")}: {t("price.perMetreUnit", { price: price(selectedBlade.heatTreatment) })}</>}
             {setting && selectedBlade.setting > 0 && <> · {tCat("configurator.setting")}: {t("price.perMetreUnit", { price: price(selectedBlade.setting) })}</>}
@@ -544,7 +550,8 @@ function RealDataConfigurator({
   const label = t(`item.${tableKey}`);
   const tc = useTranslations("common");
   const { t: tCat, pitchText } = useCatalogText();
-  const { price } = usePrices();
+  const { price, market } = usePrices();
+  const { processingOptions } = market;
   const { widths } = getUniqueValues(blades);
   const [width, setWidth] = useState("");
   const [thickness, setThickness] = useState("");
@@ -624,7 +631,7 @@ function RealDataConfigurator({
         {selectedBlade && (
           <div className="p-3 bg-paper font-mono text-[10px] text-ink-50 tracking-[0.05em]">
             {t("price.perMeter")}: {price(selectedBlade.pricePerMeter)}
-            {selectedBlade.welding > 0 && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
+            {processingOptions && selectedBlade.welding > 0 && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
             {" "}· {tc("exVat")}
           </div>
         )}

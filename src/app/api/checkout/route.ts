@@ -6,6 +6,7 @@ import {
   computeOrderTotals,
   customSku,
   parseCustomSpecs,
+  usesProcessingOptions,
   priceCustomItem,
   round2,
   type CustomSpecs,
@@ -268,6 +269,11 @@ export async function POST(request: Request) {
 
       const specs = parseCustomSpecs(line.customSpecs)
       if (specs) {
+        // Where the optional processes are not offered, a quote that asks for one is
+        // refused — the form does not show them, so this only stops a hand-made request.
+        if (!market.processingOptions && usesProcessingOptions(specs)) {
+          return NextResponse.json({ error: say.optionNotOffered }, { status: 400 })
+        }
         // Made to order: re-derive from the price tables.
         const unit = priceCustomItem(specs)
         if (unit === null) {

@@ -202,7 +202,7 @@
         "title": "Prețuri și TVA",
         "p1": "Toate prețurile de pe site sunt exprimate în lei (RON) și sunt afișate <b>cu TVA și fără TVA</b>. TVA aplicat este de {vatPercent}% și este afișat separat în coș și în confirmarea comenzii.",
         "rate": "Prețurile sunt stabilite în euro și afișate în lei la un curs fix de 1 € = {rate} {symbol}.",
-        "p2": "Prețul unei pânze la comandă se calculează după lista noastră de prețuri în vigoare, în funcție de lungime, lățime, grosime, material și operațiunile alese (sudare, ceaprazuire, ascuțire, tratament termic). Suma se recalculează la confirmarea comenzii după lista de prețuri valabilă în acel moment."
+        "p2": "Prețul unei pânze la comandă se calculează după lista noastră de prețuri în vigoare, în funcție de lungime, lățime, grosime și material. Suma se recalculează la confirmarea comenzii după lista de prețuri valabilă în acel moment."
       },
       "s06": {
         "title": "Verificarea la primire",

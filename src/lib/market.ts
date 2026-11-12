@@ -70,6 +70,14 @@ export type Market = {
    * fixed price are offered as a written enquiry.
    */
   writtenOnly: boolean
+  /**
+   * Whether a made-to-length blade can be ordered with the optional processes —
+   * setting (чапраз), sharpening, heat treatment — and whether the welding fee is
+   * shown as a line of its own. Off where the workshop does not offer them as
+   * priced options: the blade is still welded into a loop and that is part of its
+   * price, it is just not itemised. The server refuses an order that asks for one.
+   */
+  processingOptions: boolean
 }
 
 export const MARKETS: Record<MarketCode, Market> = {
@@ -87,6 +95,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     pickup: true,
     paymentMethods: ['bank_transfer', 'cod'],
     writtenOnly: false,
+    processingOptions: true,
   },
   ro: {
     code: 'ro',
@@ -117,6 +126,8 @@ export const MARKETS: Record<MarketCode, Market> = {
     paymentMethods: ['cod'],
     // Owner's decision, 11 Nov 2026: nobody can answer the phone in Romanian for now.
     writtenOnly: true,
+    // Owner's decision, 12 Nov 2026.
+    processingOptions: false,
   },
   gr: {
     code: 'gr',
@@ -135,6 +146,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     // TODO: follows whatever Romania proves out.
     paymentMethods: ['cod'],
     writtenOnly: false,
+    processingOptions: true,
   },
 }
 
