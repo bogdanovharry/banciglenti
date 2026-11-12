@@ -3,7 +3,7 @@
 import { useLocale } from "next-intl";
 
 /**
- * "13 × 0,65", in the brand orange, in the top-left corner of the photo.
+ * "13 mm" (the width), in the brand orange, in the top-left corner of the photo.
  *
  * Sized in container-query units (cqw) of the square photo it sits on, so the
  * label is the same share of the picture on a small card and on the product page.
@@ -13,9 +13,9 @@ import { useLocale } from "next-intl";
  *
  * Decorative for assistive technology: the product name already carries the size.
  */
-export function PhotoDimensions({ width, thickness, size = 8 }: { width?: number; thickness?: number; size?: number }) {
+export function PhotoDimensions({ width, size = 10 }: { width?: number; size?: number }) {
   const locale = useLocale();
-  if (typeof width !== "number" || typeof thickness !== "number") return null;
+  if (typeof width !== "number") return null;
   const f = (n: number) => n.toLocaleString(locale, { maximumFractionDigits: 2 });
 
   return (
@@ -25,7 +25,7 @@ export function PhotoDimensions({ width, thickness, size = 8 }: { width?: number
           className="absolute top-[4%] left-[5%] font-display font-extrabold text-orange tabular-nums tracking-tight"
           style={{ fontSize: `${size}cqw`, lineHeight: 1.05, whiteSpace: "nowrap", textShadow: "0 0 0.35em #fff, 0 0 0.2em #fff" }}
         >
-          {f(width)} × {f(thickness)}
+          {f(width)} mm
         </div>
       </div>
     </div>
