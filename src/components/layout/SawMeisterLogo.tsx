@@ -4,33 +4,27 @@ import Image from "next/image";
 /**
  * The Saw-Meister brand mark and logo.
  *
- * The logo is the supplied artwork: the SAW-MEISTER wordmark in brushed steel
- * blue with the orange blade curling through the S. It is the lockup as
- * delivered, so it is used as an image rather than re-drawn in a webfont.
+ * The logo is the supplied artwork (the SAW-MEISTER wordmark in blue with the orange
+ * underline), used as an image rather than re-drawn in a webfont. Replaced on
+ * 12 Nov 2026 by the owner's new version; the file has a name of its own
+ * (saw-meister-wordmark.png) so no cache can answer with the one before it.
  *
  * Bulgaria does not see it. There the header carries the ТЕХНОЛЕС mark the
  * company has traded under since 1993; Saw-Meister is the name the other
  * markets lead with, so this is the Romanian and Greek storefronts' logo.
  *
- * saw-meister-logo-source.png is the file as delivered (its web copy is
- * saw-meister-brushed.png: a name of its own, so no cache anywhere can answer
- * with the artwork that used to live at the old path) — 2170x725, most of it
- * empty margin. The file used here is derived from it: trimmed to the artwork,
- * sized for the header, and quantised to 128 colours, which took it from 477KB
- * to 45KB with no banding at the size it is shown.
- *
- * This artwork carries its own transparency, so unlike the version before it
- * there is no white box around it and it can sit on a dark surface as readily
- * as on the white header. There is still no `tone`: the brushed blue is the
- * artwork. Use SawMeisterMark below where a single-colour brand element is
- * needed — a 10:1 wordmark cannot be a favicon, an avatar, or a stamp on a
- * work order anyway.
+ * The file is the delivered image trimmed to the artwork, with its near-white
+ * background made pure white so no faint box shows on the white header, and
+ * reduced to a 128-colour palette (68 KB). It is not transparent: it belongs on
+ * a white surface, which is where it is used. Use SawMeisterMark below where a
+ * single-colour brand element is needed — a 7:1 wordmark cannot be a favicon, an
+ * avatar, or a stamp on a work order anyway.
  */
 type Tone = "brand" | "light" | "dark" | "mono";
 
 /** Intrinsic size of the trimmed artwork, used to hold the aspect ratio. */
-const LOGO_W = 1919;
-const LOGO_H = 200;
+const LOGO_W = 1552;
+const LOGO_H = 214;
 
 const BAND =
   "M5 38 L19 50 L22 38 L23 38 L37 50 L40 38 L41 38 L55 50 L58 38 L59 38 L59 14 L5 14 Z";
@@ -85,8 +79,8 @@ export function SawMeisterLogo({
    * Sized by width, with the height left to follow.
    *
    * The previous lockup was set by height, which is the right way round for a
-   * mark whose height is what runs out. This one is 9.6:1, so width is: every
-   * extra pixel of height costs ten of width. Worse, height plus `max-w-full`
+   * mark whose height is what runs out. This one is 7.3:1, so width is: every
+   * extra pixel of height costs seven of width. Worse, height plus `max-w-full`
    * squashed it — the wordmark sat in a column with the strapline, and when
    * the strapline was the narrower of the two the image was clamped to its
    * width at full height. Setting the width and letting the height follow
@@ -95,7 +89,7 @@ export function SawMeisterLogo({
    * Each step is the widest the row can give it: beside the cart and menu
    * buttons on a phone, beside the search box from tablet up.
    */
-  className = "w-[165px] h-auto sm:w-[210px] md:w-[240px] lg:w-[295px] xl:w-[320px]",
+  className = "w-[135px] h-auto sm:w-[165px] md:w-[190px] lg:w-[235px] xl:w-[255px]",
   preload = false,
 }: {
   className?: string;
@@ -103,7 +97,7 @@ export function SawMeisterLogo({
 }) {
   return (
     <Image
-      src="/images/brands/saw-meister-brushed.png"
+      src="/images/brands/saw-meister-wordmark.png"
       alt="Saw-Meister"
       width={LOGO_W}
       height={LOGO_H}
