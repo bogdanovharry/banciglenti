@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { PitchPicker } from "./PitchPicker";
 import { PhotoDimensions } from "@/components/product/PhotoDimensions";
-import { hasDimensionLabel } from "@/lib/product-images";
+import { dimensionLabelSize, hasDimensionLabel } from "@/lib/product-images";
 import { configuratorHrefForAny } from "@/lib/configurator-tabs";
 import type { PitchInfo } from "@/lib/product-pitch";
 import { useLocale, useTranslations } from "next-intl";
@@ -210,7 +210,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                   preload
                 />
                 {hasDimensionLabel(product.image) && (
-                  <PhotoDimensions width={product.specs.width} thickness={product.specs.thickness} />
+                  <PhotoDimensions width={product.specs.width} thickness={product.specs.thickness} size={dimensionLabelSize(product.image)} />
                 )}
               </div>
             ) : (
