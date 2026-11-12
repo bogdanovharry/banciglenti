@@ -46,6 +46,8 @@
     "customWelding": "Συγκόλληση κατά παραγγελία"
   },
   "nav": {
+    "other": "Άλλα υλικά",
+    "plasticNonferrous": "Πλαστικό και μη σιδηρούχα",
     "wood": "Ξύλο",
     "metal": "Μέταλλο",
     "hobby": "Πριόνι hobby",

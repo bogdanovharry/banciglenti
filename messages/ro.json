@@ -48,6 +48,8 @@
     "customWelding": "Sudare la dimensiune"
   },
   "nav": {
+    "other": "Alte materiale",
+    "plasticNonferrous": "Plastic și metale neferoase",
     "wood": "Lemn",
     "metal": "Metal",
     "hobby": "Ferăstrău hobby",

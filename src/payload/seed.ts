@@ -32,7 +32,7 @@ const CATEGORIES: {
   { name: 'Ножове за абрихт', slug: 'nozhove-za-abriht', parent: 'dyrvo', sortOrder: 13, description: 'HSS и 100Cr6 ножове за абрихт машини. Дължини от 260 до 810 мм.' },
 
   { name: 'Биметални ленти', slug: 'bimetalni-lenti', parent: 'metal', sortOrder: 20, description: 'M42 и M51 биметални ленти за рязане на стомана до 68 HRC.' },
-  { name: 'Въглеродна стомана CS', slug: 'vyglerodna-lenti-cs', parent: 'metal', sortOrder: 21, description: 'Отрезни ленти от въглеродна стомана. Flexback и Hardback.' },
+  { name: 'Въглеродна стомана CS', slug: 'vyglerodna-lenti-cs', parent: 'metal', sortOrder: 21, description: 'Flexback ленти от въглеродна стомана — за дърво, пластмаса и цветни метали.' },
 
   { name: 'Месо и риба', slug: 'meso-i-riba', parent: 'hrani', sortOrder: 30, description: 'Лентови ножове за рязане на месо и риба.' },
   { name: 'Хлебни изделия', slug: 'hlebni-izdeliya', parent: 'hrani', sortOrder: 31, description: 'Лентови ножове за хлеборезни машини.' },

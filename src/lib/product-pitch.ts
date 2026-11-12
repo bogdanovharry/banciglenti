@@ -68,8 +68,7 @@ function familyOf(p: PitchProduct): Family | null {
     const grade = /M90/i.test(latinM(p.name)) ? 'M90' : 'M42'
     return { table: 'metal-bi', brandOk: (b) => b.includes(grade) }
   }
-  if (has('vyglerodna-lenti-cs')) return { table: 'metal-cs', brandOk: any }
-
+  // Hobby first: FlexCut bands are listed under carbon steel as well, but their prices are the hobby ones.
   if (has('hobi-bantsig')) {
     // Narrow flexback bands: the carbon rows of the vertical-wood table, else the metal one.
     const onWood = BLADE_TABLES['wood-v'].some(
@@ -77,6 +76,8 @@ function familyOf(p: PitchProduct): Family | null {
     )
     return { table: onWood ? 'wood-v' : 'metal-cs', brandOk: (b) => b === 'Flexback Carbon' }
   }
+
+  if (has('vyglerodna-lenti-cs')) return { table: 'metal-cs', brandOk: any }
 
   if (has('horizontalni-bantsizi')) {
     const brand = p.series === 'procut' ? 'MasterGold' : p.series === 'softcut' ? 'Kodiak' : null
