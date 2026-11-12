@@ -245,7 +245,7 @@ function CustomLine({
         </div>
 
         <div>
-          <FieldLabel htmlFor="brand">Марка</FieldLabel>
+          <FieldLabel htmlFor="brand">Тип/модел</FieldLabel>
           <select
             id="brand"
             name="brand"

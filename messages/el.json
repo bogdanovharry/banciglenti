@@ -36,7 +36,7 @@
     "products": "{count, plural, one {# προϊόν} other {# προϊόντα}}",
     "series": "Σειρά",
     "material": "Υλικό",
-    "brand": "Μάρκα",
+    "brand": "Τύπος/μοντέλο",
     "machine": "Μηχάνημα",
     "inStockOnly": "Μόνο διαθέσιμα",
     "noResults": "Δεν βρέθηκαν προϊόντα"
@@ -145,7 +145,7 @@
       "optionalPerMetre": "προαιρετικά, ανά μέτρο",
       "width": "Πλάτος · mm",
       "thickness": "Πάχος · mm",
-      "brand": "Μάρκα",
+      "brand": "Τύπος/μοντέλο",
       "pitch": "Βήμα / δόντι",
       "totalLength": "Συνολικό μήκος · mm",
       "welding": "Συγκόλληση",
