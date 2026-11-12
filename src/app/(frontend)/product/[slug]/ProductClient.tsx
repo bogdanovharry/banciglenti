@@ -134,6 +134,35 @@ export function ProductClient({ product }: { product: ProductView }) {
     [t("product.availability"), stockText],
   ];
 
+  // The title block (tags, SKU, name, size) is drawn twice and shown once: above the
+  // photo on a phone, where the name is the first thing a buyer wants, and at the top of
+  // the buy column on a desktop, beside the photo.
+  const titleBlock = (
+    <div>
+      <div className="flex gap-2 mb-5 flex-wrap">
+        {product.topProduct && <Tag tone="orange">TOP</Tag>}
+        <Tag tone={inStock ? "ok" : "outline"}>{stockText}</Tag>
+      </div>
+
+      <div className="font-mono text-[11px] text-ink-50 tracking-[0.1em] uppercase mb-2">
+        SKU · {product.slug}
+        {product.brand ? ` · ${product.brand}` : ""}
+      </div>
+
+      <h1 className="font-display text-3xl md:text-[44px] leading-[1.05] tracking-[-0.03em] font-bold m-0 mb-4 text-ink">
+        {product.name}
+        {product.dim && (
+          <>
+            <br />
+            <span className="font-mono text-lg md:text-xl font-medium text-ink-70 tracking-[0.02em]">
+              {product.dim}
+            </span>
+          </>
+        )}
+      </h1>
+    </div>
+  );
+
   return (
     <div className="bg-white">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-8 pb-20">
@@ -164,6 +193,8 @@ export function ProductClient({ product }: { product: ProductView }) {
             On a phone the order is photo, buy, description — the buy box is not pushed
             down the page by the text about the product. */}
         <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-[auto_1fr] gap-x-16 gap-y-10">
+          <div className="lg:hidden">{titleBlock}</div>
+
           {/* Gallery */}
           <div className="lg:col-start-1 lg:row-start-1">
             {product.image ? (
@@ -239,28 +270,7 @@ export function ProductClient({ product }: { product: ProductView }) {
 
           {/* Choose and buy */}
           <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2">
-            <div className="flex gap-2 mb-5 flex-wrap">
-              {product.topProduct && <Tag tone="orange">TOP</Tag>}
-              <Tag tone={inStock ? "ok" : "outline"}>{stockText}</Tag>
-            </div>
-
-            <div className="font-mono text-[11px] text-ink-50 tracking-[0.1em] uppercase mb-2">
-              SKU · {product.slug}
-              {product.brand ? ` · ${product.brand}` : ""}
-            </div>
-
-            <h1 className="font-display text-3xl md:text-[44px] leading-[1.05] tracking-[-0.03em] font-bold m-0 mb-4 text-ink">
-              {product.name}
-              {product.dim && (
-                <>
-                  <br />
-                  <span className="font-mono text-lg md:text-xl font-medium text-ink-70 tracking-[0.02em]">
-                    {product.dim}
-                  </span>
-                </>
-              )}
-            </h1>
-
+            <div className="hidden lg:block">{titleBlock}</div>
 
             {/* What is in the box. The whole reason a set sells is that
                 somebody already worked out which three blades cover the job —

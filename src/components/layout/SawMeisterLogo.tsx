@@ -87,9 +87,9 @@ export function SawMeisterLogo({
    * cannot distort it.
    *
    * Each step is the widest the row can give it: beside the cart and menu
-   * buttons on a phone, beside the search box from tablet up.
+   * buttons on a phone (a phone is 360 px and up, the buttons take about 125 of it), beside the search box from tablet up.
    */
-  className = "w-[135px] h-auto sm:w-[165px] md:w-[190px] lg:w-[235px] xl:w-[255px]",
+  className = "w-[180px] h-auto sm:w-[195px] md:w-[200px] lg:w-[235px] xl:w-[255px]",
   preload = false,
 }: {
   className?: string;
