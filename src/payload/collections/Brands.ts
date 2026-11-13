@@ -5,7 +5,7 @@ import { staffEditAdminDelete } from '../access'
 export const Brands: CollectionConfig = {
   slug: 'brands',
   access: staffEditAdminDelete,
-  labels: { singular: 'Марка', plural: 'Марки' },
+  labels: { singular: 'Тип/модел', plural: 'Типове/модели' },
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'website'],

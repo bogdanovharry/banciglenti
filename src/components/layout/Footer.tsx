@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Btn } from "@/components/ui/primitives";
 import { IconArrowRight } from "@/components/ui/icons";
 import { COMPANY, COMPANY_LATIN, companyFor } from "@/lib/company";
+import { localizeHref } from "@/lib/slugs";
 import { CATALOG_FACTS } from "@/lib/catalog-facts";
 import { getLocale, getMarket } from "@/i18n/locale";
 
@@ -110,8 +111,12 @@ export async function Footer() {
               {company.address.country}
             </div>
             <div className="mt-5 flex flex-col gap-1.5 font-mono text-xs">
-              <a href={phone.office.href} className="text-white no-underline hover:text-orange-light transition-colors">{phone.office.display}</a>
-              <a href={phone.mobile.href} className="text-white no-underline hover:text-orange-light transition-colors">{phone.mobile.display}</a>
+              {!market.writtenOnly && (
+                <>
+                  <a href={phone.office.href} className="text-white no-underline hover:text-orange-light transition-colors">{phone.office.display}</a>
+                  <a href={phone.mobile.href} className="text-white no-underline hover:text-orange-light transition-colors">{phone.mobile.display}</a>
+                </>
+              )}
               <a href={`mailto:${company.email}`} className="text-orange-light no-underline hover:text-white transition-colors">{company.email}</a>
             </div>
           </div>
@@ -123,7 +128,7 @@ export async function Footer() {
               <ul className="list-none m-0 p-0 flex flex-col gap-2.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <Link href={l.href} className="font-sans text-sm text-white/75 no-underline hover:text-white transition-colors">
+                    <Link href={localizeHref(l.href, locale)} className="font-sans text-sm text-white/75 no-underline hover:text-white transition-colors">
                       {t(l.label)}
                     </Link>
                   </li>

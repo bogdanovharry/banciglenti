@@ -36,7 +36,7 @@
     "products": "{count, plural, one {# προϊόν} other {# προϊόντα}}",
     "series": "Σειρά",
     "material": "Υλικό",
-    "brand": "Μάρκα",
+    "brand": "Τύπος/μοντέλο",
     "machine": "Μηχάνημα",
     "inStockOnly": "Μόνο διαθέσιμα",
     "noResults": "Δεν βρέθηκαν προϊόντα"
@@ -46,6 +46,9 @@
     "customWelding": "Συγκόλληση κατά παραγγελία"
   },
   "nav": {
+    "other": "Άλλα υλικά",
+    "softMaterials": "Μαλακά υλικά",
+    "softKnives": "Ταινιοκόπτες για αφρό, ύφασμα, καουτσούκ, δέρμα και χαρτί",
     "wood": "Ξύλο",
     "metal": "Μέταλλο",
     "hobby": "Πριόνι hobby",
@@ -142,7 +145,7 @@
       "optionalPerMetre": "προαιρετικά, ανά μέτρο",
       "width": "Πλάτος · mm",
       "thickness": "Πάχος · mm",
-      "brand": "Μάρκα",
+      "brand": "Τύπος/μοντέλο",
       "pitch": "Βήμα / δόντι",
       "totalLength": "Συνολικό μήκος · mm",
       "welding": "Συγκόλληση",

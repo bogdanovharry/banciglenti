@@ -28,6 +28,7 @@ export function Placeholder({
   fit = "cover",
   sizes = "(max-width: 768px) 100vw, 33vw",
   preload,
+  background,
 }: {
   label?: string;
   ratio?: string;
@@ -41,8 +42,10 @@ export function Placeholder({
   fit?: "cover" | "contain";
   sizes?: string;
   preload?: boolean;
+  /** Overrides the tone's background — a photo shot on white wants a white frame. */
+  background?: string;
 }) {
-  const bg = tone === "ink" ? T.navyDeep : T.paperDeep;
+  const bg = background ?? (tone === "ink" ? T.navyDeep : T.paperDeep);
   const fg = tone === "ink" ? "rgba(255,255,255,0.45)" : "rgba(17,24,39,0.45)";
   const line = tone === "ink" ? "rgba(255,255,255,0.06)" : "rgba(17,24,39,0.05)";
 

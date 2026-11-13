@@ -1,0 +1,108 @@
+{
+  "account": {
+    "navLabel": "Cont",
+    "eyebrowNumber": "№ 07",
+    "eyebrow": "Cont",
+    "title": "Contul meu",
+    "intro": "Salvați-vă datele și utilajele — următoarea comandă durează două minute.",
+    "login": {
+      "title": "Autentificare",
+      "button": "Intră în cont",
+      "switch": "Nu aveți cont? Creați unul",
+      "forgot": "Ați uitat parola? Scrieți-ne și o schimbăm.",
+      "forgotLink": "Scrieți-ne"
+    },
+    "register": {
+      "title": "Cont nou",
+      "button": "Creează cont",
+      "switch": "Aveți deja cont? Autentificați-vă",
+      "terms": "Am citit și accept <terms>termenii și condițiile</terms> și <privacy>politica de confidențialitate</privacy>.",
+      "passwordHint": "Cel puțin 10 caractere — mai bine o frază pe care o țineți minte."
+    },
+    "fields": {
+      "email": "E-mail",
+      "password": "Parolă",
+      "name": "Nume",
+      "phone": "Telefon",
+      "company": "Firmă",
+      "taxId": "CUI / număr de înregistrare",
+      "vatNumber": "Cod TVA",
+      "addressLabel": "Denumire",
+      "street": "Stradă și număr",
+      "city": "Oraș",
+      "postalCode": "Cod poștal",
+      "isDefault": "Implicită",
+      "brand": "Marca utilajului",
+      "model": "Model",
+      "bladeLength": "Lungimea pânzei, mm",
+      "bladeWidth": "Lățime, mm",
+      "bladeThickness": "Grosime, mm"
+    },
+    "errors": {
+      "invalid_credentials": "E-mail sau parolă greșită.",
+      "email_taken": "Există deja un cont cu acest e-mail — autentificați-vă.",
+      "weak_password": "Parola trebuie să aibă între 10 și 128 de caractere.",
+      "terms_required": "Trebuie să acceptați termenii.",
+      "rate_limited": "Prea multe încercări. Reîncercați peste puțin.",
+      "locked": "Contul este blocat 15 minute după încercări eșuate.",
+      "invalid": "Verificați datele introduse.",
+      "forbidden": "Cererea a fost refuzată.",
+      "unauthorised": "Sesiunea a expirat — autentificați-vă din nou.",
+      "server": "Ceva nu a mers. Încercați din nou."
+    },
+    "sections": {
+      "details": "Date personale",
+      "invoice": "Date pentru factură",
+      "addresses": "Adrese de livrare",
+      "machines": "Utilajele mele",
+      "orders": "Comenzile mele",
+      "security": "Parolă",
+      "danger": "Ștergerea contului"
+    },
+    "hints": {
+      "invoice": "Se completează automat la o comandă cu factură pe firmă.",
+      "machines": "Rețineți utilajul și dimensiunea pânzei de care are nevoie.",
+      "email": "E-mailul nu poate fi schimbat de aici."
+    },
+    "actions": {
+      "save": "Salvează",
+      "saving": "Se salvează…",
+      "saved": "Salvat",
+      "addAddress": "+ Adresă",
+      "addMachine": "+ Utilaj",
+      "remove": "Șterge",
+      "logout": "Ieșire",
+      "changePassword": "Schimbă parola",
+      "currentPassword": "Parola actuală",
+      "newPassword": "Parola nouă",
+      "passwordChanged": "Parola a fost schimbată.",
+      "deleteAccount": "Șterge contul",
+      "deleteWarning": "Contul și datele salvate se șterg. Comenzile dumneavoastră rămân la noi.",
+      "deleteConfirm": "Parola, pentru confirmare",
+      "deleteNow": "Șterge definitiv"
+    },
+    "orders": {
+      "empty": "Nu există încă comenzi făcute din acest cont.",
+      "note": "Aici apar comenzile făcute cât timp ați fost autentificat.",
+      "number": "Comanda",
+      "date": "Data",
+      "status": "Stare",
+      "total": "Total cu {vat}",
+      "items": "Articole",
+      "statuses": {
+        "pending": "În așteptare",
+        "confirmed": "Confirmată",
+        "processing": "În lucru",
+        "shipped": "Expediată",
+        "delivered": "Livrată",
+        "cancelled": "Anulată"
+      }
+    },
+    "checkout": {
+      "loggedInAs": "Sunteți autentificat ca {email}",
+      "filled": "Datele au fost completate din cont.",
+      "loginPrompt": "Aveți cont?",
+      "loginLink": "Autentificați-vă"
+    }
+  }
+}

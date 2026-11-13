@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+
+import { PitchPicker } from "./PitchPicker";
+import { PhotoDimensions } from "@/components/product/PhotoDimensions";
+import { dimensionLabelSize, hasDimensionLabel } from "@/lib/product-images";
+import { configuratorHrefForAny } from "@/lib/configurator-tabs";
+import type { PitchInfo } from "@/lib/product-pitch";
+import { useLocale, useTranslations } from "next-intl";
+import { localizeHref } from "@/lib/slugs";
 import { Placeholder, Tag, Btn } from "@/components/ui/primitives";
 import { IconArrowRight, IconMinus, IconPlus, IconTruck, IconShield, IconWrench } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
@@ -32,6 +39,10 @@ export type ProductView = {
   /** Uploaded photo, or the representative one — same as the product card. */
   image?: string | null;
   breadcrumb: { slug: string; name: string } | null;
+  /** Every category the product is in, for choosing the configurator tab. */
+  categorySlugs: string[];
+  /** The pitches (or edge profiles) this size is made in; null when the product has none to choose. */
+  pitch?: PitchInfo | null;
 };
 
 function SpecTable({ title, rows }: { title: string; rows: [string, string][] }) {
@@ -55,9 +66,12 @@ function SpecTable({ title, rows }: { title: string; rows: [string, string][] })
 export function ProductClient({ product }: { product: ProductView }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  // The product's own pitch where it has one; otherwise nothing is chosen yet.
+  const [pitchChoice, setPitchChoice] = useState<string | null>(product.pitch?.defaultPitch ?? null);
   const { addItem } = useCart();
   const { market, gross, amount, price, symbol } = usePrices();
   const t = useTranslations("catalog");
+  const locale = useLocale();
   const tc = useTranslations("common");
   const tStock = useTranslations("stock");
 
@@ -72,14 +86,23 @@ export function ProductClient({ product }: { product: ProductView }) {
   const mm = t("unit.mm");
   const machines = product.machines ?? [];
 
+  // A pitch has to be chosen when there is more than one and none is preselected.
+  const pitchOption = product.pitch?.options.find((o) => o.pitch === pitchChoice) ?? null;
+  const needsPitch = Boolean(product.pitch && product.pitch.options.length > 1 && !pitchOption);
+  // Meat blades price the edge profile; everything else keeps the product's own price.
+  const unitPrice = pitchOption?.unitPrice ?? product.price;
+  const pitchLabel = (p: string) => (/^[a-z-]+$/.test(p) ? t(`pitch.${p}`) : p);
+
   const handleAddToCart = () => {
+    if (needsPitch) return;
     addItem({
       sku: product.slug,
       name: product.name,
-      dim: product.dim,
-      price: product.price,
+      dim: pitchOption ? `${product.dim} · ${pitchLabel(pitchOption.pitch)}` : product.dim,
+      price: unitPrice,
       quantity: qty,
       image: product.image ?? undefined,
+      ...(pitchOption ? { pitch: pitchOption.pitch } : {}),
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -111,22 +134,51 @@ export function ProductClient({ product }: { product: ProductView }) {
     [t("product.availability"), stockText],
   ];
 
+  // The title block (tags, SKU, name, size) is drawn twice and shown once: above the
+  // photo on a phone, where the name is the first thing a buyer wants, and at the top of
+  // the buy column on a desktop, beside the photo.
+  const titleBlock = (
+    <div>
+      <div className="flex gap-2 mb-3 flex-wrap">
+        {product.topProduct && <Tag tone="orange">TOP</Tag>}
+        <Tag tone={inStock ? "ok" : "outline"}>{stockText}</Tag>
+      </div>
+
+      <div className="font-mono text-[11px] text-ink-50 tracking-[0.1em] uppercase mb-1.5 hidden lg:block">
+        SKU · {product.slug}
+        {product.brand ? ` · ${product.brand}` : ""}
+      </div>
+
+      <h1 className="font-display text-[22px] lg:text-[34px] leading-[1.15] lg:leading-[1.05] tracking-[-0.02em] font-bold m-0 mb-1 lg:mb-3 text-ink">
+        {product.name}
+        {product.dim && (
+          <>
+            <br className="hidden lg:inline" />
+            <span className="hidden lg:inline font-mono text-lg md:text-xl font-medium text-ink-70 tracking-[0.02em]">
+              {product.dim}
+            </span>
+          </>
+        )}
+      </h1>
+    </div>
+  );
+
   return (
     <div className="bg-white">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-8 pb-20">
         {/* Breadcrumbs */}
-        <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 flex gap-2 mb-10 flex-wrap">
+        <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 flex gap-2 mb-4 md:mb-10 flex-wrap">
           <Link href="/" className="cursor-pointer no-underline text-ink-50 hover:text-ink">{tc("home")}</Link>
           <span>/</span>
           {product.breadcrumb ? (
             <>
               <Link
-                href={`/category/${product.breadcrumb.slug}`}
+                href={localizeHref(`/category/${product.breadcrumb.slug}`, locale)}
                 className="cursor-pointer no-underline text-ink-50 hover:text-ink"
               >
                 {product.breadcrumb.name}
               </Link>
-              <span>/</span>
+              <span className="hidden md:inline">/</span>
             </>
           ) : (
             <>
@@ -134,97 +186,96 @@ export function ProductClient({ product }: { product: ProductView }) {
               <span>/</span>
             </>
           )}
-          <span className="text-ink">{product.name}</span>
+          {/* On a phone the name is the heading right below; saying it a third time is noise. */}
+          <span className="text-ink hidden md:inline">{product.name}</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+        {/* Photo and what the product is on the left, what to choose and buy on the right.
+            On a phone the order is photo, buy, description — the buy box is not pushed
+            down the page by the text about the product. */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-[auto_1fr] gap-x-16 gap-y-5 lg:gap-y-10">
+          <div className="lg:hidden">{titleBlock}</div>
+
           {/* Gallery */}
-          <div>
+          <div className="lg:col-start-1 lg:row-start-1">
             {product.image ? (
-              <Placeholder
-                tone="paper"
-                ratio="1/1"
-                src={product.image}
-                alt={product.name}
-                fit="contain"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                preload
-              />
+              <div className="relative">
+                <Placeholder
+                  tone="paper"
+                  ratio="1/1"
+                  src={product.image}
+                  alt={product.name}
+                  fit="contain"
+                  background={hasDimensionLabel(product.image) ? "#fff" : undefined}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  preload
+                />
+                {hasDimensionLabel(product.image) && (
+                  <PhotoDimensions width={product.specs.width} size={dimensionLabelSize(product.image)} />
+                )}
+              </div>
             ) : (
               <Placeholder tone="paper" ratio="1/1" caption={product.name} />
             )}
           </div>
 
-          {/* Info */}
-          <div>
-            <div className="flex gap-2 mb-5 flex-wrap">
-              {product.topProduct && <Tag tone="orange">TOP</Tag>}
-              <Tag tone={inStock ? "ok" : "outline"}>{stockText}</Tag>
-            </div>
-
-            <div className="font-mono text-[11px] text-ink-50 tracking-[0.1em] uppercase mb-2">
+          {/* Description, series and specs — under the photo */}
+          <div className="lg:col-start-1 lg:row-start-2 order-last lg:order-none">
+            <div className="lg:hidden font-mono text-[11px] text-ink-50 tracking-[0.1em] uppercase mb-5">
               SKU · {product.slug}
               {product.brand ? ` · ${product.brand}` : ""}
             </div>
+          {product.shortDescription && (
+            <p className="font-sans text-[15px] leading-relaxed text-ink-70 m-0 mb-8">
+              {product.shortDescription}
+            </p>
+          )}
 
-            <h1 className="font-display text-3xl md:text-[44px] leading-[1.05] tracking-[-0.03em] font-bold m-0 mb-4 text-ink">
-              {product.name}
-              {product.dim && (
-                <>
-                  <br />
-                  <span className="font-mono text-lg md:text-xl font-medium text-ink-70 tracking-[0.02em]">
-                    {product.dim}
-                  </span>
-                </>
-              )}
-            </h1>
-
-            {product.shortDescription && (
-              <p className="font-sans text-[15px] leading-relaxed text-ink-70 m-0 mb-8">
-                {product.shortDescription}
+          {/* What the series is for — the question behind "is this the right blade?" */}
+          {series && (
+            <div className="mb-8 border-l-2 border-orange pl-5">
+              <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-1.5">
+                {t("product.series")} · {t(`series.${series.key}.type`)} · {t(`series.${series.key}.application`)}
+              </div>
+              <div className="font-display text-xl font-bold text-ink mb-2 tracking-tight">
+                {SAW_MEISTER} {series.name}
+              </div>
+              <p className="font-sans text-[14px] leading-relaxed text-ink-70 m-0">
+                {t(`series.${series.key}.description`)}
               </p>
-            )}
-
-            {/* What the series is for — the question behind "is this the right blade?" */}
-            {series && (
-              <div className="mb-8 border-l-2 border-orange pl-5">
-                <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50 mb-1.5">
-                  {t("product.series")} · {t(`series.${series.key}.type`)} · {t(`series.${series.key}.application`)}
-                </div>
-                <div className="font-display text-xl font-bold text-ink mb-2 tracking-tight">
-                  {SAW_MEISTER} {series.name}
-                </div>
-                <p className="font-sans text-[14px] leading-relaxed text-ink-70 m-0">
-                  {t(`series.${series.key}.description`)}
-                </p>
-              </div>
-            )}
-
-            {/* Key specs */}
-            {(product.specs.material || product.specs.width || product.specs.thickness) && (
-              <div className="flex gap-0 border border-ink-15 mb-8">
-                {[
-                  product.specs.material ? [product.specs.material, t("product.materialLower")] : null,
-                  product.specs.width ? [`${product.specs.width} ${mm}`, t("product.widthDiameterLower")] : null,
-                  product.specs.thickness ? [`${product.specs.thickness} ${mm}`, t("product.thicknessLower")] : null,
-                ]
-                  .filter((x): x is string[] => x !== null)
-                  .map(([v, l], i, arr) => (
-                    <div key={l} className={`p-4 flex-1 ${i < arr.length - 1 ? "border-r border-ink-15" : ""}`}>
-                      <div className="font-mono text-[9px] text-ink-50 tracking-[0.12em] uppercase">{l}</div>
-                      <div className="font-display text-lg font-bold mt-1 text-ink">{v}</div>
-                    </div>
-                  ))}
-              </div>
-            )}
-
-            {/* Custom size CTA */}
-            <div className="mb-8 p-4 border border-ink-15 flex items-center justify-between gap-4">
-              <div className="font-sans text-sm text-ink-70">{t("product.otherSize")}</div>
-              <Link href="/configurator" className="font-mono text-[11px] text-orange underline">
-                {t("product.openConfigurator")}
-              </Link>
             </div>
+          )}
+
+          {/* Key specs */}
+          {(product.specs.material || product.specs.width || product.specs.thickness) && (
+            <div className="flex gap-0 border border-ink-15 mb-8">
+              {[
+                product.specs.material ? [product.specs.material, t("product.materialLower")] : null,
+                product.specs.width ? [`${product.specs.width} ${mm}`, t("product.widthDiameterLower")] : null,
+                product.specs.thickness ? [`${product.specs.thickness} ${mm}`, t("product.thicknessLower")] : null,
+              ]
+                .filter((x): x is string[] => x !== null)
+                .map(([v, l], i, arr) => (
+                  <div key={l} className={`p-4 flex-1 ${i < arr.length - 1 ? "border-r border-ink-15" : ""}`}>
+                    <div className="font-mono text-[9px] text-ink-50 tracking-[0.12em] uppercase">{l}</div>
+                    <div className="font-display text-lg font-bold mt-1 text-ink">{v}</div>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          {/* Custom size CTA */}
+          <div className="mb-8 p-4 border border-ink-15 flex items-center justify-between gap-4">
+            <div className="font-sans text-sm text-ink-70">{t("product.otherSize")}</div>
+            <Link href={configuratorHrefForAny(product.categorySlugs)} className="font-mono text-[11px] text-orange underline">
+              {t("product.openConfigurator")}
+            </Link>
+          </div>
+          </div>
+
+          {/* Choose and buy */}
+          <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2">
+            <div className="hidden lg:block">{titleBlock}</div>
 
             {/* What is in the box. The whole reason a set sells is that
                 somebody already worked out which three blades cover the job —
@@ -278,6 +329,17 @@ export function ProductClient({ product }: { product: ProductView }) {
                 </div>
               )}
 
+              {product.pitch && product.specs.width && product.specs.thickness && (
+                <PitchPicker
+                  info={product.pitch}
+                  width={product.specs.width}
+                  thickness={product.specs.thickness}
+                  value={pitchChoice}
+                  onChange={setPitchChoice}
+                  priceOf={(net) => price(gross(net))}
+                />
+              )}
+
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-5">
                 <div>
                   <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">
@@ -287,7 +349,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                         ? t("product.boxPrice", { qty: pack.qty })
                         : t("product.unitPrice")}
                   </div>
-                  <DualPrice net={product.price} size="lg" className="mt-1" />
+                  <DualPrice net={unitPrice} size="lg" className="mt-1" />
                   {pack?.kind === "set" ? (
                     // Different blades — an average price describes none of
                     // them, so the count is stated and the contents are listed
@@ -342,13 +404,15 @@ export function ProductClient({ product }: { product: ProductView }) {
                     fullWidth
                     iconRight={<IconArrowRight size={16} />}
                     onClick={handleAddToCart}
-                    disabled={!inStock}
+                    disabled={!inStock || needsPitch}
                   >
                     {!inStock
                       ? tStock("out")
-                      : added
-                        ? t("product.added")
-                        : t("product.addToCart", { price: price(gross(product.price * qty)) })}
+                      : needsPitch
+                        ? t("product.pitchChooseShort")
+                        : added
+                          ? t("product.added")
+                          : t("product.addToCart", { price: price(gross(unitPrice * qty)) })}
                   </Btn>
                 </div>
               </div>

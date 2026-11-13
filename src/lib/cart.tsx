@@ -23,6 +23,12 @@ export interface CartItem {
    * line without these is rejected at checkout rather than trusted.
    */
   customSpecs?: CustomSpecs;
+  /**
+   * The tooth pitch or edge profile chosen on a ready-made product, when it comes
+   * in several. Checkout validates it against the price tables and, for meat
+   * blades, prices it.
+   */
+  pitch?: string;
 }
 
 interface CartContextType {
@@ -51,7 +57,8 @@ function generateId(item: Omit<CartItem, "id">): string {
   const specsKey = item.customSpecs
     ? JSON.stringify(item.customSpecs)
     : "";
-  return `${item.sku}-${specsKey}`;
+  // The same product in two pitches is two lines.
+  return `${item.sku}-${specsKey}${item.pitch ? `|${item.pitch}` : ""}`;
 }
 
 /**

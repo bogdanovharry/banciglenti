@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useId } from "react";
 import {
   IconSearch, IconCart, IconPhone, IconMail, IconMenu,
-  IconChevron, IconWood, IconMetal, IconHobby, IconFood, IconMachine, IconRuler, IconClose,
+  IconChevron, IconWood, IconMetal, IconHobby, IconFood, IconMachine, IconRuler, IconClose, IconUser,
 } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { companyFor } from "@/lib/company";
+import { useMarket } from "@/lib/market-context";
+import { localizeHref } from "@/lib/slugs";
 import { SawMeisterLogo } from "@/components/layout/SawMeisterLogo";
 import { SAW_MEISTER } from "@/lib/series";
 import { useLocale, useTranslations } from "next-intl";
@@ -20,7 +22,7 @@ type NavCat = { name: string; href: string; Icon: typeof IconWood; children: Nav
 
 /**
  * Navigation carries translation keys, not words. Steel grades (M42 HSS,
- * CS Flexback) are deliberately literal — they are the same in every market
+ * Flexback) are deliberately literal — they are the same in every market
  * and translating them would be wrong.
  */
 const NAV_CATS: NavCat[] = [
@@ -30,7 +32,7 @@ const NAV_CATS: NavCat[] = [
       { group: "bandsawBlades", items: [
         { label: "horizontal", href: "/category/horizontalni-bantsizi" },
         { label: "vertical", href: "/category/vertikalni-bantsizi" },
-        { label: "custom", href: "/configurator" },
+        { label: "custom", href: "/configurator?type=wood-h" },
       ]},
       { group: "circular", items: [
         { label: "circularSaws", href: "/category/tsirkulyarni-trioni" },
@@ -47,12 +49,20 @@ const NAV_CATS: NavCat[] = [
     children: [
       { group: "bimetal", items: [
         { label: "!M42 HSS", href: "/category/bimetalni-lenti" },
-        { label: "!M51 / M90", href: "/category/bimetalni-lenti" },
-        { label: "custom", href: "/configurator" },
+        { label: "!M51", href: "/category/bimetalni-lenti" },
+        { label: "custom", href: "/configurator?type=metal-bi" },
       ]},
       { group: "carbonSteel", items: [
-        { label: "!CS Flexback", href: "/category/vyglerodna-lenti-cs" },
-        { label: "!CS Hardback", href: "/category/vyglerodna-lenti-cs" },
+        { label: "!Flexback", href: "/category/vyglerodna-lenti-cs" },
+        { label: "custom", href: "/configurator?type=metal-cs" },
+      ]},
+    ],
+  },
+  {
+    name: "other", href: "/configurator?type=slicer", Icon: IconMetal,
+    children: [
+      { group: "softMaterials", items: [
+        { label: "softKnives", href: "/configurator?type=slicer" },
       ]},
     ],
   },
@@ -111,9 +121,11 @@ export function Header() {
   const locale = useLocale();
   const isBulgaria = locale.startsWith("bg");
   const company = companyFor(locale);
+  const { writtenOnly } = useMarket();
   const menuId = useId();
   const tSite = useTranslations("siteHeader");
   const tCommon = useTranslations("common");
+  const tAccount = useTranslations("account");
   const tHeader = useTranslations("header");
   const tNav = useTranslations("nav");
 
@@ -147,15 +159,22 @@ export function Header() {
           <div className="flex gap-5 items-center ml-auto">
             {/* Below 640px only the icon shows, so the link carries its own name
                 and a 40px tap target. */}
+            {!writtenOnly && (
+              <a
+                href={company.phone.office.href}
+                aria-label={tSite("phoneCall", { number: company.phone.office.display })}
+                className="flex items-center justify-center gap-1.5 min-w-10 h-10 text-inherit no-underline hover:text-white transition-colors"
+              >
+                <IconPhone size={12} /> <span className="hidden sm:inline tabular-nums">{company.phone.office.display}</span>
+              </a>
+            )}
+            {/* Written contact only: the e-mail is the way in, so it shows on a phone too. */}
             <a
-              href={company.phone.office.href}
-              aria-label={tSite("phoneCall", { number: company.phone.office.display })}
-              className="flex items-center justify-center gap-1.5 min-w-10 h-10 text-inherit no-underline hover:text-white transition-colors"
+              href={`mailto:${company.email}`}
+              aria-label={company.email}
+              className={`${writtenOnly ? "flex min-w-10 h-10 justify-center" : "hidden md:flex"} items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors`}
             >
-              <IconPhone size={12} /> <span className="hidden sm:inline tabular-nums">{company.phone.office.display}</span>
-            </a>
-            <a href={`mailto:${company.email}`} className="hidden md:flex items-center gap-1.5 text-inherit no-underline hover:text-white transition-colors">
-              <IconMail size={12} /> {company.email}
+              <IconMail size={12} /> <span className={writtenOnly ? "hidden sm:inline" : ""}>{company.email}</span>
             </a>
           </div>
         </div>
@@ -183,7 +202,7 @@ export function Header() {
               alt={tCommon("brand")}
               width={1177}
               height={210}
-              preload
+              loading="eager"
               className="h-8 w-auto md:h-9"
             />
           ) : (
@@ -223,6 +242,10 @@ export function Header() {
         {/* Actions. The wishlist carried a hardcoded badge of 3 and the profile
             linked to /account, which does not exist — both removed. */}
         <div className="flex items-center gap-1 ml-auto">
+          {/* Beside the cart from tablet up; on a phone the row has no room, and it is in the menu. */}
+          <div className="hidden md:block">
+            <HeaderIconBtn icon={<IconUser size={18} />} label={tAccount("navLabel")} href="/account" />
+          </div>
           <HeaderIconBtn icon={<IconCart size={18} />} label={tCommon("cart")} badge={itemCount || undefined} href="/cart" />
           <button
             className="md:hidden p-2 ml-2"
@@ -258,7 +281,7 @@ export function Header() {
                 onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(null); }}
               >
                 <Link
-                  href={cat.href}
+                  href={localizeHref(cat.href, locale)}
                   aria-haspopup={cat.children ? "true" : undefined}
                   aria-expanded={cat.children ? isOpen : undefined}
                   className={`flex items-center gap-2 px-[18px] h-12 font-sans text-[13px] font-medium text-ink no-underline transition-colors hover:text-blue ${isOpen ? "border-b-2 border-orange" : "border-b-2 border-transparent"}`}
@@ -279,7 +302,7 @@ export function Header() {
                         <ul className="list-none p-0 m-0 flex flex-col gap-2">
                           {grp.items.map((it) => (
                             <li key={it.label}>
-                              <Link href={it.href} className="font-sans text-[13px] text-ink-70 no-underline hover:text-ink transition-colors">
+                              <Link href={localizeHref(it.href, locale)} className="font-sans text-[13px] text-ink-70 no-underline hover:text-ink transition-colors">
                                 {navText(tNav, it.label)}
                               </Link>
                             </li>
@@ -335,7 +358,7 @@ export function Header() {
             const CatIcon = cat.Icon;
             return (
               <div key={cat.name}>
-                <Link href={cat.href} className="flex items-center gap-3 px-4 py-3 text-ink font-medium no-underline border-b border-ink-05" onClick={() => setMobileOpen(false)}>
+                <Link href={localizeHref(cat.href, locale)} className="flex items-center gap-3 px-4 py-3 text-ink font-medium no-underline border-b border-ink-05" onClick={() => setMobileOpen(false)}>
                   <CatIcon size={16} /> {tNav(cat.name)}
                 </Link>
                 {cat.children && (
@@ -344,7 +367,7 @@ export function Header() {
                       <div key={grp.group} className="mb-2">
                         <div className="font-mono text-[9px] tracking-[0.12em] uppercase text-ink-50 mb-1">{tNav(grp.group)}</div>
                         {grp.items.map((it) => (
-                          <Link key={it.label} href={it.href} className="block py-1 pl-4 text-[13px] text-ink-70 no-underline" onClick={() => setMobileOpen(false)}>
+                          <Link key={it.label} href={localizeHref(it.href, locale)} className="block py-1 pl-4 text-[13px] text-ink-70 no-underline" onClick={() => setMobileOpen(false)}>
                             {navText(tNav, it.label)}
                           </Link>
                         ))}
@@ -355,6 +378,9 @@ export function Header() {
               </div>
             );
           })}
+          <Link href="/account" className="flex items-center gap-3 px-4 py-3 text-ink font-medium no-underline border-t border-ink-05" onClick={() => setMobileOpen(false)}>
+            <IconUser size={16} /> {tAccount("navLabel")}
+          </Link>
           <Link href="/contact" className="block px-4 py-3 text-ink-70 no-underline border-t border-b border-ink-05" onClick={() => setMobileOpen(false)}>{tCommon("contact")}</Link>
         </nav>
       )}

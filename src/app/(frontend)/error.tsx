@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Btn } from "@/components/ui/primitives";
 import { IconPhone, IconArrowRight } from "@/components/ui/icons";
 import { companyFor } from "@/lib/company";
+import { useMarket } from "@/lib/market-context";
 
 /**
  * Catches a render or data-fetch failure anywhere in the storefront — most
@@ -26,6 +27,7 @@ export default function Error({
 }) {
   const t = useTranslations("errorPage");
   const company = companyFor(useLocale());
+  const { writtenOnly } = useMarket();
 
   useEffect(() => {
     // Server-side causes are already logged; this captures client-side ones.
@@ -56,15 +58,26 @@ export default function Error({
           </div>
 
           <div className="mt-10 pt-8 border-t border-ink-15">
-            <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mb-2">
-              {t("phoneOrders", { hours: t("hours") })}
-            </div>
-            <a
-              href={company.phone.office.href}
-              className="font-display text-3xl font-extrabold text-ink no-underline flex items-center gap-3 tabular-nums hover:text-orange transition-colors"
-            >
-              <IconPhone size={24} className="text-orange" /> {company.phone.office.display}
-            </a>
+            {writtenOnly ? (
+              <a
+                href={`mailto:${company.email}`}
+                className="font-display text-2xl font-extrabold text-ink no-underline flex items-center gap-3 hover:text-orange transition-colors break-all"
+              >
+                {company.email}
+              </a>
+            ) : (
+              <>
+                <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mb-2">
+                  {t("phoneOrders", { hours: t("hours") })}
+                </div>
+                <a
+                  href={company.phone.office.href}
+                  className="font-display text-3xl font-extrabold text-ink no-underline flex items-center gap-3 tabular-nums hover:text-orange transition-colors"
+                >
+                  <IconPhone size={24} className="text-orange" /> {company.phone.office.display}
+                </a>
+              </>
+            )}
           </div>
 
           {/* The digest is what correlates this with the server log. */}

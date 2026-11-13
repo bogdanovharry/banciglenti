@@ -157,7 +157,8 @@ export function planMachineProducts(existing: ExistingBlade[]): MachinePlan {
     const names = machines.map(machineLabel)
 
     creates.push({
-      name: `Банцигова лента ${width}×${thickness} L=${length}мм — ${names[0]}`,
+      // A blade for a metal machine is a bimetal M42 cut-off band; the loose "band blade" wording fits wood.
+      name: `${basis.categorySlug === 'bimetalni-lenti' ? 'Биметална отрезна лента M42' : 'Банцигова лента'} ${width}×${thickness} L=${length}мм — ${names[0]}`,
       slug: `lenta-${slugify(names[0])}-${length}`,
       basePrice: price,
       categorySlug: basis.categorySlug,

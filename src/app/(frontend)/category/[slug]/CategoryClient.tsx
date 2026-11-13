@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { localizeHref } from "@/lib/slugs";
+import { facetsFor, lengthKindFor } from "@/lib/category-facets";
 import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { IconRuler, IconArrowRight } from "@/components/ui/icons";
@@ -14,6 +16,8 @@ import { FilterDrawer } from "@/components/catalog/FilterDrawer";
 export type Subcategory = { slug: string; name: string; count: number };
 
 export function CategoryClient({
+  categorySlug,
+  configuratorHref,
   categoryName,
   categoryDescription,
   categoryImage,
@@ -21,6 +25,10 @@ export function CategoryClient({
   subcategories,
   products,
 }: {
+  /** The category's canonical slug — decides which extra filters it offers. */
+  categorySlug: string;
+  /** Where "custom size" leads: the configurator, on this category's tab. */
+  configuratorHref: string;
   categoryName: string;
   categoryDescription: string;
   categoryImage?: string;
@@ -31,12 +39,13 @@ export function CategoryClient({
   products: (ProductCardData & { machines?: string[] })[];
 }) {
   const t = useTranslations("catalog");
+  const locale = useLocale();
   const tc = useTranslations("common");
   const tSort = useTranslations("sort");
   const [sort, setSort] = useState<SortKey>("popularity");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const { filtered, panel, clear, active, hasFilters } = useSizeFilters(products);
+  const { filtered, panel, clear, active, hasFilters } = useSizeFilters(products, { facets: facetsFor(categorySlug), lengthKind: lengthKindFor(categorySlug) });
   const sortedProducts = [...filtered].sort(compareBy(sort));
 
   return (
@@ -48,7 +57,7 @@ export function CategoryClient({
         imageAlt=""
         crumbs={[
           { label: tc("home"), href: "/" },
-          ...(parent ? [{ label: parent.name, href: `/category/${parent.slug}` }] : []),
+          ...(parent ? [{ label: parent.name, href: localizeHref(`/category/${parent.slug}`, locale) }] : []),
           { label: categoryName },
         ]}
         title={categoryName}
@@ -66,7 +75,7 @@ export function CategoryClient({
             {subcategories.map((sub) => (
               <Link
                 key={sub.slug}
-                href={`/category/${sub.slug}`}
+                href={localizeHref(`/category/${sub.slug}`, locale)}
                 className="px-4 py-2.5 border border-ink-15 font-sans text-sm text-ink no-underline hover:border-ink hover:bg-paper transition-colors"
               >
                 {sub.name} <span className="text-ink-50 ml-1 font-mono text-[11px]">{sub.count}</span>
@@ -119,7 +128,7 @@ export function CategoryClient({
 
       {/* Products + Configurator CTA */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-10 pb-20">
-        <Link href="/configurator" className="no-underline block mb-8">
+        <Link href={configuratorHref} className="no-underline block mb-8">
           <div className="bg-paper border border-ink-15 p-5 flex items-center justify-between gap-4 hover:border-ink transition-colors">
             <div className="flex items-center gap-4">
               <IconRuler size={28} className="text-blue shrink-0" />
@@ -136,7 +145,7 @@ export function CategoryClient({
           <div className="text-center py-20">
             <h2 className="font-display text-2xl font-bold text-ink mb-2">{t("category.emptyTitle")}</h2>
             <p className="text-ink-50 mb-6">{t("category.emptyHint")}</p>
-            <Link href="/configurator"><Btn variant="primary" size="lg">{tc("configurator")}</Btn></Link>
+            <Link href={configuratorHref}><Btn variant="primary" size="lg">{tc("configurator")}</Btn></Link>
           </div>
         ) : (
           /* Sidebar only where there is something to filter on — a category of
@@ -152,7 +161,7 @@ export function CategoryClient({
                 <Btn variant="ghost" size="md" onClick={clear}>{t("filters.clearAll")}</Btn>
               </div>
             ) : (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-5 ${hasFilters ? "xl:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-4"}`}>
+              <div className={`grid content-start grid-cols-1 sm:grid-cols-2 gap-5 ${hasFilters ? "xl:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-4"}`}>
                 {sortedProducts.map((p) => (
                   <ProductCard key={p.sku} p={p} compact />
                 ))}

@@ -23,6 +23,31 @@
     },
     "support": {
       "eyebrow": "№ 07 — Suport tehnic"
+    },
+    "written": {
+      "lede": "Aduceți sau trimiteți-ne scula: o reascuțim sau executăm piesa dorită. Fiecare lucrare se stabilește individual, cu ofertă în scris.",
+      "quote": "Ofertă în scris",
+      "cta": "Cere o ofertă în scris",
+      "bands": {
+        "title": "Reascuțire pânze de panglică",
+        "desc": "Pânze pentru lemn, metal și industria alimentară. O pânză ascuțită taie ca una nouă, la o fracțiune din prețul uneia noi."
+      },
+      "circular": {
+        "title": "Reascuțire pânze circulare",
+        "desc": "Atât cele cu plăcuțe din carbură (TCT), cât și cele fără."
+      },
+      "pcd": {
+        "title": "Reascuțire scule PCD",
+        "desc": "Scule cu diamant policristalin (PCD)."
+      },
+      "edm": {
+        "title": "Piese la comandă prin electroeroziune (EDM)",
+        "desc": "Executăm piese la comandă. Descrieți-ne ce aveți nevoie și vă răspundem în scris."
+      },
+      "supportTitle": "Scrieți-ne.",
+      "supportLede": "Descrieți ce aveți nevoie — pânza, discul sau scula, utilajul și dimensiunile. Vă răspundem în scris.",
+      "panelLabel": "Scrieți-ne",
+      "writeForm": "Trimiteți o solicitare prin formular"
     }
   },
   "homepage": {
@@ -51,7 +76,7 @@
     "s1": "Ce facem",
     "p1": "{name} livrează pânze de panglică, pânze circulare, cuțite de rindea, abrazivi și mașini de ascuțit pentru prelucrarea lemnului, prelucrarea metalelor și industria alimentară.",
     "p2": "Activitatea noastră principală este <strong>execuția la dimensiune</strong>: tăiem pânza la lungimea cerută de dumneavoastră și o sudăm în buclă, astfel încât să se potrivească exact pe utilajul dumneavoastră. Sudăm bucle de la {min} mm în sus, fără limită superioară.",
-    "p3": "În atelier oferim și prelucrarea pânzelor deja cumpărate — ascuțire, ceaprazuire, tratament termic. O pânză ascuțită taie ca una nouă, la o fracțiune din prețul unei pânze noi.",
+    "p3": "În atelier reascuțim pânze de panglică, pânze circulare (cu și fără plăcuțe din carbură TCT) și scule PCD, și executăm piese la comandă prin electroeroziune (EDM). Fiecare lucrare se stabilește individual, cu ofertă în scris.",
     "s2": "Date despre companie",
     "name": "Denumire",
     "vat": "Cod TVA",
@@ -64,6 +89,6 @@
     "email": "E-mail",
     "hoursLabel": "Program",
     "hours": "Lu–Vi 8:00–17:30",
-    "contact": "Pentru alegerea pânzei, diagnosticarea unei probleme de tăiere sau dimensionarea după un utilaj vechi, fără marcaj — sunați-ne sau <link>trimiteți o solicitare</link>. Consultanța este gratuită."
+    "contact": "Pentru alegerea pânzei, diagnosticarea unei probleme de tăiere sau dimensionarea după un utilaj vechi, fără marcaj — <link>trimiteți-ne o solicitare</link> în scris. Consultanța este gratuită."
   }
 }

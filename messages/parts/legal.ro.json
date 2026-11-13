@@ -37,11 +37,11 @@
       "s05": {
         "title": "Dreptul de retragere la cumpărăturile online",
         "p1": "Dacă sunteți <b>consumator</b> (persoană fizică ce cumpără în afara activității sale comerciale sau profesionale), aveți dreptul să vă retrageți din contract în termen de <b>14 zile</b> de la primirea bunurilor, fără a fi nevoit să indicați vreun motiv.",
-        "p2": "Anunțați-ne la <mail>{email}</mail> sau la telefon <tel>{phone}</tel>. Puteți folosi formularul-tip din secțiunea {formSection}, dar nu este obligatoriu. Bunurile se returnează în stare comercială, iar contravaloarea lor se rambursează în termen de cel mult 14 zile de la primirea notificării. Costurile directe de returnare sunt suportate de dumneavoastră.",
+        "p2": "Anunțați-ne în scris la <mail>{email}</mail>. Puteți folosi formularul-tip din secțiunea {formSection}, dar nu este obligatoriu. Bunurile se returnează în stare comercială, iar contravaloarea lor se rambursează în termen de cel mult 14 zile de la primirea notificării. Costurile directe de returnare sunt suportate de dumneavoastră.",
         "refund": "În cazul unei retrageri valabile, vă rambursăm și costul livrării inițiale (livrarea standard), dacă l-ați achitat dumneavoastră. Costurile suplimentare generate de alegerea unui alt mod de livrare decât cel standard nu se rambursează.",
         "exTitle": "Excepție pentru produsele la comandă",
         "exP1": "Dreptul de retragere <b>nu se aplică</b> produselor confecționate după specificațiile consumatorului sau personalizate în mod clar (art. 16 lit. c din OUG nr. 34/2014). Este cazul pânzei configurate — realizată la lungimea, lățimea sau la alți parametri solicitați de dumneavoastră și sudată în buclă: aceasta este „confecționată pe măsura dumneavoastră — nu se poate returna” și nu poate fi oferită altui client. Excepția nu privește articolele standard din catalog, care sunt doar sudate la cerere.",
-        "exP2": "De aceea confirmăm dimensiunile cu dumneavoastră înainte de producție. Dacă nu sunteți sigur ce dimensiune vă trebuie, sunați-ne înainte de a comanda — consultanța este gratuită."
+        "exP2": "De aceea confirmăm dimensiunile cu dumneavoastră înainte de producție. Dacă nu sunteți sigur ce dimensiune vă trebuie, scrieți-ne înainte de a comanda — consultanța este gratuită."
       },
       "s06": {
         "title": "Formular-tip de retragere",
@@ -90,7 +90,7 @@
       "s01": {
         "title": "Cine prelucrează datele dumneavoastră",
         "p1": "Operatorul datelor cu caracter personal este <b>{name}</b>, cod de TVA {vat}, număr de înregistrare (EIK) {eik} (Registrul Comercial din Bulgaria), {address}.",
-        "p2": "Pentru întrebări legate de datele dumneavoastră personale, scrieți-ne la <mail>{email}</mail> sau sunați la <tel>{phone}</tel>."
+        "p2": "Pentru întrebări legate de datele dumneavoastră personale, scrieți-ne la <mail>{email}</mail>."
       },
       "s02": {
         "title": "Ce date colectăm",
@@ -164,7 +164,7 @@
       "s01": {
         "title": "Modalități de livrare",
         "p1": "Livrăm prin curier la adresa indicată sau la un punct al firmei de curierat, pe teritoriul României. Colaborăm cu {couriers} — curierul se alege la procesarea comenzii, în funcție de adresa dumneavoastră.",
-        "pickup": "Puteți ridica comanda și personal din atelierul nostru: {address}. Vă sunăm când pânza este gata. Ridicarea personală este gratuită."
+        "pickup": "Puteți ridica comanda și personal din atelierul nostru: {address}. Vă anunțăm prin e-mail când pânza este gata. Ridicarea personală este gratuită."
       },
       "s02": {
         "title": "Costul livrării",
@@ -202,11 +202,11 @@
         "title": "Prețuri și TVA",
         "p1": "Toate prețurile de pe site sunt exprimate în lei (RON) și sunt afișate <b>cu TVA și fără TVA</b>. TVA aplicat este de {vatPercent}% și este afișat separat în coș și în confirmarea comenzii.",
         "rate": "Prețurile sunt stabilite în euro și afișate în lei la un curs fix de 1 € = {rate} {symbol}.",
-        "p2": "Prețul unei pânze la comandă se calculează după lista noastră de prețuri în vigoare, în funcție de lungime, lățime, grosime, material și operațiunile alese (sudare, ceaprazuire, ascuțire, tratament termic). Suma se recalculează la confirmarea comenzii după lista de prețuri valabilă în acel moment."
+        "p2": "Prețul unei pânze la comandă se calculează după lista noastră de prețuri în vigoare, în funcție de lungime, lățime, grosime și material. Suma se recalculează la confirmarea comenzii după lista de prețuri valabilă în acel moment."
       },
       "s06": {
         "title": "Verificarea la primire",
-        "p1": "Verificați coletul în prezența curierului. În cazul unei deteriorări vizibile a ambalajului sau al unei neconcordanțe, menționați acest lucru în documentul de transport și anunțați-ne imediat la <tel>{phone}</tel> sau <mail>{email}</mail>.",
+        "p1": "Verificați coletul în prezența curierului. În cazul unei deteriorări vizibile a ambalajului sau al unei neconcordanțe, menționați acest lucru în documentul de transport și anunțați-ne imediat în scris la <mail>{email}</mail>.",
         "p2": "Condițiile de returnare și de reclamație sunt descrise în <terms>Termenii și condițiile</terms>."
       }
     }

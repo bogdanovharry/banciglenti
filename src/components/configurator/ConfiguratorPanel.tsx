@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { Btn } from "@/components/ui/primitives";
 import { IconArrowRight, IconEdge, IconRuler } from "@/components/ui/icons";
@@ -14,8 +15,6 @@ import {
   BREAD_BLADES,
   TEXTILE_BLADES,
   calculateBladePrice,
-  getUniqueValues,
-  getOptionsForWidth,
   getAvailablePitches,
   findBlade,
   isProfilePitch,
@@ -45,6 +44,9 @@ type ConfigType = "wood-h" | "wood-v" | "metal-bi" | "metal-cs" | "hobby" | "mea
  * never sold blades for. What is actually priced here is band knives for soft
  * materials, and the label now says so in every language.
  */
+// The tabs whose blades come welded, ground and set, whatever the market offers on top.
+const INCLUDED_NOTE_TABS: ConfigType[] = ["wood-h", "wood-v", "metal-bi", "metal-cs", "hobby"];
+
 const TAB_ORDER: ConfigType[] = [
   "wood-h", "wood-v", "metal-bi", "metal-cs", "hobby", "meat", "bread", "slicer",
 ];
@@ -92,6 +94,9 @@ function Select({ label, options, required, value, onChange, format }: {
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        // One option left is chosen for the buyer: it stays on screen, so the
+        // form never changes shape, but there is nothing to open.
+        disabled={options.length === 1}
         className="w-full h-12 px-3.5 border border-ink-15 bg-white font-sans text-[15px] text-ink outline-none focus:border-blue hover:border-ink-30 transition-colors cursor-pointer"
       >
         <option value="">{t("field.choose")}</option>
@@ -101,6 +106,49 @@ function Select({ label, options, required, value, onChange, format }: {
       </select>
     </div>
   );
+}
+
+/**
+ * What the quantity comes to, live. The big figure is per piece, so changing
+ * the quantity moved nothing on screen and looked broken. Always shown, even for
+ * one piece, so the column keeps its shape.
+ */
+function OrderTotal({ unitPrice, qty }: { unitPrice: number; qty: number }) {
+  const t = useTranslations("configurator");
+  return (
+    <div className="mt-4 mb-5 pt-3 border-t border-ink-15">
+      <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">{t("price.total", { qty })}</div>
+      <DualPrice net={Math.round(unitPrice * qty * 100) / 100} size="sm" className="mt-1" />
+    </div>
+  );
+}
+
+/**
+ * One choice for the whole cross-section: "27 × 0,9".
+ *
+ * Width and thickness used to be two dropdowns, and the second could only be
+ * opened after the first — a buyer who knows he wants "27 × 0,9" had to say it
+ * in two goes. The sizes the table really has are listed together, widest
+ * thickness range last, one under another.
+ */
+const sizeKey = (width: number, thickness: number) => `${width}x${thickness}`;
+
+function sizesOf(blades: BladeConfig[]) {
+  const seen = new Map<string, { width: number; thickness: number }>();
+  for (const b of blades) seen.set(sizeKey(b.width, b.thickness), { width: b.width, thickness: b.thickness });
+  return [...seen.values()].sort((a, b) => a.width - b.width || a.thickness - b.thickness);
+}
+
+function useSizeField(blades: BladeConfig[]) {
+  const locale = useLocale();
+  const sizes = sizesOf(blades);
+  const fmt = (n: number) => n.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+  const labels = Object.fromEntries(sizes.map((z) => [sizeKey(z.width, z.thickness), `${z.width} × ${fmt(z.thickness)}`]));
+  return {
+    options: sizes.map((z) => sizeKey(z.width, z.thickness)),
+    format: (k: string) => labels[k] ?? k,
+    parse: (k: string) => sizes.find((z) => sizeKey(z.width, z.thickness) === k) ?? { width: 0, thickness: 0 },
+  };
 }
 
 /**
@@ -383,15 +431,13 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const t = useTranslations("configurator");
   const tc = useTranslations("common");
   const { t: tCat, pitchText } = useCatalogText();
-  const { price } = usePrices();
+  const { price, market } = usePrices();
   const blades = type === "v" ? VERTICAL_WOOD_BLADES : HORIZONTAL_WOOD_BLADES;
 
-  const { widths } = getUniqueValues(blades);
-
-  const [width, setWidth] = useState("");
-  const [thickness, setThickness] = useState("");
-  const [pitch, setPitch] = useState("");
-  const [brand, setBrand] = useState("");
+  const sizeField = useSizeField(blades);
+  const [size, setSize] = useState("");
+  const [pitchChoice, setPitch] = useState("");
+  const [brandChoice, setBrand] = useState("");
   const [length, setLength] = useState(0);
   const [qty, setQty] = useState(1);
   // The optional paid processes start unticked: a pre-ticked extra is a charge
@@ -404,12 +450,16 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const { addItem } = useCart();
 
   // Cascading dropdowns
-  const widthNum = parseFloat(width) || 0;
-  const thicknessNum = parseFloat(thickness) || 0;
-  const widthOptions = getOptionsForWidth(blades, widthNum);
+  const { width: widthNum, thickness: thicknessNum } = sizeField.parse(size);
+  const width = widthNum ? String(widthNum) : "";
+  const thickness = thicknessNum ? String(thicknessNum) : "";
+  const brandOptions = size ? [...new Set(blades.filter((b) => b.width === widthNum && b.thickness === thicknessNum).map((b) => b.brand))] : [];
+  // A choice of one is not a choice: it is taken for the buyer.
+  const brand = brandOptions.length === 1 ? brandOptions[0] : brandChoice;
   const availablePitches = brand && widthNum && thicknessNum
     ? getAvailablePitches(blades, widthNum, thicknessNum, brand)
     : [];
+  const pitch = availablePitches.length === 1 ? availablePitches[0] : pitchChoice;
 
   // Find selected blade config
   const selectedBlade = width && thickness && pitch && brand
@@ -429,9 +479,11 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   // it. It was an unticked box, which quoted an unwelded strip to anyone who did
   // not guess that — and every other tab already includes it the same way.
   const welding = avail.welding;
-  const setting = settingOpt && avail.setting;
-  const sharpening = sharpeningOpt && avail.sharpening;
-  const heatTreat = heatTreatOpt && avail.heatTreatment;
+  // Where the processes are not offered the choice is not shown, and counts as off.
+  const { processingOptions } = market;
+  const setting = processingOptions && settingOpt && avail.setting;
+  const sharpening = processingOptions && sharpeningOpt && avail.sharpening;
+  const heatTreat = processingOptions && heatTreatOpt && avail.heatTreatment;
 
   // Only quote a length the workshop will actually weld — a price against a
   // 400 mm loop is a promise the checkout would then break.
@@ -442,8 +494,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const unitPrice = prices?.totalWithoutVat ?? 0;
 
   // Reset downstream when upstream changes
-  const handleWidthChange = (v: string) => { setWidth(v); setThickness(""); setPitch(""); setBrand(""); };
-  const handleThicknessChange = (v: string) => { setThickness(v); setPitch(""); };
+  const handleSizeChange = (v: string) => { setSize(v); setPitch(""); setBrand(""); };
   const handleBrandChange = (v: string) => { setBrand(v); setPitch(""); };
 
   const canAdd = !!selectedBlade && isWeldableLength(length);
@@ -477,9 +528,8 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-12">
       {/* Form */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Select label={t("field.width")} options={widths.map(String)} required value={width} onChange={handleWidthChange} />
-        <Select label={t("field.thickness")} options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
-        <Select label={t("field.brand")} options={widthNum ? widthOptions.brands : []} required value={brand} onChange={handleBrandChange} />
+        <Select label={t("field.size")} options={sizeField.options} required value={size} onChange={handleSizeChange} format={sizeField.format} />
+        <Select label={t("field.brand")} options={brandOptions} required value={brand} onChange={handleBrandChange} />
         <Select label={t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
         <LengthInput value={length} onChange={setLength} />
         <QuantityStepper value={qty} onChange={setQty} />
@@ -491,14 +541,18 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
       {/* Right — extras + price */}
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-3">
-          {avail.welding && (
-            <p className="font-mono text-[11px] tracking-[0.05em] text-ink-70 m-0">
-              ✓ {tCat("configurator.weldingIncluded")}
-            </p>
+          {processingOptions && (
+            <>
+              {avail.welding && (
+                <p className="font-mono text-[11px] tracking-[0.05em] text-ink-70 m-0">
+                  ✓ {tCat("configurator.weldingIncluded")}
+                </p>
+              )}
+              <Checkbox label={tCat("configurator.setting")} checked={settingOpt} onChange={setSetting} unavailable={!avail.setting} unavailableLabel={tCat("configurator.unavailable")} />
+              <Checkbox label={t("extras.sharpening")} checked={sharpeningOpt} onChange={setSharpening} unavailable={!avail.sharpening} unavailableLabel={tCat("configurator.unavailable")} />
+              <Checkbox label={t("extras.heatTreatment")} checked={heatTreatOpt} onChange={setHeatTreat} unavailable={!avail.heatTreatment} unavailableLabel={tCat("configurator.unavailable")} />
+            </>
           )}
-          <Checkbox label={tCat("configurator.setting")} checked={settingOpt} onChange={setSetting} unavailable={!avail.setting} unavailableLabel={tCat("configurator.unavailable")} />
-          <Checkbox label={t("extras.sharpening")} checked={sharpeningOpt} onChange={setSharpening} unavailable={!avail.sharpening} unavailableLabel={tCat("configurator.unavailable")} />
-          <Checkbox label={t("extras.heatTreatment")} checked={heatTreatOpt} onChange={setHeatTreat} unavailable={!avail.heatTreatment} unavailableLabel={tCat("configurator.unavailable")} />
         </div>
 
         {selectedBlade && (
@@ -506,7 +560,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           // the end rather than after every figure.
           <div className="p-3 bg-paper font-mono text-[10px] text-ink-50 tracking-[0.05em]">
             {t("price.perMeter")}: {price(selectedBlade.pricePerMeter)}
-            {welding && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
+            {processingOptions && welding && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
             {sharpening && selectedBlade.sharpening > 0 && <> · {t("extras.sharpening")}: {t("price.perMetreUnit", { price: price(selectedBlade.sharpening) })}</>}
             {heatTreat && selectedBlade.heatTreatment > 0 && <> · {t("extras.heatShort")}: {t("price.perMetreUnit", { price: price(selectedBlade.heatTreatment) })}</>}
             {setting && selectedBlade.setting > 0 && <> · {tCat("configurator.setting")}: {t("price.perMetreUnit", { price: price(selectedBlade.setting) })}</>}
@@ -519,7 +573,8 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">
             {t("price.label")}
           </div>
-          <DualPrice net={unitPrice} size="lg" className="mt-1 mb-5" />
+          <DualPrice net={unitPrice} size="lg" className="mt-1" />
+          <OrderTotal unitPrice={unitPrice} qty={qty} />
           <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAdd} disabled={!canAdd}>
             {added ? t("price.added") : t("price.add")}
           </Btn>
@@ -544,26 +599,28 @@ function RealDataConfigurator({
   const label = t(`item.${tableKey}`);
   const tc = useTranslations("common");
   const { t: tCat, pitchText } = useCatalogText();
-  const { price } = usePrices();
-  const { widths } = getUniqueValues(blades);
-  const [width, setWidth] = useState("");
-  const [thickness, setThickness] = useState("");
-  const [pitch, setPitch] = useState("");
+  const { price, market } = usePrices();
+  const { processingOptions } = market;
+  const sizeField = useSizeField(blades);
+  const [size, setSize] = useState("");
+  const [pitchChoice, setPitch] = useState("");
   const [brand, setBrand] = useState("");
   const [length, setLength] = useState(0);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
 
-  const widthNum = parseFloat(width) || 0;
-  const thicknessNum = parseFloat(thickness) || 0;
-  const widthOptions = getOptionsForWidth(blades, widthNum);
+  const { width: widthNum, thickness: thicknessNum } = sizeField.parse(size);
+  const width = widthNum ? String(widthNum) : "";
+  const thickness = thicknessNum ? String(thicknessNum) : "";
+  const brandOptions = size ? [...new Set(blades.filter((b) => b.width === widthNum && b.thickness === thicknessNum).map((b) => b.brand))] : [];
 
-  // Auto-select brand if only one
-  const effectiveBrand = widthOptions.brands.length === 1 ? widthOptions.brands[0] : brand;
+  // A choice of one is not a choice: brand and pitch are taken for the buyer.
+  const effectiveBrand = brandOptions.length === 1 ? brandOptions[0] : brand;
   const availablePitches = effectiveBrand && widthNum && thicknessNum
     ? getAvailablePitches(blades, widthNum, thicknessNum, effectiveBrand)
     : [];
+  const pitch = availablePitches.length === 1 ? availablePitches[0] : pitchChoice;
 
   const selectedBlade = width && thickness && pitch && effectiveBrand
     ? findBlade(blades, widthNum, thicknessNum, pitch, effectiveBrand)
@@ -575,8 +632,7 @@ function RealDataConfigurator({
 
   const unitPrice = prices?.totalWithoutVat ?? 0;
 
-  const handleWidthChange = (v: string) => { setWidth(v); setThickness(""); setPitch(""); setBrand(""); };
-  const handleThicknessChange = (v: string) => { setThickness(v); setPitch(""); };
+  const handleSizeChange = (v: string) => { setSize(v); setPitch(""); setBrand(""); };
   const handleBrandChange = (v: string) => { setBrand(v); setPitch(""); };
 
   const canAdd = !!selectedBlade && isWeldableLength(length);
@@ -606,10 +662,11 @@ function RealDataConfigurator({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 lg:gap-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Select label={t("field.width")} options={widths.map(String)} required value={width} onChange={handleWidthChange} />
-        <Select label={t("field.thickness")} options={widthNum ? widthOptions.thicknesses.map(String) : []} required value={thickness} onChange={handleThicknessChange} />
-        {widthOptions.brands.length > 1 && (
-          <Select label={t("field.brand")} options={widthOptions.brands} required value={brand} onChange={handleBrandChange} />
+        <Select label={t("field.size")} options={sizeField.options} required value={size} onChange={handleSizeChange} format={sizeField.format} />
+        {/* Shown whenever the table has more than one brand, not only when this size does,
+            so the form keeps its shape as the buyer chooses. */}
+        {new Set(blades.map((b) => b.brand)).size > 1 && (
+          <Select label={t("field.brand")} options={brandOptions} required value={effectiveBrand} onChange={handleBrandChange} />
         )}
         <Select label={availablePitches.some(isProfilePitch) ? t("field.profileAndPitch") : t("field.pitch")} options={availablePitches} required value={pitch} onChange={setPitch} format={pitchText} />
         {/* Length belongs with width, thickness and profile — it is the fourth
@@ -624,13 +681,14 @@ function RealDataConfigurator({
         {selectedBlade && (
           <div className="p-3 bg-paper font-mono text-[10px] text-ink-50 tracking-[0.05em]">
             {t("price.perMeter")}: {price(selectedBlade.pricePerMeter)}
-            {selectedBlade.welding > 0 && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
+            {processingOptions && selectedBlade.welding > 0 && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
             {" "}· {tc("exVat")}
           </div>
         )}
         <div className="mt-auto border-t-2 border-ink pt-4">
           <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">{t("price.label")}</div>
-          <DualPrice net={unitPrice} size="lg" className="mt-1 mb-5" />
+          <DualPrice net={unitPrice} size="lg" className="mt-1" />
+          <OrderTotal unitPrice={unitPrice} qty={qty} />
           <Btn variant="primary" size="lg" fullWidth onClick={handleAdd} disabled={!canAdd}>
             {added ? t("price.addedShort") : t("price.add")}
           </Btn>
@@ -641,12 +699,12 @@ function RealDataConfigurator({
 }
 
 // ===== Main page =====
-export function ConfiguratorPanel() {
+export function ConfiguratorPanel({ initialTab }: { initialTab?: ConfigType } = {}) {
   const locale = useLocale();
   const t = useTranslations("configurator");
   const tc = useTranslations("common");
   const { market, price } = usePrices();
-  const [activeTab, setActiveTab] = useState<ConfigType>("wood-h");
+  const [activeTab, setActiveTab] = useState<ConfigType>(initialTab ?? "wood-h");
 
   return (
     <div className="bg-white">
@@ -668,6 +726,24 @@ export function ConfiguratorPanel() {
           ))}
         </div>
       </div>
+
+      {/* Where the optional processes are not offered, say what the blade comes with.
+          Only the tabs of blades that are welded, ground and set: the food and textile
+          blades have a smooth edge and nothing to set. */}
+      {!market.processingOptions && INCLUDED_NOTE_TABS.includes(activeTab) && (
+        <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-8">
+          <p className="m-0 border border-ink-15 bg-paper px-4 py-3 font-sans text-[14px] leading-relaxed text-ink-70">
+            <span aria-hidden className="text-ok mr-2">✓</span>
+            {t.rich("includedNote", {
+              link: (chunks) => (
+                <Link href="/contact" className="text-blue underline">
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </p>
+        </div>
+      )}
 
       {/* Configurator body */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-10 md:py-14">

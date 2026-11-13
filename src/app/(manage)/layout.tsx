@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
+import { headers } from 'next/headers'
 
 import '../globals.css'
 import { Nav } from './_components/Nav'
 import { currentUser } from '@/lib/manage/session'
+import { shopLinks } from '@/lib/manage/shops'
+import { getMarket } from '@/i18n/locale'
 
 /**
  * Root layout for /manage — a second root, alongside the storefront's.
@@ -37,13 +40,19 @@ export const metadata: Metadata = {
 }
 
 export default async function ManageLayout({ children }: { children: React.ReactNode }) {
-  const user = await currentUser()
+  const [user, market, host] = await Promise.all([
+    currentUser(),
+    getMarket(),
+    headers().then((h) => h.get('host') ?? ''),
+  ])
+  // Which shop this is, and where the other one's /manage lives.
+  const shops = shopLinks(market.code, host)
 
   return (
     <html lang="bg" className={inter.variable}>
       <body className="font-sans antialiased text-ink bg-white">
         <div className="flex flex-col lg:flex-row min-h-screen">
-          {user && <Nav user={{ name: user.name, email: user.email }} />}
+          {user && <Nav user={{ name: user.name, email: user.email }} shops={shops} />}
           <main className="flex-1 min-w-0">{children}</main>
         </div>
       </body>

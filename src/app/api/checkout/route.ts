@@ -6,19 +6,23 @@ import {
   computeOrderTotals,
   customSku,
   parseCustomSpecs,
+  usesProcessingOptions,
   priceCustomItem,
   round2,
   type CustomSpecs,
 } from '@/lib/order-pricing'
-import { carriageTerms, vatRateFor, type CheckoutPaymentMethod, type Market } from '@/lib/market'
+import { carriageTerms, vatRateFor, type CheckoutPaymentMethod } from '@/lib/market'
 import { getMarket } from '@/i18n/locale'
 import { withOrderNumber } from '@/lib/order-number'
 import { clientIp, rateLimited } from '@/lib/rate-limit'
 import { serverText } from '@/lib/server-text'
 import { localizeName, textLang, type Override } from '@/lib/product-text'
-import { sendEmail, staffRecipients } from '@/lib/email'
-import { customerEmail, staffOrderEmail, type EmailOrder } from '@/lib/order-emails'
+import type { EmailOrder } from '@/lib/order-emails'
+import { notifyOrder } from '@/lib/order-notify'
+import { startCardPayment } from '@/lib/card-payments'
+import { getAccount } from '@/lib/account'
 import { siteOrigin } from '@/lib/site-url'
+import { nameWithPitch, pitchInfoFor, pitchText } from '@/lib/product-pitch'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -66,7 +70,7 @@ const LIMITS = {
 const PER_IP = { windowMs: 10 * 60_000, max: 12 }
 const PER_CUSTOMER = { minutes: 10, max: 5 }
 
-type IncomingLine = { sku?: unknown; quantity?: unknown; customSpecs?: unknown }
+type IncomingLine = { sku?: unknown; quantity?: unknown; customSpecs?: unknown; pitch?: unknown }
 
 type PricedLine = {
   product?: number
@@ -75,6 +79,8 @@ type PricedLine = {
   quantity: number
   price: number
   customSpecs?: CustomSpecs
+  /** Not stored: tells the confirmation e-mail which name to show. The pitch is in `name`. */
+  pitch?: string
 }
 
 type ProductDoc = {
@@ -84,6 +90,10 @@ type ProductDoc = {
   status?: string | null
   stock?: number | null
   madeToOrder?: boolean | null
+  /** Populated (depth 1) so the pitch choices can be worked out. */
+  categories?: ({ slug?: string } | number)[] | null
+  series?: string | null
+  specs?: { width?: number | null; thickness?: number | null; length?: number | null; toothPitch?: string | null } | null
 }
 
 const isNonEmpty = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0
@@ -187,6 +197,10 @@ export async function POST(request: Request) {
         address: text(billingIn.address, LIMITS.billingAddress),
       }
     : null
+  // Consent to receive the invoice electronically (art. 114(9) ЗДДС). Only the
+  // Romanian checkout offers the box; without it no invoice is e-mailed.
+  const einvoiceConsent = market.code === 'ro' && billingIn.einvoiceConsent === true
+
   if (billing) {
     if (!billing.company) errors.billingCompany = say.billingCompany
     if (!billing.taxId) errors.billingTaxId = say.billingTaxId
@@ -214,7 +228,14 @@ export async function POST(request: Request) {
         limit: 1,
         depth: 0,
       })
-      if (earlier.docs[0]) return NextResponse.json(receipt(earlier.docs[0] as unknown as Stored))
+      if (earlier.docs[0]) {
+        const again = earlier.docs[0] as unknown as Stored & { payment?: { method?: string | null; status?: string | null } | null }
+        if (again.payment?.method === 'revolut' && again.payment.status === 'pending') {
+          const pay = await startCardPayment(again.id)
+          return NextResponse.json({ ...receipt(again), ...('url' in pay ? { paymentUrl: pay.url } : { paymentFailed: true }) })
+        }
+        return NextResponse.json(receipt(again))
+      }
     }
 
     const vatRate = vatRateFor(market)
@@ -235,7 +256,8 @@ export async function POST(request: Request) {
         collection: 'products',
         where: { slug: { in: [...catalogueSkus] } },
         limit: catalogueSkus.size,
-        depth: 0,
+        // Depth 1: the pitch choices are worked out from the product's categories.
+        depth: 1,
         pagination: false,
       })
       for (const doc of found.docs as unknown as (ProductDoc & { slug?: string })[]) {
@@ -256,6 +278,11 @@ export async function POST(request: Request) {
 
       const specs = parseCustomSpecs(line.customSpecs)
       if (specs) {
+        // Where the optional processes are not offered, a quote that asks for one is
+        // refused — the form does not show them, so this only stops a hand-made request.
+        if (!market.processingOptions && usesProcessingOptions(specs)) {
+          return NextResponse.json({ error: say.optionNotOffered }, { status: 400 })
+        }
         // Made to order: re-derive from the price tables.
         const unit = priceCustomItem(specs)
         if (unit === null) {
@@ -299,12 +326,37 @@ export async function POST(request: Request) {
         }
       }
 
+      // A ready-made blade can be had in several pitches. What the buyer chose is
+      // checked against the same price tables the product page read, and — for the
+      // meat blades, whose edge profile is priced — re-priced here, never trusted.
+      const chosenPitch = typeof line.pitch === 'string' ? line.pitch.trim().slice(0, 40) : ''
+      let unitPrice = round2(product.basePrice ?? 0)
+      let lineName = productName
+      if (chosenPitch) {
+        const info = pitchInfoFor({
+          categorySlugs: (product.categories ?? []).map((c) => (typeof c === 'object' ? (c.slug ?? '') : '')).filter(Boolean),
+          series: product.series ?? null,
+          name: productName,
+          width: product.specs?.width ?? null,
+          thickness: product.specs?.thickness ?? null,
+          length: product.specs?.length ?? null,
+          toothPitch: product.specs?.toothPitch ?? null,
+          price: unitPrice,
+        })
+        const option = info?.options.find((o) => o.pitch === chosenPitch)
+        if (!option) return NextResponse.json({ error: say.invalidPitch(sku) }, { status: 400 })
+        unitPrice = round2(option.unitPrice)
+        lineName = nameWithPitch(productName, chosenPitch)
+        shownNames.set(`${sku}|${chosenPitch}`, `${shownName} · ${pitchText(chosenPitch, lang)}`)
+      }
+
       priced.push({
         product: product.id,
-        name: productName,
+        name: lineName,
         sku,
         quantity,
-        price: round2(product.basePrice ?? 0),
+        price: unitPrice,
+        ...(chosenPitch ? { pitch: chosenPitch } : {}),
       })
     }
 
@@ -363,6 +415,9 @@ export async function POST(request: Request) {
     const address = shippingMethod === 'pickup' ? 'Лично вземане · Габрово' : addressLines.join('\n')
     const notes = text(body.notes, LIMITS.notes)
 
+    // The profile this order belongs to, from the session cookie and nothing the page sent.
+    const account = await getAccount()
+
     let order: Stored
     try {
       order = (await withOrderNumber((orderNumber) =>
@@ -372,12 +427,27 @@ export async function POST(request: Request) {
             orderNumber,
             ...(clientKey ? { clientKey } : {}),
             customer: customerId,
+            ...(account ? { account: account.id } : {}),
             // What was typed, kept on the order itself — see Orders.ts.
             contact: { name, email, phone, ...(company ? { company } : {}) },
-            ...(billing ? { billing: { invoice: true, ...billing } } : {}),
-            items: priced,
+            ...(billing || einvoiceConsent
+              ? {
+                  billing: {
+                    invoice: Boolean(billing),
+                    ...(billing ?? {}),
+                    ...(einvoiceConsent ? { einvoiceConsent: true, einvoiceConsentAt: new Date().toISOString() } : {}),
+                  },
+                }
+              : {}),
+            // `pitch` is only a note for the e-mail below; the order keeps it in the line's name.
+            items: priced.map((l) => {
+              const { pitch, ...stored } = l
+              void pitch
+              return stored
+            }),
             status: 'pending',
-            payment: { method: paymentMethod, status: 'pending' },
+            // The buyer's word for it is "card"; the order records who takes it.
+            payment: { method: paymentMethod === 'card' ? 'revolut' : paymentMethod, status: 'pending' },
             shipping: { method: shippingMethod, address, cost: shippingCost },
             subtotal,
             tax,
@@ -436,7 +506,7 @@ export async function POST(request: Request) {
       shippingMethod,
       paymentMethod,
       lines: priced.map((l) => ({
-        name: shownNames.get(l.sku) ?? l.name,
+        name: shownNames.get(`${l.sku}|${l.pitch ?? ''}`) ?? shownNames.get(l.sku) ?? l.name,
         sku: l.sku,
         quantity: l.quantity,
         price: l.price,
@@ -450,70 +520,32 @@ export async function POST(request: Request) {
       billing,
       notes: notes || undefined,
     }
-    after(() => notify(order.id, emailOrder, market, origin))
+    // A card order is announced when it is paid, not when it is started: an order
+    // nobody finished paying for is not one the workshop should hear about.
+    if (paymentMethod === 'card') {
+      const pay = await startCardPayment(order.id)
+      if ('url' in pay) return NextResponse.json({ ...receipt(order), paymentUrl: pay.url })
+
+      // The card page could not be opened. The order is real, so it goes on as
+      // the next-best method of this market and the workshop is told as usual.
+      const fallback = market.paymentMethods.includes('bank_transfer') ? 'bank_transfer' : 'cod'
+      await payload.update({
+        collection: 'orders',
+        id: order.id,
+        data: {
+          payment: { method: fallback, status: 'pending' },
+          log: [{ note: `Плащането с карта не успя да се стартира — поръчката продължава като „${fallback === 'cod' ? 'наложен платеж' : 'банков превод'}“.`, at: new Date().toISOString() }],
+        },
+      })
+      after(() => notifyOrder(order.id, { ...emailOrder, paymentMethod: fallback }, market, origin))
+      return NextResponse.json({ ...receipt(order), paymentFailed: true, fallbackMethod: fallback })
+    }
+
+    after(() => notifyOrder(order.id, emailOrder, market, origin))
 
     return NextResponse.json(receipt(order))
   } catch (error) {
     console.error('Order creation failed:', error)
     return NextResponse.json({ error: say.orderFailed }, { status: 500 })
-  }
-}
-
-/**
- * The two emails an order sends, and a line in the order's history saying how
- * it went.
- *
- * The line is the point: a notification that fails silently is an order nobody
- * knows to look at. If the staff email is not sent — no provider configured, or
- * the provider refused — the order's history says so, and so does the
- * dashboard's pending count, which is the safety net.
- */
-async function notify(orderId: number, order: EmailOrder, market: Market, origin: string) {
-  try {
-    const customer = customerEmail(market, order, origin)
-    const staff = staffOrderEmail(order, market, origin)
-    const recipients = staffRecipients()
-
-    const [toCustomer, toStaff] = await Promise.all([
-      sendEmail({
-        to: order.contact.email,
-        subject: customer.subject,
-        html: customer.html,
-        text: customer.text,
-        idempotencyKey: `order-${order.orderNumber}-customer`,
-      }),
-      sendEmail({
-        to: recipients,
-        subject: staff.subject,
-        html: staff.html,
-        text: staff.text,
-        replyTo: order.contact.email,
-        idempotencyKey: `order-${order.orderNumber}-staff`,
-      }),
-    ])
-
-    const describe = (label: string, r: typeof toStaff) =>
-      r.ok ? `${label}: изпратен` : r.skipped ? `${label}: не е изпратен (няма настроен имейл)` : `${label}: НЕУСПЕШЕН (${r.error})`
-    const note = `${describe('Имейл до клиента', toCustomer)} · ${describe('Известие до екипа', toStaff)}`
-
-    // Only worth a line when something needs a person: both sent is the norm.
-    if (toCustomer.ok && toStaff.ok) return
-
-    const payload = await getPayload({ config })
-    const doc = (await payload.findByID({ collection: 'orders', id: orderId, depth: 0 })) as unknown as {
-      log?: { id?: string | null; note?: string | null; at?: string | null; author?: number | null }[] | null
-    }
-    await payload.update({
-      collection: 'orders',
-      id: orderId,
-      data: {
-        log: [
-          ...(doc.log ?? []).map((e) => ({ id: e.id ?? undefined, note: e.note ?? '', at: e.at ?? null, author: e.author ?? null })),
-          { note, at: new Date().toISOString() },
-        ],
-      },
-    })
-  } catch (error) {
-    console.error('[order] notification step failed:', error)
   }
 }

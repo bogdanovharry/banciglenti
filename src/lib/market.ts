@@ -13,7 +13,8 @@
 export type MarketCode = 'bg' | 'ro' | 'gr'
 
 /** What a buyer can choose at checkout. Cards join once a provider is connected. */
-export type CheckoutPaymentMethod = 'bank_transfer' | 'cod'
+/** 'card' is not listed in the registry: it exists only where a card provider is connected (see getMarket). */
+export type CheckoutPaymentMethod = 'bank_transfer' | 'cod' | 'card'
 
 export type Market = {
   code: MarketCode
@@ -63,6 +64,21 @@ export type Market = {
    * other, so a method switched off here cannot be posted by hand.
    */
   paymentMethods: CheckoutPaymentMethod[]
+  /**
+   * Written contact only: no phone number anywhere on the storefront, and every
+   * "call us" is "write to us" — the contact form and the e-mail address. Set where
+   * nobody can yet answer the phone in the visitor's language. Services without a
+   * fixed price are offered as a written enquiry.
+   */
+  writtenOnly: boolean
+  /**
+   * Whether a made-to-length blade can be ordered with the optional processes —
+   * setting (чапраз), sharpening, heat treatment — and whether the welding fee is
+   * shown as a line of its own. Off where the workshop does not offer them as
+   * priced options: the blade is still welded into a loop and that is part of its
+   * price, it is just not itemised. The server refuses an order that asks for one.
+   */
+  processingOptions: boolean
 }
 
 export const MARKETS: Record<MarketCode, Market> = {
@@ -79,6 +95,8 @@ export const MARKETS: Record<MarketCode, Market> = {
     couriers: ['Еконт', 'Спиди'],
     pickup: true,
     paymentMethods: ['bank_transfer', 'cod'],
+    writtenOnly: false,
+    processingOptions: true,
   },
   ro: {
     code: 'ro',
@@ -107,6 +125,10 @@ export const MARKETS: Record<MarketCode, Market> = {
     // Cash on delivery only at launch — the courier collects lei, so no RON
     // bank account is needed. Cards are to follow once a provider is connected.
     paymentMethods: ['cod'],
+    // Owner's decision, 11 Nov 2026: nobody can answer the phone in Romanian for now.
+    writtenOnly: true,
+    // Owner's decision, 12 Nov 2026.
+    processingOptions: false,
   },
   gr: {
     code: 'gr',
@@ -124,6 +146,8 @@ export const MARKETS: Record<MarketCode, Market> = {
     pickup: false,
     // TODO: follows whatever Romania proves out.
     paymentMethods: ['cod'],
+    writtenOnly: false,
+    processingOptions: true,
   },
 }
 

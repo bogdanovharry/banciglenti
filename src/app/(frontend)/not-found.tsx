@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Btn } from "@/components/ui/primitives";
 import { IconArrowRight, IconRuler, IconPhone } from "@/components/ui/icons";
 import { companyFor } from "@/lib/company";
-import { getLocale } from "@/i18n/locale";
+import { getLocale, getMarket } from "@/i18n/locale";
 
 export async function generateMetadata() {
   const t = await getTranslations("notFound");
@@ -22,6 +22,7 @@ export default async function NotFound() {
   const t = await getTranslations("notFound");
   const tc = await getTranslations("common");
   const company = companyFor(await getLocale());
+  const market = await getMarket();
 
   return (
     <div className="bg-paper">
@@ -65,12 +66,21 @@ export default async function NotFound() {
             <p className="font-sans text-sm text-ink-70 mt-2 mb-4">
               {t("askText")}
             </p>
-            <a
-              href={company.phone.office.href}
-              className="font-display text-lg font-bold text-ink no-underline flex items-center gap-2 tabular-nums hover:text-orange transition-colors"
-            >
-              <IconPhone size={16} className="text-orange" /> {company.phone.office.display}
-            </a>
+            {market.writtenOnly ? (
+              <a
+                href={`mailto:${company.email}`}
+                className="font-display text-lg font-bold text-ink no-underline flex items-center gap-2 hover:text-orange transition-colors break-all"
+              >
+                {company.email}
+              </a>
+            ) : (
+              <a
+                href={company.phone.office.href}
+                className="font-display text-lg font-bold text-ink no-underline flex items-center gap-2 tabular-nums hover:text-orange transition-colors"
+              >
+                <IconPhone size={16} className="text-orange" /> {company.phone.office.display}
+              </a>
+            )}
           </div>
         </div>
 

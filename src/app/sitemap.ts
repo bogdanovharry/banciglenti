@@ -3,6 +3,8 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 
 import { siteOrigin } from '@/lib/site-url'
+import { getLocale } from '@/i18n/locale'
+import { categoryPublicSlug } from '@/lib/slugs'
 
 /**
  * Every page worth finding, on the domain being asked.
@@ -26,6 +28,7 @@ const STATIC_PAGES = ['/', '/shop', '/configurator', '/contact', '/about', '/del
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const origin = await siteOrigin()
+  const locale = await getLocale()
   const payload = await getPayload({ config })
 
   const [products, categories] = await Promise.all([
@@ -56,7 +59,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...STATIC_PAGES.map((path) => entry(path, path === '/' ? 1 : 0.6)),
     ...(categories.docs as unknown as { slug?: string }[])
       .filter((c): c is { slug: string } => Boolean(c.slug))
-      .map((c) => entry(`/category/${c.slug}`, 0.8)),
+      .map((c) => entry(`/category/${categoryPublicSlug(c.slug, locale)}`, 0.8)),
     ...(products.docs as unknown as { slug?: string; updatedAt?: string }[])
       .filter((p): p is { slug: string; updatedAt?: string } => Boolean(p.slug))
       .map((p) => entry(`/product/${p.slug}`, 0.7, p.updatedAt)),

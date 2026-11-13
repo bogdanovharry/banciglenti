@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { Placeholder, Btn } from "@/components/ui/primitives";
@@ -107,6 +107,7 @@ export default function CheckoutPage() {
   const tc = useTranslations("common");
   const tcart = useTranslations("cart");
   const t = useTranslations("checkout");
+  const ta = useTranslations("account");
   const locale = useLocale();
   const company = companyFor(locale);
 
@@ -123,6 +124,12 @@ export default function CheckoutPage() {
   const [billing, setBilling] = useState<Record<BillingField, string>>(
     () => Object.fromEntries(BILLING_FIELDS.map((f) => [f, ""])) as Record<BillingField, string>,
   );
+  const [einvoiceConsent, setEinvoiceConsent] = useState(false);
+  const [cardFailed, setCardFailed] = useState(false);
+  // Who is logged in, if anyone: fills the form once, and the order route reads the
+  // same session itself — nothing here is trusted to say which profile an order belongs to.
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  const [accountChecked, setAccountChecked] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [idempotencyKey] = useState(newIdempotencyKey);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -137,6 +144,7 @@ export default function CheckoutPage() {
   const hasMadeToMeasure = items.some((i) => i.customSpecs);
 
   const paymentLabels: Record<CheckoutPaymentMethod, string> = {
+    card: t("card"),
     bank_transfer: t("bankTransfer"),
     cod: t("cod"),
   };
@@ -152,6 +160,42 @@ export default function CheckoutPage() {
       ? [["pickup", t("pickup"), t("pickupDetail", { city: company.address.city })] as DeliveryOption]
       : []),
   ];
+
+  useEffect(() => {
+    let live = true;
+    fetch("/api/account/me", { credentials: "same-origin", cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { account: null }))
+      .then(({ account }) => {
+        if (!live) return;
+        setAccountChecked(true);
+        if (!account) return;
+        setAccountEmail(account.email);
+        const home = (account.addresses ?? []).find((a: { isDefault?: boolean }) => a.isDefault) ?? account.addresses?.[0];
+        // Only into empty fields: whatever the buyer typed first is theirs to keep.
+        setForm((prev) => ({
+          ...prev,
+          name: prev.name || account.name || "",
+          email: prev.email || account.email || "",
+          phone: prev.phone || account.phone || "",
+          company: prev.company || account.company || "",
+          street: prev.street || home?.street || "",
+          city: prev.city || home?.city || "",
+          postalCode: prev.postalCode || home?.postalCode || "",
+        }));
+        setBilling((prev) => ({
+          ...prev,
+          company: prev.company || account.company || "",
+          taxId: prev.taxId || account.taxId || "",
+          vatNumber: prev.vatNumber || account.vatNumber || "",
+        }));
+      })
+      .catch(() => {
+        if (live) setAccountChecked(true);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
 
   const set = (field: Field) => (v: string) => setForm((prev) => ({ ...prev, [field]: v }));
   const setBill = (field: BillingField) => (v: string) => setBilling((prev) => ({ ...prev, [field]: v }));
@@ -210,6 +254,7 @@ export default function CheckoutPage() {
           notes,
           billing: {
             invoice,
+            einvoiceConsent: market.code === "ro" && einvoiceConsent,
             company: invoice ? billing.company.trim() : "",
             taxId: invoice ? billing.taxId.trim() : "",
             vatNumber: invoice ? billing.vatNumber.trim() : "",
@@ -222,11 +267,15 @@ export default function CheckoutPage() {
             sku: i.sku,
             quantity: i.quantity,
             ...(i.customSpecs ? { customSpecs: i.customSpecs } : {}),
+            ...(i.pitch ? { pitch: i.pitch } : {}),
           })),
         }),
       });
 
       const data = (await res.json().catch(() => ({}))) as Partial<OrderResult> & {
+        paymentUrl?: string;
+        paymentFailed?: boolean;
+        fallbackMethod?: CheckoutPaymentMethod;
         error?: string;
         fields?: Record<string, string>;
       };
@@ -236,6 +285,17 @@ export default function CheckoutPage() {
         if (data.fields) setFieldErrors(data.fields);
         return;
       }
+
+      // Paying by card: the buyer goes to Revolut's page. The cart is left alone until
+      // the return page confirms the payment, so closing that page loses nothing; the
+      // same idempotency key brings the same order, and the same payment page, back.
+      if (data.paymentUrl) {
+        window.location.assign(data.paymentUrl);
+        return;
+      }
+      // The card page could not be opened: the order went on by the fallback method.
+      if (data.paymentFailed && data.fallbackMethod) setMethod(data.fallbackMethod);
+      setCardFailed(Boolean(data.paymentFailed));
 
       // Clear only once the order is safely recorded.
       setResult({
@@ -293,6 +353,9 @@ export default function CheckoutPage() {
             <p className="font-sans text-sm text-ink-70 mt-5 mb-0">
               {t("keepNumber")} {method === "bank_transfer" ? t("bankInstruction") : t("codInstruction")}
             </p>
+            {cardFailed && (
+              <p role="alert" className="font-sans text-sm text-danger mt-2 mb-0">{t("cardFailed")}</p>
+            )}
             {market.carriage === "collect" && (
               <p className="font-sans text-sm text-ink-70 mt-2 mb-0">
                 {tc("courierFeeNote", { couriers: market.couriers.join(" / ") })}
@@ -345,6 +408,18 @@ export default function CheckoutPage() {
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-12 pb-[120px]">
 
+        {accountChecked && (
+          <p className="font-sans text-[13px] text-ink-70 m-0 mb-5">
+            {accountEmail ? (
+              <>✓ {ta("checkout.loggedInAs", { email: accountEmail })} · {ta("checkout.filled")}</>
+            ) : (
+              <>
+                {ta("checkout.loginPrompt")}{" "}
+                <Link href="/account" className="text-blue underline">{ta("checkout.loginLink")}</Link>
+              </>
+            )}
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8">
           <div className="flex flex-col gap-6 min-w-0">
             <CheckoutCard num="01" title={t("cardContact")}>
@@ -383,6 +458,19 @@ export default function CheckoutPage() {
                       value={billing.address} onChange={setBill("address")} error={fieldErrors.billingAddress} />
                   </div>
                 </div>
+              )}
+              {/* An invoice is issued for every Romanian order, so the consent to
+                  receive it electronically is asked of everyone, not only companies. */}
+              {market.code === "ro" && (
+                <label className="flex items-center gap-3 mt-4 cursor-pointer font-sans text-sm text-ink">
+                  <input
+                    type="checkbox"
+                    checked={einvoiceConsent}
+                    onChange={(e) => setEinvoiceConsent(e.target.checked)}
+                    className="w-5 h-5 accent-orange shrink-0"
+                  />
+                  {t("einvoiceConsent")}
+                </label>
               )}
             </CheckoutCard>
 
@@ -464,6 +552,11 @@ export default function CheckoutPage() {
               {method === "cod" && (
                 <div className="p-4 bg-paper font-sans text-sm text-ink-70">
                   {t("codInstruction")}
+                </div>
+              )}
+              {method === "card" && (
+                <div className="p-4 bg-paper font-sans text-sm text-ink-70">
+                  {t("cardInstruction")}
                 </div>
               )}
               <label className="block mt-4">

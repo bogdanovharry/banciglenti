@@ -6,6 +6,8 @@ import { getTranslations } from "next-intl/server";
 import { getCategories, getProductBySlug } from "@/lib/catalog";
 import { formatPrice, vatRateFor, withVat } from "@/lib/market";
 import { getMarket } from "@/i18n/locale";
+import { localizeHref } from "@/lib/slugs";
+import { pitchInfoFor } from "@/lib/product-pitch";
 import { absoluteUrl } from "@/lib/site-url";
 import { ProductClient, type ProductView } from "./ProductClient";
 
@@ -80,6 +82,18 @@ export default async function ProductPage({ params }: PageProps) {
     machines: product.machines,
     image: product.image ?? null,
     breadcrumb: leaf ? { slug: leaf.slug, name: leaf.name } : null,
+    categorySlugs: product.categorySlugs,
+    // The pitches this size is made in, from the same price tables the configurator reads.
+    pitch: pitchInfoFor({
+      categorySlugs: product.categorySlugs,
+      series: product.series,
+      name: product.name,
+      width: product.specs.width ?? null,
+      thickness: product.specs.thickness ?? null,
+      length: product.specs.length ?? null,
+      toothPitch: product.specs.toothPitch ?? null,
+      price: product.price,
+    }),
   };
 
   // Structured data. The price is what the visitor pays — VAT included, in the
@@ -117,7 +131,7 @@ export default async function ProductPage({ params }: PageProps) {
     itemListElement: [
       { "@type": "ListItem", position: 1, name: tc("home"), item: await absoluteUrl("/") },
       ...(leaf
-        ? [{ "@type": "ListItem", position: 2, name: leaf.name, item: await absoluteUrl(`/category/${leaf.slug}`) }]
+        ? [{ "@type": "ListItem", position: 2, name: leaf.name, item: await absoluteUrl(localizeHref(`/category/${leaf.slug}`, market.locale)) }]
         : []),
       { "@type": "ListItem", position: leaf ? 3 : 2, name: product.name, item: url },
     ],

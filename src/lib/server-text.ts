@@ -16,7 +16,7 @@ import { companyFor } from './company'
  */
 export type ServerText = ReturnType<typeof build>
 
-function build(lang: 'bg' | 'ro', phone: string) {
+function build(lang: 'bg' | 'ro', phone: string, writtenOnly: boolean, email: string) {
   const t = {
     bg: {
       invalidRequest: 'Невалидна заявка.',
@@ -38,18 +38,24 @@ function build(lang: 'bg' | 'ro', phone: string) {
       billingTaxId: 'Въведете ЕИК.',
       billingAddress: 'Въведете седалище.',
       invalidQuantity: 'Невалидно количество.',
+      invalidPitch: (sku: string) => `Избраната стъпка не е налична за ${sku}.`,
+      optionNotOffered: 'Избраната допълнителна услуга не се предлага.',
       missingSku: 'Липсва артикул.',
       comboNotListed: (sku: string) => `Комбинацията за ${sku} не е в ценоразписа.`,
       unavailable: (sku: string) => `Артикулът ${sku} вече не е наличен.`,
       retired: (name: string) => `${name} вече не се предлага.`,
       outOfStock: (name: string) => `${name} е изчерпан.`,
       notEnoughStock: (name: string, left: number) => `От ${name} има само ${left} бр. в наличност.`,
-      orderFailed: `Възникна грешка при създаване на поръчката. Опитайте отново или се обадете на ${phone}.`,
+      orderFailed: writtenOnly
+        ? `Възникна грешка при създаване на поръчката. Опитайте отново или ни пишете на ${email}.`
+        : `Възникна грешка при създаване на поръчката. Опитайте отново или се обадете на ${phone}.`,
       contactName: 'Името е задължително.',
       contactEmail: 'Имейлът е задължителен.',
       contactEmailInvalid: 'Имейлът изглежда невалиден.',
       contactMessage: 'Съобщението е задължително.',
-      contactFailed: `Възникна грешка при изпращането. Обадете се на ${phone}.`,
+      contactFailed: writtenOnly
+        ? `Възникна грешка при изпращането. Пишете ни на ${email}.`
+        : `Възникна грешка при изпращането. Обадете се на ${phone}.`,
       customLine: (length: number, width: number, thickness: number, brand: string) =>
         `Лента по размер ${length}×${width}×${thickness} мм · ${brand}`,
     },
@@ -73,18 +79,24 @@ function build(lang: 'bg' | 'ro', phone: string) {
       billingTaxId: 'Introduceți CUI.',
       billingAddress: 'Introduceți sediul firmei.',
       invalidQuantity: 'Cantitate invalidă.',
+      invalidPitch: (sku: string) => `Pasul ales nu este disponibil pentru ${sku}.`,
+      optionNotOffered: 'Opțiunea suplimentară aleasă nu este disponibilă.',
       missingSku: 'Lipsește articolul.',
       comboNotListed: (sku: string) => `Combinația pentru ${sku} nu există în lista de prețuri.`,
       unavailable: (sku: string) => `Articolul ${sku} nu mai este disponibil.`,
       retired: (name: string) => `${name} nu se mai comercializează.`,
       outOfStock: (name: string) => `${name} nu este în stoc.`,
       notEnoughStock: (name: string, left: number) => `Din ${name} mai sunt doar ${left} buc. în stoc.`,
-      orderFailed: `A apărut o eroare la plasarea comenzii. Încercați din nou sau sunați la ${phone}.`,
+      orderFailed: writtenOnly
+        ? `A apărut o eroare la plasarea comenzii. Încercați din nou sau scrieți-ne la ${email}.`
+        : `A apărut o eroare la plasarea comenzii. Încercați din nou sau sunați la ${phone}.`,
       contactName: 'Numele este obligatoriu.',
       contactEmail: 'Adresa de e-mail este obligatorie.',
       contactEmailInvalid: 'Adresa de e-mail pare invalidă.',
       contactMessage: 'Mesajul este obligatoriu.',
-      contactFailed: `A apărut o eroare la trimitere. Sunați la ${phone}.`,
+      contactFailed: writtenOnly
+        ? `A apărut o eroare la trimitere. Scrieți-ne la ${email}.`
+        : `A apărut o eroare la trimitere. Sunați la ${phone}.`,
       customLine: (length: number, width: number, thickness: number, brand: string) =>
         `Pânză la dimensiune ${length}×${width}×${thickness} mm · ${brand}`,
     },
@@ -95,5 +107,6 @@ function build(lang: 'bg' | 'ro', phone: string) {
 export function serverText(market: Market): ServerText {
   const lang = market.locale.startsWith('ro') ? 'ro' : 'bg'
   // The number to ring is the one the visitor can dial from where they are.
-  return build(lang, companyFor(market.locale).phone.office.display)
+  const company = companyFor(market.locale)
+  return build(lang, company.phone.office.display, market.writtenOnly, company.email)
 }

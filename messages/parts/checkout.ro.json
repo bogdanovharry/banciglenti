@@ -54,13 +54,14 @@
     "courier": "Curier",
     "pickup": "Ridicare personală",
     "pickupDetail": "Atelier {city} · gratuit",
-    "pickupNote": "Ridicare de la atelier: {address}. Vă sunăm când pânza este gata.",
+    "pickupNote": "Ridicare de la atelier: {address}. Vă anunțăm prin e-mail când pânza este gata.",
     "bankTransfer": "Transfer bancar",
     "cod": "Plată la livrare (ramburs)",
     "bankTransferTitle": "Transfer bancar:",
     "bankReference": "Mențiune: numărul comenzii",
     "codInstruction": "Plătiți totalul comenzii curierului, la livrare, în numerar.",
     "invoiceToggle": "Factură pe firmă",
+    "einvoiceConsent": "Sunt de acord să primesc factura în format electronic",
     "invoiceCompany": "Denumirea firmei",
     "invoiceTaxId": "CUI",
     "invoiceVat": "Cod de TVA (opțional)",
@@ -84,7 +85,19 @@
     "orderNumber": "Număr comandă",
     "keepNumber": "Notați-vă numărul.",
     "bankInstruction": "Veți primi datele pentru transferul bancar — comanda pleacă după confirmarea plății.",
-    "backHome": "Spre pagina principală"
+    "backHome": "Spre pagina principală",
+    "card": "Plată cu cardul",
+    "cardInstruction": "Veți fi redirecționat către pagina securizată Revolut, unde plătiți cu cardul, Apple Pay, Google Pay sau Revolut Pay. Datele cardului nu trec prin site-ul nostru.",
+    "cardFailed": "Plata cu cardul nu a putut fi pornită. Comanda dvs. este înregistrată și continuă cu cealaltă metodă de plată — veți primi instrucțiuni prin e-mail.",
+    "returnTitle": "Plată",
+    "returnPaidTitle": "Plata a fost primită",
+    "returnPaidText": "Vă mulțumim! Comanda dvs. este confirmată și veți primi un e-mail cu detaliile.",
+    "returnPendingTitle": "Confirmăm plata…",
+    "returnPendingText": "Banca încă procesează plata. Pagina se actualizează singură — nu o închideți.",
+    "returnProblemTitle": "Plata nu a fost finalizată",
+    "returnFailedText": "Plata nu a fost efectuată, iar comanda a fost anulată. Puteți încerca din nou.",
+    "returnProblemText": "Nu am putut confirma plata. Dacă vi s-au retras bani, scrieți-ne cu numărul comenzii.",
+    "returnTryAgain": "Încercați din nou"
   },
   "contact": {
     "eyebrow": "Asistență tehnică",
@@ -116,6 +129,6 @@
     "send": "Trimite solicitarea",
     "sending": "Se trimite...",
     "genericError": "A apărut o eroare la trimitere.",
-    "networkError": "Nu există conexiune cu serverul. Verificați internetul sau sunați-ne."
+    "networkError": "Nu există conexiune cu serverul. Verificați internetul sau scrieți-ne."
   }
 }

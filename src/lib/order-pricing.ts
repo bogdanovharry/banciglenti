@@ -63,6 +63,9 @@ export const MIN_CUSTOM_LENGTH = 1000
  */
 export const MAX_CUSTOM_LENGTH = 50000
 
+/** True when a quote asks for one of the optional processes (setting, sharpening, heat treatment). Welding is part of every loop and is not one. */
+export const usesProcessingOptions = (s: CustomSpecs): boolean => Boolean(s.setting || s.sharpening || s.heatTreatment)
+
 export function parseCustomSpecs(value: unknown): CustomSpecs | null {
   if (!value || typeof value !== 'object') return null
   const s = value as Record<string, unknown>

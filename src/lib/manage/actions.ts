@@ -53,7 +53,7 @@ import {
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string }
 
 const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded']
-const PAYMENT_METHODS = ['mypos', 'cod', 'bank_transfer']
+const PAYMENT_METHODS = ['mypos', 'revolut', 'cod', 'bank_transfer']
 const SHIPPING_METHODS = ['courier', 'pickup']
 
 const SHIPPING_LABEL: Record<string, string> = { courier: 'Куриер', pickup: 'Лично вземане' }

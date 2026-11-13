@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { IconPhone, IconMail, IconFactory, IconArrowRight, IconCheck } from "@/components/ui/icons";
 import type { IndustryCode } from "@/lib/catalog-ui";
 import { companyFor } from "@/lib/company";
+import { useMarket } from "@/lib/market-context";
 
 /** The codes are what gets stored on an enquiry; the labels come from the messages. */
 const INDUSTRY_CODES: IndustryCode[] = ["wood", "metal", "food", "hobby", "abrasives", "other"];
@@ -36,6 +37,7 @@ export default function ContactPage() {
   const t = useTranslations("contact");
   const tc = useTranslations("common");
   const co = companyFor(useLocale());
+  const { writtenOnly } = useMarket();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -98,8 +100,12 @@ export default function ContactPage() {
           <div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border border-ink-15 bg-white">
               {[
-                { Icon: IconPhone, title: co.phone.office.display, desc: t("officeDesc", { city: co.address.city }), href: co.phone.office.href },
-                { Icon: IconPhone, title: co.phone.mobile.display, desc: t("mobileDesc"), href: co.phone.mobile.href },
+                ...(writtenOnly
+                  ? []
+                  : [
+                      { Icon: IconPhone, title: co.phone.office.display, desc: t("officeDesc", { city: co.address.city }), href: co.phone.office.href },
+                      { Icon: IconPhone, title: co.phone.mobile.display, desc: t("mobileDesc"), href: co.phone.mobile.href },
+                    ]),
                 { Icon: IconMail, title: co.email, desc: t("emailDesc"), href: `mailto:${co.email}` },
                 { Icon: IconFactory, title: co.address.street, desc: `${co.address.postalCode} ${co.address.city}, ${co.address.country}`, href: undefined },
               ].map((item, i) => (
@@ -184,9 +190,11 @@ export default function ContactPage() {
                       className="border border-danger bg-danger/5 px-4 py-3 font-sans text-[13px] text-ink"
                     >
                       {error}{" "}
-                      <a href={co.phone.office.href} className="text-danger underline">
-                        {co.phone.office.display}
-                      </a>
+                      {!writtenOnly && (
+                        <a href={co.phone.office.href} className="text-danger underline">
+                          {co.phone.office.display}
+                        </a>
+                      )}
                     </div>
                   )}
 

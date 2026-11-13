@@ -45,11 +45,22 @@ const HOMOGLYPH: Record<string, string> = {
 // --- Names ------------------------------------------------------------------
 
 const NAME_RO: Rule[] = [
+  // The pitch or edge profile a buyer chose on a ready-made blade, appended to the
+  // line's name at checkout (see nameWithPitch in product-pitch.ts). Anchored at the
+  // end, and first, so no later rule touches these words.
+  [/ · профил Зъб чистач$/, ' · profil Dinte cu curățitor'],
+  [/ · профил Вдлъбната вълна$/, ' · profil Val concav'],
+  [/ · профил Изпъкнала вълна$/, ' · profil Val convex'],
+  [/ · профил Гладко заточен$/, ' · profil Ascuțit neted'],
+  [/ · профил Вълна$/, ' · profil Val'],
+
   // What the product is — anchored at the start, longest first.
   [/^Въглеродна банцигова лента\s+/, 'Pânză de panglică din oțel carbon '],
   [/^Банцигова лента\s+/, 'Pânză de panglică '],
   [/^Лента за банциг\s+/, 'Pânză pentru ferăstrău panglică '],
-  [/^Биметална отрезна лента\s+/, 'Pânză bimetalică de debitare '],
+  // Written the way a Romanian workshop says it, not word for word: "pânză de panglică" is the band blade, "bimetalică" its kind.
+  [/^Биметална отрезна лента\s+[MМ]42\s+/, 'Pânză de panglică bimetalică M42 '],
+  [/^Биметална отрезна лента\s+/, 'Pânză de panglică bimetalică '],
   [/^Циркулярен трион\s+/, 'Pânză de ferăstrău circular '],
   [/^Нож за абрихт\s+/, 'Cuțit de rindea '],
   [/^Абразивен диск за заточване\s+/, 'Disc abraziv de ascuțire '],
@@ -152,7 +163,7 @@ const CATEGORY_RO: Record<string, { name: string; description: string }> = {
   'tsirkulyarni-trioni': { name: 'Pânze pentru ferăstrău circular', description: 'Obișnuite și cu plăcuțe din carbură înlocuibile. Diametre de la Ø100 la Ø600.' },
   'nozhove-za-abriht': { name: 'Cuțite de rindea', description: 'Cuțite HSS și 100Cr6 pentru mașini de rindeluit. Lungimi de la 260 la 810 mm.' },
   'bimetalni-lenti': { name: 'Pânze bimetalice', description: 'Pânze bimetalice M42 și M51 pentru tăierea oțelului până la 68 HRC.' },
-  'vyglerodna-lenti-cs': { name: 'Oțel carbon CS', description: 'Pânze de debitare din oțel carbon. Flexback și Hardback.' },
+  'vyglerodna-lenti-cs': { name: 'Oțel carbon CS', description: 'Pânze flexback din oțel carbon, pentru lemn, plastic și metale neferoase.' },
   'meso-i-riba': { name: 'Carne și pește', description: 'Cuțite-bandă pentru tăierea cărnii și a peștelui.' },
   'hlebni-izdeliya': { name: 'Produse de panificație', description: 'Cuțite-bandă pentru mașini de tăiat pâine.' },
   slicers: { name: 'Feliatoare', description: 'Cuțite-bandă pentru feliatoare Bizerba, Berkel și altele.' },

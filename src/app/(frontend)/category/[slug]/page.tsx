@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { getCategories, getCategoryBySlug, getCategoryCounts, getProducts } from "@/lib/catalog";
 import { absoluteUrl } from "@/lib/site-url";
+import { getLocale } from "@/i18n/locale";
+import { canonicalCategorySlug, categoryPublicSlug } from "@/lib/slugs";
+import { configuratorHref } from "@/lib/configurator-tabs";
 import { CategoryClient, type Subcategory } from "./CategoryClient";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -26,12 +29,16 @@ const CATEGORY_IMAGES: Record<string, string> = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const [category, t] = await Promise.all([getCategoryBySlug(slug), getTranslations("catalog")]);
+  const [category, t, locale] = await Promise.all([
+    getCategoryBySlug(canonicalCategorySlug(slug)),
+    getTranslations("catalog"),
+    getLocale(),
+  ]);
 
   if (!category) return { title: t("meta.categoryNotFound") };
 
   const description = category.description || t("meta.categoryDescription", { name: category.name });
-  const url = await absoluteUrl(`/category/${category.slug}`);
+  const url = await absoluteUrl(`/category/${categoryPublicSlug(category.slug, locale)}`);
 
   return {
     title: category.name,
@@ -42,7 +49,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function CategoryPage({ params }: PageProps) {
-  const { slug } = await params;
+  const { slug: requested } = await params;
+  // The database knows the Bulgarian slug; the address shows the visitor's own.
+  // Either spelling is accepted, and the wrong one is redirected to the right one.
+  const slug = canonicalCategorySlug(requested);
+  const wanted = categoryPublicSlug(slug, await getLocale());
+  if (requested !== wanted) permanentRedirect(`/category/${wanted}`);
 
   const [category, categories, products, counts] = await Promise.all([
     getCategoryBySlug(slug),
@@ -66,6 +78,9 @@ export default async function CategoryPage({ params }: PageProps) {
 
   return (
     <CategoryClient
+      // A sub-category opens its own tab, a top-level one the tab of its first kind of blade.
+      categorySlug={category.slug}
+      configuratorHref={configuratorHref(category.slug)}
       categoryName={category.name}
       categoryDescription={category.description}
       categoryImage={
@@ -89,6 +104,7 @@ export default async function CategoryPage({ params }: PageProps) {
         series: p.series,
         machines: p.machines,
         stockCount: p.stockCount,
+        categorySlugs: p.categorySlugs,
       }))}
     />
   );

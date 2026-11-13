@@ -7,6 +7,7 @@ import type { ProductCardData } from '@/components/product/ProductCard'
 import { isSeriesKey, type SeriesKey } from '@/lib/series'
 import { stockStateFor } from '@/lib/catalog-ui'
 import { getMarket } from '@/i18n/locale'
+import { FLEXBACK_PHOTO, MEAT_PHOTO } from './product-images'
 import {
   localizeCategory,
   localizeDescription,
@@ -55,7 +56,7 @@ export type CatalogProduct = ProductCardData & {
   /** Saw-Meister product line; null for bimetal, circulars, knives, abrasives. */
   series: SeriesKey | null
   shortDescription?: string
-  specs: { width?: number; thickness?: number; length?: number; material?: string }
+  specs: { width?: number; thickness?: number; length?: number; material?: string; toothPitch?: string }
   /** Machines this size fits — "Holzmann BS128HDR". Drives the machine filter. */
   machines: string[]
   /** One line per blade in a mixed set; empty for everything else. */
@@ -114,7 +115,7 @@ const SERIES_IMAGE: Record<SeriesKey, string> = {
   softcut: '/images/products/kodiak.png',
   procut: '/images/products/mastergold.png',
   vector: '/images/products/kodiak.png',
-  flexcut: '/images/products/hardback_fixed.png',
+  flexcut: FLEXBACK_PHOTO,
   finecut: '/images/products/hardback_fixed.png',
 }
 
@@ -125,6 +126,9 @@ function fallbackImage(
   material?: string,
 ): string | undefined {
   if (!categorySlugs.some((s) => BLADE_CATEGORIES.has(s))) return undefined
+
+  // Meat blades have a photograph of their own; the rest of the food blades keep the series photo.
+  if (categorySlugs.includes('meso-i-riba')) return MEAT_PHOTO
 
   if (series) return SERIES_IMAGE[series]
 
@@ -230,6 +234,7 @@ function toCatalogProduct(
     thickness?: number
     length?: number
     material?: string
+    toothPitch?: string
   }
   const ro = doc.ro as Override
   const stockCount = typeof doc.stock === 'number' ? doc.stock : 0

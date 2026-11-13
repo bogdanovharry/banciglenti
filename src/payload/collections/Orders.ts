@@ -1,6 +1,6 @@
 import { ValidationError, type CollectionConfig } from 'payload'
 
-import { isAdmin, isStaff } from '../access'
+import { isAdmin, isStaff, serverOnly } from '../access'
 
 type LogRow = { id?: string | null; note?: string | null; author?: unknown; at?: string | null }
 
@@ -169,6 +169,15 @@ export const Orders: CollectionConfig = {
       required: true,
       admin: { hidden: true },
     },
+    {
+      // The shopper's own profile, set only when the order was placed while logged in.
+      // Never matched by e-mail: that would show an order to whoever registers the address.
+      name: 'account',
+      type: 'relationship',
+      relationTo: 'accounts',
+      access: serverOnly,
+      admin: { hidden: true },
+    },
     // Hidden from the form: every line, its sizes and its totals are in the
     // summary card. Keeping the array here as well is what forced the screen
     // to scroll — the old platform fitted the whole order in one view and that
@@ -266,6 +275,7 @@ export const Orders: CollectionConfig = {
               label: 'Метод',
               options: [
                 { label: 'myPOS (карта)', value: 'mypos' },
+                { label: 'Карта (Revolut)', value: 'revolut' },
                 { label: 'Наложен платеж', value: 'cod' },
                 { label: 'Банков превод', value: 'bank_transfer' },
               ],
@@ -376,6 +386,10 @@ export const Orders: CollectionConfig = {
           ],
         },
         { name: 'address', type: 'textarea', label: 'Седалище' },
+        // Consent to receive the invoice electronically (art. 114(9) ЗДДС).
+        // Written by the order route only; without it no invoice is e-mailed.
+        { name: 'einvoiceConsent', type: 'checkbox', label: 'Съгласие за електронна фактура', defaultValue: false, access: serverOnly },
+        { name: 'einvoiceConsentAt', type: 'date', label: 'Съгласие дадено на', access: serverOnly },
       ],
     },
     // The three money fields sit in the sidebar, read-only, because /api/checkout
