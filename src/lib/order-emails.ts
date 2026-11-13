@@ -30,7 +30,7 @@ export type EmailOrder = {
   contact: { name: string; email: string; phone: string; company?: string }
   address: string
   shippingMethod: 'courier' | 'pickup'
-  paymentMethod: 'cod' | 'bank_transfer'
+  paymentMethod: 'cod' | 'bank_transfer' | 'card'
   lines: EmailLine[]
   /** EUR. */
   subtotal: number
@@ -71,6 +71,7 @@ const CUSTOMER = {
     collectFee: (couriers: string) =>
       `Доставката с ${couriers} се таксува по тегло и се плаща на куриера при получаване. Не е включена в сумата.`,
     flatFee: (fee: string) => `Доставка: ${fee} (включена в общата сума).`,
+    paid: (total: string) => `Плащането с карта е получено: ${total}. Благодарим ви!`,
     transfer: (iban: string, ref: string) =>
       `Банков превод: IBAN ${iban}, основание ${ref}. Поръчката тръгва след потвърждение на плащането.`,
     madeToMeasure: 'Изработва се по ваш размер — не подлежи на връщане.',
@@ -99,6 +100,7 @@ const CUSTOMER = {
     collectFee: (couriers: string) =>
       `Livrarea cu ${couriers} se taxează în funcție de greutate și se plătește curierului la primire. Nu este inclusă în total.`,
     flatFee: (fee: string) => `Livrare: ${fee} (inclusă în total).`,
+    paid: (total: string) => `Plata cu cardul a fost primită: ${total}. Vă mulțumim!`,
     transfer: (iban: string, ref: string) =>
       `Transfer bancar: IBAN ${iban}, detalii plată ${ref}. Comanda pleacă după confirmarea plății.`,
     madeToMeasure: 'Se fabrică la dimensiunea dvs. — nu se poate returna.',
@@ -131,7 +133,9 @@ export function customerEmail(market: Market, order: EmailOrder, origin: string)
               ? L.flatFee(money(order.shippingCost))
               : '',
         ]
-      : [L.transfer(company.bank.iban, order.orderNumber)]
+      : order.paymentMethod === 'card'
+        ? [L.paid(money(owed))]
+        : [L.transfer(company.bank.iban, order.orderNumber)]
   const notes = [...payment, hasMadeToMeasure ? L.madeToMeasure : ''].filter(Boolean)
 
   const where = order.shippingMethod === 'pickup' ? L.pickup : `${L.deliveryAddress}:\n${order.address}`
@@ -208,7 +212,7 @@ export function staffOrderEmail(order: EmailOrder, market: Market, origin: strin
     `Телефон: ${order.contact.phone}`,
     `Имейл: ${order.contact.email}`,
     order.shippingMethod === 'pickup' ? 'Доставка: лично вземане' : `Адрес:\n${order.address}`,
-    `Плащане: ${order.paymentMethod === 'cod' ? 'наложен платеж' : 'банков превод'}`,
+    `Плащане: ${order.paymentMethod === 'cod' ? 'наложен платеж' : order.paymentMethod === 'card' ? 'карта — ПЛАТЕНА през Revolut' : 'банков превод'}`,
     ...(order.billing
       ? [
           '',

@@ -98,6 +98,7 @@ export const PAYMENT_LABEL: Record<string, string> = {
 
 export const PAYMENT_METHOD_LABEL: Record<string, string> = {
   mypos: 'myPOS',
+  revolut: 'Карта (Revolut)',
   cod: 'Наложен платеж',
   bank_transfer: 'Банков превод',
 }

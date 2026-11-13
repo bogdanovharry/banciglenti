@@ -11,14 +11,15 @@ import {
   round2,
   type CustomSpecs,
 } from '@/lib/order-pricing'
-import { carriageTerms, vatRateFor, type CheckoutPaymentMethod, type Market } from '@/lib/market'
+import { carriageTerms, vatRateFor, type CheckoutPaymentMethod } from '@/lib/market'
 import { getMarket } from '@/i18n/locale'
 import { withOrderNumber } from '@/lib/order-number'
 import { clientIp, rateLimited } from '@/lib/rate-limit'
 import { serverText } from '@/lib/server-text'
 import { localizeName, textLang, type Override } from '@/lib/product-text'
-import { sendEmail, staffRecipients } from '@/lib/email'
-import { customerEmail, staffOrderEmail, type EmailOrder } from '@/lib/order-emails'
+import type { EmailOrder } from '@/lib/order-emails'
+import { notifyOrder } from '@/lib/order-notify'
+import { startCardPayment } from '@/lib/card-payments'
 import { getAccount } from '@/lib/account'
 import { siteOrigin } from '@/lib/site-url'
 import { nameWithPitch, pitchInfoFor, pitchText } from '@/lib/product-pitch'
@@ -227,7 +228,14 @@ export async function POST(request: Request) {
         limit: 1,
         depth: 0,
       })
-      if (earlier.docs[0]) return NextResponse.json(receipt(earlier.docs[0] as unknown as Stored))
+      if (earlier.docs[0]) {
+        const again = earlier.docs[0] as unknown as Stored & { payment?: { method?: string | null; status?: string | null } | null }
+        if (again.payment?.method === 'revolut' && again.payment.status === 'pending') {
+          const pay = await startCardPayment(again.id)
+          return NextResponse.json({ ...receipt(again), ...('url' in pay ? { paymentUrl: pay.url } : { paymentFailed: true }) })
+        }
+        return NextResponse.json(receipt(again))
+      }
     }
 
     const vatRate = vatRateFor(market)
@@ -438,7 +446,8 @@ export async function POST(request: Request) {
               return stored
             }),
             status: 'pending',
-            payment: { method: paymentMethod, status: 'pending' },
+            // The buyer's word for it is "card"; the order records who takes it.
+            payment: { method: paymentMethod === 'card' ? 'revolut' : paymentMethod, status: 'pending' },
             shipping: { method: shippingMethod, address, cost: shippingCost },
             subtotal,
             tax,
@@ -511,70 +520,32 @@ export async function POST(request: Request) {
       billing,
       notes: notes || undefined,
     }
-    after(() => notify(order.id, emailOrder, market, origin))
+    // A card order is announced when it is paid, not when it is started: an order
+    // nobody finished paying for is not one the workshop should hear about.
+    if (paymentMethod === 'card') {
+      const pay = await startCardPayment(order.id)
+      if ('url' in pay) return NextResponse.json({ ...receipt(order), paymentUrl: pay.url })
+
+      // The card page could not be opened. The order is real, so it goes on as
+      // the next-best method of this market and the workshop is told as usual.
+      const fallback = market.paymentMethods.includes('bank_transfer') ? 'bank_transfer' : 'cod'
+      await payload.update({
+        collection: 'orders',
+        id: order.id,
+        data: {
+          payment: { method: fallback, status: 'pending' },
+          log: [{ note: `Плащането с карта не успя да се стартира — поръчката продължава като „${fallback === 'cod' ? 'наложен платеж' : 'банков превод'}“.`, at: new Date().toISOString() }],
+        },
+      })
+      after(() => notifyOrder(order.id, { ...emailOrder, paymentMethod: fallback }, market, origin))
+      return NextResponse.json({ ...receipt(order), paymentFailed: true, fallbackMethod: fallback })
+    }
+
+    after(() => notifyOrder(order.id, emailOrder, market, origin))
 
     return NextResponse.json(receipt(order))
   } catch (error) {
     console.error('Order creation failed:', error)
     return NextResponse.json({ error: say.orderFailed }, { status: 500 })
-  }
-}
-
-/**
- * The two emails an order sends, and a line in the order's history saying how
- * it went.
- *
- * The line is the point: a notification that fails silently is an order nobody
- * knows to look at. If the staff email is not sent — no provider configured, or
- * the provider refused — the order's history says so, and so does the
- * dashboard's pending count, which is the safety net.
- */
-async function notify(orderId: number, order: EmailOrder, market: Market, origin: string) {
-  try {
-    const customer = customerEmail(market, order, origin)
-    const staff = staffOrderEmail(order, market, origin)
-    const recipients = staffRecipients()
-
-    const [toCustomer, toStaff] = await Promise.all([
-      sendEmail({
-        to: order.contact.email,
-        subject: customer.subject,
-        html: customer.html,
-        text: customer.text,
-        idempotencyKey: `order-${order.orderNumber}-customer`,
-      }),
-      sendEmail({
-        to: recipients,
-        subject: staff.subject,
-        html: staff.html,
-        text: staff.text,
-        replyTo: order.contact.email,
-        idempotencyKey: `order-${order.orderNumber}-staff`,
-      }),
-    ])
-
-    const describe = (label: string, r: typeof toStaff) =>
-      r.ok ? `${label}: изпратен` : r.skipped ? `${label}: не е изпратен (няма настроен имейл)` : `${label}: НЕУСПЕШЕН (${r.error})`
-    const note = `${describe('Имейл до клиента', toCustomer)} · ${describe('Известие до екипа', toStaff)}`
-
-    // Only worth a line when something needs a person: both sent is the norm.
-    if (toCustomer.ok && toStaff.ok) return
-
-    const payload = await getPayload({ config })
-    const doc = (await payload.findByID({ collection: 'orders', id: orderId, depth: 0 })) as unknown as {
-      log?: { id?: string | null; note?: string | null; at?: string | null; author?: number | null }[] | null
-    }
-    await payload.update({
-      collection: 'orders',
-      id: orderId,
-      data: {
-        log: [
-          ...(doc.log ?? []).map((e) => ({ id: e.id ?? undefined, note: e.note ?? '', at: e.at ?? null, author: e.author ?? null })),
-          { note, at: new Date().toISOString() },
-        ],
-      },
-    })
-  } catch (error) {
-    console.error('[order] notification step failed:', error)
   }
 }

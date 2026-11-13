@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 
 import {
   DEFAULT_MARKET,
@@ -25,8 +25,14 @@ import {
  */
 const MarketContext = createContext<Market>(DEFAULT_MARKET);
 
-export function MarketProvider({ code, children }: { code: MarketCode; children: ReactNode }) {
-  return <MarketContext.Provider value={MARKETS[code]}>{children}</MarketContext.Provider>;
+export function MarketProvider({ code, cardPayments = false, children }: { code: MarketCode; cardPayments?: boolean; children: ReactNode }) {
+  // Card payment is a property of the deployment (a provider is connected), not of the
+  // market registry: the server says whether it is on and it is added here, first.
+  const market = useMemo<Market>(
+    () => (cardPayments ? { ...MARKETS[code], paymentMethods: ["card", ...MARKETS[code].paymentMethods] } : MARKETS[code]),
+    [code, cardPayments],
+  );
+  return <MarketContext.Provider value={market}>{children}</MarketContext.Provider>;
 }
 
 export const useMarket = (): Market => useContext(MarketContext);

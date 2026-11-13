@@ -60,7 +60,7 @@ export default async function FrontendLayout({
     <html lang={locale.split("-")[0]} className={inter.variable}>
       <body className="tl-grain font-sans antialiased text-ink bg-white">
         <NextIntlClientProvider locale={locale} messages={messages}>
-        <MarketProvider code={market.code}>
+        <MarketProvider code={market.code} cardPayments={market.paymentMethods.includes("card")}>
         <CartProvider>
           <a
             href="#main-content"
