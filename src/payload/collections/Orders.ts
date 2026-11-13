@@ -275,6 +275,7 @@ export const Orders: CollectionConfig = {
               label: 'Метод',
               options: [
                 { label: 'myPOS (карта)', value: 'mypos' },
+                { label: 'Карта (Revolut)', value: 'revolut' },
                 { label: 'Наложен платеж', value: 'cod' },
                 { label: 'Банков превод', value: 'bank_transfer' },
               ],

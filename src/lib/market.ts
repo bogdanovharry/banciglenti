@@ -13,7 +13,8 @@
 export type MarketCode = 'bg' | 'ro' | 'gr'
 
 /** What a buyer can choose at checkout. Cards join once a provider is connected. */
-export type CheckoutPaymentMethod = 'bank_transfer' | 'cod'
+/** 'card' is not listed in the registry: it exists only where a card provider is connected (see getMarket). */
+export type CheckoutPaymentMethod = 'bank_transfer' | 'cod' | 'card'
 
 export type Market = {
   code: MarketCode

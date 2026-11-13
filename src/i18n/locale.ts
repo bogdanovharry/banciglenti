@@ -2,6 +2,7 @@ import { headers } from 'next/headers'
 
 import { MARKETS, DEFAULT_MARKET, type Market, type MarketCode } from '@/lib/market'
 import { DOMAIN_MARKET } from '@/lib/domains'
+import { cardPaymentsEnabled } from '@/lib/revolut'
 
 /**
  * Which market a request belongs to, resolved from the domain it arrived on.
@@ -33,15 +34,24 @@ export async function getMarket(): Promise<Market> {
     .toLowerCase()
 
   const byDomain = DOMAIN_MARKET[host]
-  if (byDomain) return MARKETS[byDomain]
+  if (byDomain) return withCard(MARKETS[byDomain])
 
   // Unknown host — a bare `localhost` or a preview URL. The header override is
   // for curl and automated checks; it is read only when the hostname did not
   // already identify a market, so it can never change what a customer sees.
   const override = list.get('x-market-override')
-  if (isMarketCode(override)) return MARKETS[override]
+  if (isMarketCode(override)) return withCard(MARKETS[override])
 
-  return DEFAULT_MARKET
+  return withCard(DEFAULT_MARKET)
+}
+
+/**
+ * Card payment is offered, first, wherever a provider is connected; the registry
+ * lists only the methods that need no provider. Taking the option out of the
+ * environment means switching it on or off needs no deploy of code.
+ */
+function withCard(market: Market): Market {
+  return cardPaymentsEnabled() ? { ...market, paymentMethods: ['card', ...market.paymentMethods.filter((m) => m !== 'card')] } : market
 }
 
 export async function getLocale(): Promise<string> {

@@ -84,7 +84,19 @@
     "orderNumber": "Număr comandă",
     "keepNumber": "Notați-vă numărul.",
     "bankInstruction": "Veți primi datele pentru transferul bancar — comanda pleacă după confirmarea plății.",
-    "backHome": "Spre pagina principală"
+    "backHome": "Spre pagina principală",
+    "card": "Plată cu cardul",
+    "cardInstruction": "Veți fi redirecționat către pagina securizată Revolut, unde plătiți cu cardul, Apple Pay, Google Pay sau Revolut Pay. Datele cardului nu trec prin site-ul nostru.",
+    "cardFailed": "Plata cu cardul nu a putut fi pornită. Comanda dvs. este înregistrată și continuă cu cealaltă metodă de plată — veți primi instrucțiuni prin e-mail.",
+    "returnTitle": "Plată",
+    "returnPaidTitle": "Plata a fost primită",
+    "returnPaidText": "Vă mulțumim! Comanda dvs. este confirmată și veți primi un e-mail cu detaliile.",
+    "returnPendingTitle": "Confirmăm plata…",
+    "returnPendingText": "Banca încă procesează plata. Pagina se actualizează singură — nu o închideți.",
+    "returnProblemTitle": "Plata nu a fost finalizată",
+    "returnFailedText": "Plata nu a fost efectuată, iar comanda a fost anulată. Puteți încerca din nou.",
+    "returnProblemText": "Nu am putut confirma plata. Dacă vi s-au retras bani, scrieți-ne cu numărul comenzii.",
+    "returnTryAgain": "Încercați din nou"
   },
   "contact": {
     "eyebrow": "Asistență tehnică",

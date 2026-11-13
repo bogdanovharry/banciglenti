@@ -124,6 +124,7 @@ export default function CheckoutPage() {
   const [billing, setBilling] = useState<Record<BillingField, string>>(
     () => Object.fromEntries(BILLING_FIELDS.map((f) => [f, ""])) as Record<BillingField, string>,
   );
+  const [cardFailed, setCardFailed] = useState(false);
   // Who is logged in, if anyone: fills the form once, and the order route reads the
   // same session itself — nothing here is trusted to say which profile an order belongs to.
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
@@ -142,6 +143,7 @@ export default function CheckoutPage() {
   const hasMadeToMeasure = items.some((i) => i.customSpecs);
 
   const paymentLabels: Record<CheckoutPaymentMethod, string> = {
+    card: t("card"),
     bank_transfer: t("bankTransfer"),
     cod: t("cod"),
   };
@@ -269,6 +271,9 @@ export default function CheckoutPage() {
       });
 
       const data = (await res.json().catch(() => ({}))) as Partial<OrderResult> & {
+        paymentUrl?: string;
+        paymentFailed?: boolean;
+        fallbackMethod?: CheckoutPaymentMethod;
         error?: string;
         fields?: Record<string, string>;
       };
@@ -278,6 +283,17 @@ export default function CheckoutPage() {
         if (data.fields) setFieldErrors(data.fields);
         return;
       }
+
+      // Paying by card: the buyer goes to Revolut's page. The cart is left alone until
+      // the return page confirms the payment, so closing that page loses nothing; the
+      // same idempotency key brings the same order, and the same payment page, back.
+      if (data.paymentUrl) {
+        window.location.assign(data.paymentUrl);
+        return;
+      }
+      // The card page could not be opened: the order went on by the fallback method.
+      if (data.paymentFailed && data.fallbackMethod) setMethod(data.fallbackMethod);
+      setCardFailed(Boolean(data.paymentFailed));
 
       // Clear only once the order is safely recorded.
       setResult({
@@ -335,6 +351,9 @@ export default function CheckoutPage() {
             <p className="font-sans text-sm text-ink-70 mt-5 mb-0">
               {t("keepNumber")} {method === "bank_transfer" ? t("bankInstruction") : t("codInstruction")}
             </p>
+            {cardFailed && (
+              <p role="alert" className="font-sans text-sm text-danger mt-2 mb-0">{t("cardFailed")}</p>
+            )}
             {market.carriage === "collect" && (
               <p className="font-sans text-sm text-ink-70 mt-2 mb-0">
                 {tc("courierFeeNote", { couriers: market.couriers.join(" / ") })}
@@ -518,6 +537,11 @@ export default function CheckoutPage() {
               {method === "cod" && (
                 <div className="p-4 bg-paper font-sans text-sm text-ink-70">
                   {t("codInstruction")}
+                </div>
+              )}
+              {method === "card" && (
+                <div className="p-4 bg-paper font-sans text-sm text-ink-70">
+                  {t("cardInstruction")}
                 </div>
               )}
               <label className="block mt-4">
