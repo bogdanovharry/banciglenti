@@ -6,16 +6,24 @@ transfer are unchanged.
 
 ## Switching it on
 
-Three variables on the Vercel project of each shop. Without the first, the card
+Variables on the Vercel project of each shop. The API key needs **Merchant → Orders: Write** and
+**Customers: Write** (Read alone gives `403 Operation not allowed with the credentials presented`). Without the first, the card
 option does not exist (`getMarket` only adds it when it is set).
 
 | Variable | What |
 | --- | --- |
 | `REVOLUT_MERCHANT_SECRET` | Merchant API **secret** key. Sandbox key while testing. |
-| `REVOLUT_WEBHOOK_SECRET` | Signing secret returned when the webhook is created. |
+| `REVOLUT_WEBHOOK_SECRET` | Optional. Signing secret returned when the webhook is created. |
 | `REVOLUT_ENV` | `sandbox` while testing; leave unset for live. |
 
-Webhook: create it once per environment (Revolut Business → Merchant API → Webhooks,
+**Webhook is optional.** Revolut's webhooks need a higher plan than Basic, and the shop does
+not depend on them: the return page settles the payment, and `/manage` (dashboard and order
+list) settles any card order from the last three days that is still pending
+(`reconcilePendingCardOrders`, at most every 30 s per instance). The only gap is a buyer who pays
+and closes the tab before coming back: their order shows as paid the next time someone opens
+`/manage`. With a webhook that gap closes at once.
+
+Webhook, if the plan has it: create it once per environment (Revolut Business → Merchant API → Webhooks,
 or the API) pointing at `https://<shop address>/api/payments/revolut`, events
 `ORDER_COMPLETED`, `ORDER_CANCELLED`, `ORDER_FAILED`. The shop also settles a payment
 when the buyer comes back, so a missing webhook delays nothing the buyer sees.

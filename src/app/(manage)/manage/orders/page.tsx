@@ -5,6 +5,9 @@ import { StatusPill } from '../../_components/StatusPill'
 import { money, shortDate, shortTime } from '@/lib/manage/format'
 import { orderHref } from '@/lib/manage/routes'
 import { listOrders } from '@/lib/manage/orders'
+import { reconcilePendingCardOrders } from '@/lib/card-payments'
+import { requireUser } from '@/lib/manage/session'
+import { cardPaymentsEnabled } from '@/lib/revolut'
 import {
   DEFAULT_SORT,
   isOrderStatus,
@@ -99,6 +102,9 @@ function SortHeader({
 }
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<Search> }) {
+  // Card payments nobody came back for are settled before the list is read — for staff only.
+  await requireUser('/manage/orders')
+  if (cardPaymentsEnabled()) await reconcilePendingCardOrders()
   const sp = await searchParams
 
   const statusParam = one(sp.status)

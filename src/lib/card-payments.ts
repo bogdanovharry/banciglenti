@@ -187,3 +187,49 @@ export function emailOrderFrom(doc: OrderDoc): EmailOrder {
     notes: doc.notes ?? undefined,
   }
 }
+
+let lastSweep = 0
+
+/**
+ * Settle the card payments nobody has come back for.
+ *
+ * Without Revolut's webhook (it needs a higher plan), the only thing that asks
+ * Revolut about an order is the buyer's return to /checkout/return. A buyer who
+ * pays and closes the tab first would leave a paid order looking unpaid. So the
+ * staff screens that list orders call this: it asks about every card order still
+ * pending from the last three days, which marks the paid ones, sends their
+ * e-mails, and cancels the ones Revolut has given up on.
+ *
+ * Cheap to call: at most once every 30 seconds per server instance, a handful of
+ * lookups at a time, and never longer than a few seconds on the page.
+ */
+export async function reconcilePendingCardOrders(): Promise<void> {
+  const now = Date.now()
+  if (now - lastSweep < 30_000) return
+  lastSweep = now
+
+  try {
+    const payload = await getPayload({ config })
+    const since = new Date(now - 3 * 24 * 3600_000).toISOString()
+    const pending = await payload.find({
+      collection: 'orders',
+      where: {
+        and: [
+          { 'payment.method': { equals: 'revolut' } },
+          { 'payment.status': { equals: 'pending' } },
+          { status: { not_equals: 'cancelled' } },
+          { createdAt: { greater_than: since } },
+        ],
+      },
+      sort: 'createdAt',
+      limit: 20,
+      depth: 0,
+    })
+    if (pending.docs.length === 0) return
+
+    const work = Promise.allSettled(pending.docs.map((d) => reconcileCardPayment({ id: (d as unknown as { id: number }).id })))
+    await Promise.race([work, new Promise((resolve) => setTimeout(resolve, 6000))])
+  } catch (error) {
+    console.error('[card] sweep failed', error)
+  }
+}

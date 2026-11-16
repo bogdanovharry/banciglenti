@@ -5,6 +5,8 @@ import { StatusPill } from '../_components/StatusPill'
 import { customerMoney, money, shortDate, shortTime } from '@/lib/manage/format'
 import { orderHref } from '@/lib/manage/routes'
 import { requireUser } from '@/lib/manage/session'
+import { reconcilePendingCardOrders } from '@/lib/card-payments'
+import { cardPaymentsEnabled } from '@/lib/revolut'
 import {
   getDashboardStats,
   LOW_STOCK_THRESHOLD,
@@ -135,6 +137,7 @@ function PeriodRow({ label, figure, sub = false }: { label: string; figure: Figu
 
 export default async function DashboardPage() {
   await requireUser('/manage')
+  if (cardPaymentsEnabled()) await reconcilePendingCardOrders()
 
   const stats = await getDashboardStats()
   const { revenue, statuses, customers, lowStock } = stats
