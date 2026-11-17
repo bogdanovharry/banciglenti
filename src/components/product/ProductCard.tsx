@@ -211,7 +211,7 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
 
             <button
               disabled={soldOut}
-              className="flex items-center gap-1.5 px-3 py-2 bg-ink text-white border-none cursor-pointer font-mono text-[10px] tracking-[0.1em] uppercase hover:bg-orange transition-colors disabled:bg-ink-15 disabled:text-ink-50 disabled:cursor-not-allowed shrink-0"
+              className="flex items-center gap-1.5 px-3 py-2 max-sm:min-h-11 bg-ink text-white border-none cursor-pointer font-mono text-[10px] tracking-[0.1em] uppercase hover:bg-orange transition-colors disabled:bg-ink-15 disabled:text-ink-50 disabled:cursor-not-allowed shrink-0"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

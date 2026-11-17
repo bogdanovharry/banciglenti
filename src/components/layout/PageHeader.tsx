@@ -59,7 +59,7 @@ export function PageHeader({
             {crumbs.map((c, i) => (
               <span key={`${c.label}-${i}`} className="flex gap-2">
                 {c.href ? (
-                  <Link href={c.href} className="text-white/55 no-underline hover:text-white transition-colors">
+                  <Link href={c.href} className="text-white/55 no-underline hover:text-white transition-colors py-2 -my-2">
                     {c.label}
                   </Link>
                 ) : (

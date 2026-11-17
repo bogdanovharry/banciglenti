@@ -633,7 +633,7 @@ export function ShopClient({
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="font-mono text-[11px] p-2 border border-ink-15 bg-white text-ink"
+              className="font-mono text-[11px] p-2 max-md:min-h-11 border border-ink-15 bg-white text-ink"
             >
               {SORT_OPTIONS.map((o) => (
                 <option key={o.key} value={o.key}>

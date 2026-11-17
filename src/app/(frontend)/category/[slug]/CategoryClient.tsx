@@ -48,6 +48,14 @@ export function CategoryClient({
   const { filtered, panel, clear, active, hasFilters } = useSizeFilters(products, { facets: facetsFor(categorySlug), lengthKind: lengthKindFor(categorySlug) });
   const sortedProducts = [...filtered].sort(compareBy(sort));
 
+  // Show a page at a time: a category can hold hundreds of cards, and on a phone
+  // that is a list nobody scrolls to the end of. Starts over when the view changes.
+  const PAGE = 12;
+  const viewSignature = `${sort}|${sortedProducts.length}|${sortedProducts[0]?.sku ?? ""}`;
+  const [more, setMore] = useState({ signature: viewSignature, count: PAGE });
+  const visibleCount = more.signature === viewSignature ? more.count : PAGE;
+  const visibleProducts = sortedProducts.slice(0, visibleCount);
+
   return (
     <>
       <PageHeader
@@ -112,7 +120,7 @@ export function CategoryClient({
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
               aria-label={t("shop.sortBy")}
-              className="font-mono text-[11px] p-2 border border-ink-15 bg-white"
+              className="font-mono text-[11px] p-2 max-md:min-h-11 border border-ink-15 bg-white"
             >
               {/* No width sort here: a category mixes blades with circular saws,
                   planer knives and abrasives, where width means different things. */}
@@ -167,10 +175,26 @@ export function CategoryClient({
                 <Btn variant="ghost" size="md" onClick={clear}>{t("filters.clearAll")}</Btn>
               </div>
             ) : (
+              <div>
               <div className={`grid content-start grid-cols-1 sm:grid-cols-2 gap-5 ${hasFilters ? "xl:grid-cols-3" : "lg:grid-cols-3 xl:grid-cols-4"}`}>
-                {sortedProducts.map((p) => (
+                {visibleProducts.map((p) => (
                   <ProductCard key={p.sku} p={p} compact />
                 ))}
+              </div>
+              {sortedProducts.length > visibleProducts.length && (
+                <div className="mt-8 flex flex-col items-center gap-2">
+                  <span className="font-mono text-[11px] text-ink-50">
+                    {t("shop.count", { shown: visibleProducts.length, total: sortedProducts.length })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMore({ signature: viewSignature, count: visibleCount + PAGE })}
+                    className="bg-white border border-ink text-ink px-8 py-3 cursor-pointer font-mono text-[11px] tracking-[0.1em] uppercase hover:bg-ink hover:text-white transition-colors"
+                  >
+                    {t("shop.showMore")}
+                  </button>
+                </div>
+              )}
               </div>
             )}
           </div>
