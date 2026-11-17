@@ -64,19 +64,19 @@
     "meta": {
       "productDescription": "{name} — {gross} {incVat} ({net} {exVat}). Livrare prin curier la adresa dvs. sau la un punct de ridicare.",
       "shopTitle": "Catalog",
-      "shopDescription": "Catalog complet de pânze pentru ferăstrău panglică, pânze circulare, cuțite de rindea și abrazivi. Filtrați după categorie sau comandați la dimensiunea dorită.",
+      "shopDescription": "Catalog complet de pânze panglică banzic, pânze circulare, cuțite de rindea și abrazivi. Filtrați după categorie sau comandați la dimensiunea dorită.",
       "categoryNotFound": "Categoria nu a fost găsită",
       "categoryDescription": "{name} — produse și prețuri cu și fără TVA.",
       "configuratorTitle": "Configurator",
       "configuratorDescription": "Alegeți tipul de pânză, stabiliți dimensiunile și aflați prețul pe loc — conform listei de prețuri actuale. Termenul de execuție se confirmă la procesarea comenzii."
     },
     "configurator": {
-      "heroAlt": "Pânză de ferăstrău panglică în lucru pe un gater",
+      "heroAlt": "Pânză de fierăstrău panglică în lucru pe un gater",
       "titleLine1": "Comandați pânza",
       "titleLine2": "la dimensiunea dvs.",
       "description": "Alegeți tipul de pânză, stabiliți dimensiunile și aflați prețul pe loc — conform listei de prețuri actuale. Termenul de execuție se confirmă la procesarea comenzii.",
       "unavailable": "indisponibil",
-      "setting": "Avoiere",
+      "setting": "Ceaprăzuire",
       "weldingIncluded": "Sudura — inclusă în preț"
     },
     "category": {
@@ -116,7 +116,7 @@
       "chipLength": "Lungime {min}–{max} {unit}",
       "inStockOnly": "Doar în stoc",
       "findByMachine": "Căutați după utilaj",
-      "findByMachineHint": "Marca și modelul ferăstrăului dvs. panglică.",
+      "findByMachineHint": "Marca și modelul fierăstrăului dvs. panglică.",
       "pickMachine": "Alegeți utilajul",
       "pickMachineOption": "— alegeți utilajul —",
       "findByLength": "Căutați după lungime",
@@ -136,7 +136,7 @@
       "brand": "Tip/model",
       "sideCardText": "Nu găsiți dimensiunea dvs.? Comandați o pânză la dimensiuni personalizate.",
       "sideCardCta": "Deschideți configuratorul",
-      "heroAlt": "Ferăstrău panglică în lucru",
+      "heroAlt": "Fierăstrău panglică în lucru",
       "titleLead": "Toate",
       "titleAccent": "produsele",
       "description": "Filtrați după lățime, material sau tip/model. Nu găsiți dimensiunea dvs. — configuratorul realizează pânza la comandă.",
@@ -148,7 +148,7 @@
       "clearAll": "Ștergeți tot",
       "noMatches": "Nicio potrivire",
       "emptyTitle": "Această dimensiune nu este în catalog — dar o putem realiza.",
-      "emptyText": "Sudăm pânze pentru ferăstrău panglică la dimensiuni personalizate, de la {min} mm în sus, fără limită superioară.",
+      "emptyText": "Sudăm pânze pentru fierăstrău panglică la dimensiuni personalizate, de la {min} mm în sus, fără limită superioară.",
       "emptyCta": "Configurați pânza",
       "bannerTitle": "Comandați pânza la dimensiunea dvs.",
       "bannerHint": "{types} tipuri de pânze · Lungime de la {min} mm în sus",
@@ -168,7 +168,7 @@
       "vector": {
         "type": "Vertical",
         "application": "Atelier și producție de mobilă",
-        "description": "Serie pentru ferăstraiele panglică verticale din clasa profesională și industrială medie — peste nivelul hobby. Lățimi de la 15 la 60 mm. Se execută din același oțel ca ProCut, dar cu pași ai dinților gândiți pentru atelier și producție de mobilă, nu pentru debitarea buștenilor. De aici vine și diferența de rezultat: stabilitate, precizie și o tăietură curată la prelucrarea pieselor."
+        "description": "Serie pentru fierăstraiele panglică verticale din clasa profesională și industrială medie — peste nivelul hobby. Lățimi de la 15 la 60 mm. Se execută din același oțel ca ProCut, dar cu pași ai dinților gândiți pentru atelier și producție de mobilă, nu pentru debitarea buștenilor. De aici vine și diferența de rezultat: stabilitate, precizie și o tăietură curată la prelucrarea pieselor."
       },
       "flexcut": {
         "type": "Oțel carbon Flexback",
@@ -220,17 +220,17 @@
           "cleaner-tooth": "Dintele cu curățitor este pentru despicarea carcaselor proaspete și congelate. Curățitorul scoate pasta de os din gol, în loc să o îndese acolo — pânza nu se înfundă, taie mai curat și lucrează mai silențios.",
           "concave-wave": "Valul concav mușcă cu vârfurile coaja, membrana și pielea alunecoasă, iar semiluna dintre ele taie. Pentru pește, mezeluri, brânză și legume, și pentru pâine cu crustă tare.",
           "convex-wave": "Valul convex este pentru tăierea și filetarea peștelui proaspăt, necongelat, și pentru secționarea oaselor subțiri. Muchia rotunjită intră prin piele fără să rupă fibra de sub ea.",
-          "smooth-ground": "Muchia ascuțită neted nu are dinte și nu are avoiere — taie, în loc să zgârie. Cea mai curată tăietură posibilă pe pește și carne dezosate, fără firimituri și fără rupturi; nu se folosește pe os.",
+          "smooth-ground": "Muchia ascuțită neted nu are dinte și nu are ceaprăzuire — taie, în loc să zgârie. Cea mai curată tăietură posibilă pe pește și carne dezosate, fără firimituri și fără rupturi; nu se folosește pe os.",
           "wave": "Muchia ondulată taie prin alunecare și nu strivește produsul de sub ea — felii perfecte, cu un minim de firimituri, la pâine și produse de panificație, și o alegere sigură la pește și produse din pește."
         },
         "breadConcaveWave": "Valul concav mușcă cu vârfurile crusta tare, iar semiluna dintre ele taie miezul. Pentru pâine rustică și integrală cu crustă tare, unde valul obișnuit alunecă, în loc să intre.",
         "steel": "Execuția este din oțel inoxidabil, apt pentru contactul cu alimentele și pentru spălare și dezinfectare zilnică.",
         "baseTextile": "Cuțit-bandă pentru materiale moi — burete și spumă poliuretanică, textile în straturi, piele, hârtie, carton și plută. Lucrează pe o mașină de debitat cu bandă și ascuțire integrată: muchia se reînnoiește din mers, de aceea ultimul metru din pachet iese ca primul.",
         "baseBread": "Cuțit-bandă pentru mașina de feliat pâine. Muchia ondulată taie crusta, în loc să o rupă — de aici vin feliile egale și puținele firimituri. {steel}",
-        "baseToothed": "Ferăstrău-bandă pentru carne cu os și pentru bloc congelat. Dintele este călit și avoiat, ca să taie osul fără ca golul să se înfunde cu pastă de os. {steel}",
-        "baseCleaner": "Ferăstrău-bandă cu curățitor pentru despicarea carcaselor. Curățitorul merge în urma dinților tăietori și curăță golul, ceea ce ține pânza în linie dreaptă prin toată carcasa. {steel}",
+        "baseToothed": "Fierăstrău-bandă pentru carne cu os și pentru bloc congelat. Dintele este călit și ceaprăzuit, ca să taie osul fără ca golul să se înfunde cu pastă de os. {steel}",
+        "baseCleaner": "Fierăstrău-bandă cu curățitor pentru despicarea carcaselor. Curățitorul merge în urma dinților tăietori și curăță golul, ceea ce ține pânza în linie dreaptă prin toată carcasa. {steel}",
         "baseWave": "Cuțit-bandă cu muchie ondulată — taie, în loc să zgârie, de aceea nu degajă rumeguș și nu rupe fibra produsului. Pentru carne dezosată, pește și produse din pește. {steel}",
-        "basePlain": "Cuțit-bandă cu muchie ascuțită neted, fără dinte și fără avoiere — pentru produs dezosat, unde tăietura trebuie să fie curată și fără firimituri. {steel}",
+        "basePlain": "Cuțit-bandă cu muchie ascuțită neted, fără dinte și fără ceaprăzuire — pentru produs dezosat, unde tăietura trebuie să fie curată și fără firimituri. {steel}",
         "appTextile": "Burete, textile, cauciuc",
         "appBread": "Pâine și produse de panificație",
         "appToothed": "Carne cu os și congelată",
@@ -271,7 +271,7 @@
         "vertical4": "La {width} mm pânza este pentru tăierea longitudinală a materialului înalt: pânza lată ține tensionarea și merge drept, dar nu face curbe.",
         "flexbackWood": "La {width} mm pânza este pentru tăiere curbă în atelier: raza minimă pe care o ține este de aproximativ {radius} mm.",
         "metal1": "{width} × {thickness} mm este pentru mașini de debitat mici și portabile și pentru contur scurt.",
-        "metal2": "{width} × {thickness} mm este lățimea ferăstraielor panglică de atelier și a semiautomatelor mai mici.",
+        "metal2": "{width} × {thickness} mm este lățimea fierăstraielor panglică de atelier și a semiautomatelor mai mici.",
         "metal3": "{width} × {thickness} mm este standardul pentru mașinile de debitat semiautomate compacte.",
         "metal4": "{width} × {thickness} mm este pânza cea mai răspândită pentru mașinile de debitat semiautomate — echilibrul dintre rigiditate și preț pe metru.",
         "metal5": "{width} × {thickness} mm este pentru semiautomatele și automatele mari: spatele mai gros ține tensionarea necesară ca tăietura să iasă dreaptă în secțiune mare.",
@@ -295,9 +295,9 @@
         "metalGeneral": "Metal — uz general",
         "bimetalPremiumBase": "Pânză bimetalică de debitat cu oțel rapid mai înalt aliat în dinte, sudat pe un spate elastic. Se cumpără pentru oțel inoxidabil, aliat și greu de prelucrat, unde M42 standard se tocește repede.",
         "bimetalStandardBase": "Pânză bimetalică de debitat: dinți din oțel rapid călit, sudați pe un spate elastic. Rezistă la viteză mai mare și la material mai dur decât pânza din oțel carbon, dar este și mai scumpă — se alege pentru tăierea în serie a metalului.",
-        "bandsawBlade": "Pânză pentru ferăstrău panglică",
+        "bandsawBlade": "Pânză pentru fierăstrău panglică",
         "carbonType": "Oțel carbon",
-        "carbonBase": "Pânză pentru ferăstrău panglică din oțel carbon pentru bandă, călit, pentru gater. Corpul rămâne tenace, iar doar dintele este călit, așa că pânza suportă avoiere și ascuțire pe toată durata vieții.",
+        "carbonBase": "Pânză pentru fierăstrău panglică din oțel carbon pentru bandă, călit, pentru gater. Corpul rămâne tenace, iar doar dintele este călit, așa că pânza suportă ceaprăzuire și ascuțire pe toată durata vieții.",
         "bandKnife": "Cuțit-bandă"
       }
     }

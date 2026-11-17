@@ -53,10 +53,10 @@
     "softKnives": "Cuțite-bandă pentru burete, textile, cauciuc, piele și hârtie",
     "wood": "Lemn",
     "metal": "Metal",
-    "hobby": "Ferăstrău hobby",
+    "hobby": "Fierăstrău hobby",
     "food": "Alimente",
     "machines": "Utilaje",
-    "bandsawBlades": "Pânze de panglică",
+    "bandsawBlades": "Pânze panglică banzic",
     "circular": "Circulare",
     "abrasives": "Abrazivi",
     "bimetal": "Pânze bimetalice",
@@ -66,8 +66,8 @@
     "slicers": "Feliatoare",
     "equipment": "Echipamente",
     "consumables": "Consumabile",
-    "horizontal": "Ferăstraie orizontale",
-    "vertical": "Ferăstraie verticale",
+    "horizontal": "Fierăstraie orizontale",
+    "vertical": "Fierăstraie verticale",
     "custom": "Pânze la comandă",
     "circularSaws": "Pânze circulare",
     "planerKnives": "Cuțite de rindea",
@@ -86,10 +86,10 @@
       "title1": "Fiecare pânză",
       "title2": "exact pentru",
       "title3": "utilajul dumneavoastră.",
-      "lede": "Producem și sudăm pânze de panglică la dimensiuni individuale pentru lemn, metal și industria alimentară — de la 1 000 mm în sus, fără limită superioară.",
+      "lede": "Producem și sudăm pânze panglică banzic la dimensiuni individuale pentru lemn, metal și industria alimentară — de la 1 000 mm în sus, fără limită superioară.",
       "ctaConfigure": "Configurează pânza",
       "ctaCatalogue": "Vezi catalogul",
-      "imageAlt": "Sudarea unei pânze de panglică la dimensiune în atelierul propriu"
+      "imageAlt": "Sudarea unei pânze panglică la dimensiune în atelierul propriu"
     },
     "facts": {
       "years": "ani",
@@ -116,15 +116,15 @@
       "title3": "prelucrați",
       "lede": "Nu trebuie să cunoașteți standarde și notații — alegeți industria dumneavoastră și filtrați după utilaj, material sau dimensiune.",
       "wood": "Lemn",
-      "woodDesc": "Pânze de panglică, pânze circulare și cuțite de rindea pentru orice prelucrare a lemnului.",
+      "woodDesc": "Pânze panglică, pânze circulare și cuțite de rindea pentru orice prelucrare a lemnului.",
       "metal": "Metal",
       "metalDesc": "Pânze bimetalice M42/M51 și pânze din oțel carbon CS pentru prelucrarea profesională a metalului.",
       "food": "Alimente",
       "foodDesc": "Pânze și cuțite pentru carne, pește și pâine. Piese de schimb pentru feliatoare.",
-      "hobby": "Ferăstrău hobby",
+      "hobby": "Fierăstrău hobby",
       "hobbyDesc": "Pânze pentru Einhell, Parkside, Scheppach și ateliere de casă.",
       "machines": "Utilaje",
-      "machinesDesc": "Mașini de ascuțit, ferăstraie cu bandă, consumabile și piese de schimb.",
+      "machinesDesc": "Mașini de ascuțit, fierăstraie cu bandă, consumabile și piese de schimb.",
       "abrasives": "Abrazivi",
       "abrasivesDesc": "Discuri de ascuțit diamantate și CBN, pietre și paste de lustruit.",
       "browse": "Vezi",
@@ -143,7 +143,7 @@
       "priceFromList": "Preț din lista de prețuri",
       "notEstimate": "nu o estimare",
       "perPiece": "per bucată, se adaugă la preț",
-      "setAndSharpen": "Avoiere și ascuțire",
+      "setAndSharpen": "Ceaprăzuire și ascuțire",
       "optionalPerMetre": "opțional, per metru",
       "width": "Lățime · mm",
       "thickness": "Grosime · mm",
@@ -151,7 +151,7 @@
       "pitch": "Pas / dinte",
       "totalLength": "Lungime totală · mm",
       "welding": "Sudare",
-      "setting": "Avoiere",
+      "setting": "Ceaprăzuire",
       "sharpening": "Ascuțire",
       "priceExVat": "Preț fără TVA",
       "added": "✓ Adăugat",
@@ -181,7 +181,7 @@
       "weldingTitle": "Sudare la dimensiune",
       "weldingDesc": "Tăiem la lungimea dumneavoastră și sudăm pânza în buclă. Prețul este per sudură.",
       "sharpeningDesc": "Discuri CBN și diamantate. Reface geometria dintelui în loc să cumpărați o pânză nouă.",
-      "settingDesc": "Avoierea conform specificației utilajului — determină lățimea tăieturii și rectitudinea.",
+      "settingDesc": "Ceaprăzuirea conform specificației utilajului — determină lățimea tăieturii și rectitudinea.",
       "heatTitle": "Tratament termic",
       "heatDesc": "Detensionarea spatelui după sudare. Prelungește viața pânzei în regim greu.",
       "perPiece": "per bucată",
@@ -206,8 +206,8 @@
     "support": {
       "eyebrow": "№ 08 — Suport tehnic",
       "title": "Căutați o dimensiune care nu este în catalog?",
-      "lede": "Un inginer răspunde la telefon și dimensionează pânza împreună cu dumneavoastră. Gratuit, inclusiv dacă utilajul este vechi și fără marcaj.",
-      "directLine": "Linie directă · Lu–Vi 8:00–17:30",
+      "lede": "Un inginer vă răspunde în scris și dimensionează pânza împreună cu dumneavoastră. Gratuit, inclusiv dacă utilajul este vechi și fără marcaj.",
+      "directLine": "Scrieți-ne · Lu–Vi 8:00–17:30",
       "mobile": "mobil",
       "orSend": "Sau trimiteți o solicitare"
     }
@@ -216,11 +216,11 @@
     "tabs": {
       "wood-h": {
         "label": "Lemn — Orizontal",
-        "subtitle": "Pânze de panglică pentru ferăstraie orizontale"
+        "subtitle": "Pânze panglică pentru fierăstraie orizontale"
       },
       "wood-v": {
         "label": "Lemn — Vertical",
-        "subtitle": "Pânze de panglică pentru ferăstraie verticale"
+        "subtitle": "Pânze panglică pentru fierăstraie verticale"
       },
       "metal-bi": {
         "label": "Metal — Bimetalice",
@@ -231,7 +231,7 @@
         "subtitle": "Pânze de debitat din oțel carbon"
       },
       "hobby": {
-        "label": "Ferăstrău hobby",
+        "label": "Fierăstrău hobby",
         "subtitle": "Pânze pentru Einhell, Parkside, Scheppach"
       },
       "meat": {
@@ -264,11 +264,12 @@
     "length": {
       "hint": "De la {min} mm în sus, fără limită superioară. Măsurați conturul pânzei, nu diametrul volanților.",
       "tooShort": "Minimum {min} mm. Un contur mai scurt nu se sudează — nu există mașină pe care să se întindă.",
-      "tooLong": "Peste {max} mm se stabilește telefonic — limită superioară nu există, dar un contur atât de lung îl confirmăm manual."
+      "tooLong": "Peste {max} mm stabilim lungimea împreună, în scris — limită superioară nu există, dar un contur atât de lung îl confirmăm manual."
     },
+    "includedNote": "Pânzele sunt livrate cu sudură, ascuțire și ceaprăzuire incluse în preț. Dacă doriți pânză la rolă sau fără aceste operațiuni, <link>contactați-ne în scris</link>.",
     "extras": {
       "welding": "Sudură",
-      "setting": "Avoiere",
+      "setting": "Ceaprăzuire",
       "sharpening": "Ascuțire",
       "heatTreatment": "Tratament termic",
       "heatShort": "Termic"

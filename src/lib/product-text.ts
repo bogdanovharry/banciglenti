@@ -55,22 +55,22 @@ const NAME_RO: Rule[] = [
   [/ · профил Вълна$/, ' · profil Val'],
 
   // What the product is — anchored at the start, longest first.
-  [/^Въглеродна банцигова лента\s+/, 'Pânză de panglică din oțel carbon '],
-  [/^Банцигова лента\s+/, 'Pânză de panglică '],
-  [/^Лента за банциг\s+/, 'Pânză pentru ferăstrău panglică '],
+  [/^Въглеродна банцигова лента\s+/, 'Pânză panglică din oțel carbon '],
+  [/^Банцигова лента\s+/, 'Pânză panglică '],
+  [/^Лента за банциг\s+/, 'Pânză pentru fierăstrău panglică '],
   // Written the way a Romanian workshop says it, not word for word: "pânză de panglică" is the band blade, "bimetalică" its kind.
-  [/^Биметална отрезна лента\s+[MМ]42\s+/, 'Pânză de panglică bimetalică M42 '],
-  [/^Биметална отрезна лента\s+/, 'Pânză de panglică bimetalică '],
-  [/^Циркулярен трион\s+/, 'Pânză de ferăstrău circular '],
+  [/^Биметална отрезна лента\s+[MМ]42\s+/, 'Pânză panglică bimetalică M42 '],
+  [/^Биметална отрезна лента\s+/, 'Pânză panglică bimetalică '],
+  [/^Циркулярен трион\s+/, 'Pânză de fierăstrău circular '],
   [/^Нож за абрихт\s+/, 'Cuțit de rindea '],
   [/^Абразивен диск за заточване\s+/, 'Disc abraziv de ascuțire '],
   [/^Диамантен диск за заточване\s+/, 'Disc diamantat de ascuțire '],
   [/^(.+?) \(Боразон\) заточен диск$/, 'Disc de ascuțire $1 (Borazon)'],
   [/^Охлаждаща течност\s+/, 'Lichid de răcire '],
-  [/^Заточна машина за банцигови ленти със\s+/, 'Mașină de ascuțit pânze de panglică cu '],
+  [/^Заточна машина за банцигови ленти със\s+/, 'Mașină de ascuțit pânze panglică cu '],
   [/^Точиларка за ленти \/ Заточна машина\s+/, 'Ascuțitor de pânze / Mașină de ascuțit '],
-  [/^Устройство за чапраз\s+/, 'Dispozitiv de avoiere '],
-  [/^Автоматична машина за чапраз\s+/, 'Mașină automată de avoiere '],
+  [/^Устройство за чапраз\s+/, 'Dispozitiv de ceaprăzuire '],
+  [/^Автоматична машина за чапраз\s+/, 'Mașină automată de ceaprăzuire '],
   [/^Комплект гърбици профил\s+/, 'Set came, profil '],
   [/^Уред за измерване на\s+/, 'Instrument de măsurare pentru '],
 
@@ -86,6 +86,8 @@ const NAME_RO: Rule[] = [
 
   // Small words and units, wherever they fall.
   [/ стъпка /g, ' pas '],
+  // A pitch written as two numbers (4/6, 10/14) is teeth per inch: Romanian buyers expect to read TPI beside it.
+  [/ pas (\d+(?:\.\d+)?\/\d+(?:\.\d+)?)(?! TPI)/g, ' pas $1 TPI'],
   [/(\d)\s*мм/g, '$1 mm'],
   [/=(\d+)мм/g, '=$1 mm'],
   [/мм/g, 'mm'],
@@ -95,7 +97,7 @@ const NAME_RO: Rule[] = [
   [/ф(?=\d)/g, 'Ø'],
   [/ и /g, ' și '],
   [/ диск$/, ' disc'],
-  [/чапраз$/, 'avoiere'],
+  [/чапраз$/, 'ceaprăzuire'],
 ]
 
 // --- Descriptions -----------------------------------------------------------
@@ -118,7 +120,7 @@ const DESCRIPTION_RO: Rule[] = [
   ],
   [
     /^Лента за вертикален банциг и мобилен гатер\. Стъпка ([\d.\s/]+) мм\. Показаната цена е за контур 4000 мм със заваряване — изработваме на дължината на вашата машина\.$/,
-    'Pânză pentru ferăstrău panglică vertical și gater mobil. Pas $1 mm. Prețul afișat este pentru o buclă de 4000 mm cu sudură — o executăm la lungimea mașinii dvs.',
+    'Pânză pentru fierăstrău panglică vertical și gater mobil. Pas $1 mm. Prețul afișat este pentru o buclă de 4000 mm cu sudură — o executăm la lungimea mașinii dvs.',
   ],
 ]
 
@@ -151,16 +153,16 @@ const MATERIAL_RO: Record<string, string> = {
 // --- Categories -------------------------------------------------------------
 
 const CATEGORY_RO: Record<string, { name: string; description: string }> = {
-  dyrvo: { name: 'Lemn', description: 'Pânze de panglică, pânze de ferăstrău circular și cuțite de rindea pentru prelucrarea lemnului.' },
+  dyrvo: { name: 'Lemn', description: 'Pânze panglică, pânze de fierăstrău circular și cuțite de rindea pentru prelucrarea lemnului.' },
   metal: { name: 'Metal', description: 'Pânze de debitare bimetalice și din oțel carbon pentru prelucrarea metalelor.' },
   hrani: { name: 'Alimente', description: 'Cuțite-bandă pentru carne, pește, pâine și feliatoare.' },
-  'hobi-bantsig': { name: 'Ferăstrău hobby', description: 'Pânze pentru Einhell, Parkside, Raider, Metabo, Scheppach și alte ferăstraie panglică de hobby.' },
+  'hobi-bantsig': { name: 'Fierăstrău hobby', description: 'Pânze pentru Einhell, Parkside, Raider, Metabo, Scheppach și alte fierăstraie panglică de hobby.' },
   abrazivi: { name: 'Abrazive', description: 'Discuri de ascuțire abrazive, diamantate și CBN. Lichide de răcire.' },
-  mashini: { name: 'Utilaje', description: 'Mașini de ascuțit, dispozitive de avoiere și echipamente.' },
+  mashini: { name: 'Utilaje', description: 'Mașini de ascuțit, dispozitive de ceaprăzuire și echipamente.' },
   konsumativi: { name: 'Consumabile', description: 'Piese de schimb, came și instrumente de măsură.' },
-  'horizontalni-bantsizi': { name: 'Ferăstraie panglică orizontale', description: 'Pânze de panglică pentru ferăstraie panglică orizontale și gatere. MasterGold, Kodiak, Böhler.' },
-  'vertikalni-bantsizi': { name: 'Ferăstraie panglică verticale', description: 'Pânze de panglică pentru ferăstraie panglică verticale. Toate dimensiunile la comandă.' },
-  'tsirkulyarni-trioni': { name: 'Pânze pentru ferăstrău circular', description: 'Obișnuite și cu plăcuțe din carbură înlocuibile. Diametre de la Ø100 la Ø600.' },
+  'horizontalni-bantsizi': { name: 'Fierăstraie panglică orizontale', description: 'Pânze panglică pentru fierăstraie panglică orizontale și gatere. MasterGold, Kodiak, Böhler.' },
+  'vertikalni-bantsizi': { name: 'Fierăstraie panglică verticale', description: 'Pânze panglică pentru fierăstraie panglică verticale. Toate dimensiunile la comandă.' },
+  'tsirkulyarni-trioni': { name: 'Pânze pentru fierăstrău circular', description: 'Obișnuite și cu plăcuțe din carbură înlocuibile. Diametre de la Ø100 la Ø600.' },
   'nozhove-za-abriht': { name: 'Cuțite de rindea', description: 'Cuțite HSS și 100Cr6 pentru mașini de rindeluit. Lungimi de la 260 la 810 mm.' },
   'bimetalni-lenti': { name: 'Pânze bimetalice', description: 'Pânze bimetalice M42 și M51 pentru tăierea oțelului până la 68 HRC.' },
   'vyglerodna-lenti-cs': { name: 'Oțel carbon CS', description: 'Pânze flexback din oțel carbon, pentru lemn, plastic și metale neferoase.' },
@@ -183,11 +185,14 @@ function latinize(text: string): string {
   return text.replace(/(?<![\p{L}])[АВЕКМНОРСТХ]{1,3}(?=\d)/gu, (m) => [...m].map((c) => HOMOGLYPH[c] ?? c).join(''))
 }
 
+/** Romanian writes 0,9 where the catalogue has 0.9. */
+export const commaDecimals = (s: string): string => s.replace(/(\d)\.(\d)/g, '$1,$2')
+
 export function localizeName(name: string, lang: TextLang, override?: Override): string {
   if (lang === 'bg') return name
   if (filled(override?.name)) return override.name.trim()
   // A homoglyph token ("Лента за банциг Böhlеr", "М42") reads as Latin in the output.
-  return latinize(apply(name, NAME_RO)).replace(/(\p{Ll})о(?= \d)/gu, '$1o')
+  return commaDecimals(latinize(apply(name, NAME_RO)).replace(/(\p{Ll})о(?= \d)/gu, '$1o'))
 }
 
 export function localizeDescription(text: string, lang: TextLang, override?: Override): string {

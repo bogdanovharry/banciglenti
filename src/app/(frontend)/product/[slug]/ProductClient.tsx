@@ -90,7 +90,8 @@ export function ProductClient({ product }: { product: ProductView }) {
   const needsPitch = Boolean(product.pitch && product.pitch.options.length > 1 && !pitchOption);
   // Meat blades price the edge profile; everything else keeps the product's own price.
   const unitPrice = pitchOption?.unitPrice ?? product.price;
-  const pitchLabel = (p: string) => (/^[a-z-]+$/.test(p) ? t(`pitch.${p}`) : p);
+  const pitchLabel = (p: string) =>
+    /^[a-z-]+$/.test(p) ? t(`pitch.${p}`) : locale.startsWith("ro") && /^\d+(\.\d+)?\/\d+(\.\d+)?$/.test(p) ? `${p} TPI` : p;
 
   const handleAddToCart = () => {
     if (needsPitch) return;

@@ -69,7 +69,10 @@ const TAB_ORDER: ConfigType[] = [
 function useCatalogText() {
   const t = useTranslations("catalog");
   const guideT = t as unknown as Translate;
-  const pitchText = (pitch: string) => (pitch in PITCH_LABELS ? t(`pitch.${pitch}`) : pitch);
+  const locale = useLocale();
+  // Teeth per inch written as two numbers ("4/6"): Romanian buyers expect TPI beside them.
+  const tpi = (pitch: string) => (locale.startsWith("ro") && /^\d+(\.\d+)?\/\d+(\.\d+)?$/.test(pitch) ? `${pitch} TPI` : pitch);
+  const pitchText = (pitch: string) => (pitch in PITCH_LABELS ? t(`pitch.${pitch}`) : tpi(pitch));
   return { t, guideT, pitchText };
 }
 
