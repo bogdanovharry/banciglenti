@@ -88,7 +88,7 @@ export function CategoryClient({
       {/* Toolbar. Sticks under the header: 169-173px is the tablet/desktop header (utility
           bar + brand row + nav); on a phone the header is the shorter
           one-row version, so the offset is smaller there. */}
-      <div className="border-b border-ink-15 bg-white sticky top-[114px] md:top-[169px] lg:top-[173px] z-30">
+      <div className="border-b border-ink-15 bg-white sticky top-[var(--header-h,84px)] z-30">
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             {hasFilters && products.length > 0 && (

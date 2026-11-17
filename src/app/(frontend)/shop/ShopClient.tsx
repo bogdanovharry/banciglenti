@@ -583,7 +583,7 @@ export function ShopClient({
       {/* Toolbar. Sticks under the header: 169-173px is the tablet/desktop header (utility
           bar + brand row + nav); a phone's header is the shorter one-row
           version, so the offset is smaller there. */}
-      <div className="border-b border-ink-15 bg-white sticky top-[114px] md:top-[169px] lg:top-[173px] z-30">
+      <div className="border-b border-ink-15 bg-white sticky top-[var(--header-h,84px)] z-30">
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 min-h-14 py-2 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
             {/* Below 1024px the sidebar is not shown; the same panel opens as a sheet. */}

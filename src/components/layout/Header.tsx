@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useId } from "react";
+import { useState, useEffect, useId, useRef } from "react";
 import {
   IconSearch, IconCart, IconPhone, IconMail, IconMenu,
   IconChevron, IconWood, IconMetal, IconLayers, IconHobby, IconFood, IconMachine, IconRuler, IconClose, IconUser,
@@ -134,6 +134,20 @@ export function Header() {
   };
   const { itemCount } = useCart();
 
+  // The sticky filter bars sit just under the header. Its height differs by screen
+  // (the top bar is not shown on a phone), so it is published as --header-h rather than
+  // guessed in pixels by every page.
+  const headerRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const publish = () => document.documentElement.style.setProperty("--header-h", `${el.getBoundingClientRect().height}px`);
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -142,6 +156,7 @@ export function Header() {
 
   return (
     <header
+      ref={headerRef}
       className="sticky top-0 z-50 bg-white transition-[border-color] duration-200"
       style={{ borderBottom: `1px solid ${scrolled ? "#D9D9D9" : "transparent"}` }}
     >
