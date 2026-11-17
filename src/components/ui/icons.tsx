@@ -73,21 +73,30 @@ export function IconUser(p: IconProps) {
   return <Icon {...p}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></Icon>;
 }
 
-// Category icons
+// Category icons — each one is the thing itself, so a buyer can tell them apart at 18px.
+/** Wood: a fir tree. */
 export function IconWood(p: IconProps) {
-  return <Icon {...p}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="3" /></Icon>;
+  return <Icon {...p}><path d="M12 3 7 10h3l-4 6h12l-4-6h3L12 3Z" /><path d="M12 16v5" /></Icon>;
 }
+/** Metal: a steel I-beam. */
 export function IconMetal(p: IconProps) {
-  return <Icon {...p}><path d="M12 2 21 7v10l-9 5-9-5V7l9-5Z" /><circle cx="12" cy="12" r="3.2" /></Icon>;
+  return <Icon {...p}><path d="M4 4h16v3.5H4z" /><path d="M10.5 7.5h3v9h-3z" /><path d="M4 16.5h16V20H4z" /></Icon>;
 }
+/** Other materials (foam, textile, rubber, leather): layers. */
+export function IconLayers(p: IconProps) {
+  return <Icon {...p}><path d="m12 3 9 4.5-9 4.5-9-4.5L12 3Z" /><path d="m3 12 9 4.5 9-4.5" /><path d="m3 16.5 9 4.5 9-4.5" /></Icon>;
+}
+/** Hobby: a hammer. */
 export function IconHobby(p: IconProps) {
-  return <Icon {...p}><path d="M3 14h14l3-3-3-3H3" /><path d="M6 14v4M10 14v4M14 14v4" /></Icon>;
+  return <Icon {...p}><path d="M9.5 6 14 3l7 7-3 4.5" /><path d="m9.5 6 8.5 8.5" /><path d="m12.5 11.5-8 8a1.8 1.8 0 0 0 2.5 2.5l8-8" /></Icon>;
 }
+/** Food: knife and fork. */
 export function IconFood(p: IconProps) {
-  return <Icon {...p}><path d="M3 8h12l2 4H3z" /><path d="M17 12v8M15 12v4" /></Icon>;
+  return <Icon {...p}><path d="M6 3v6a2 2 0 0 0 4 0V3" /><path d="M8 3v18" /><path d="M17 21V3c-2.2 1.6-3.5 4.6-3.5 8H17" /></Icon>;
 }
+/** Machines: a gear. */
 export function IconMachine(p: IconProps) {
-  return <Icon {...p}><path d="M4 4h16v5H4z" /><path d="M8 9v4h8V9" /><path d="M6 20h12M10 13h4v7h-4z" /></Icon>;
+  return <Icon {...p}><path d="M10.32 5.00 L10.72 2.49 L13.28 2.49 L13.68 5.00 L15.76 5.86 L17.82 4.37 L19.63 6.18 L18.14 8.24 L19.00 10.32 L21.51 10.72 L21.51 13.28 L19.00 13.68 L18.14 15.76 L19.63 17.82 L17.82 19.63 L15.76 18.14 L13.68 19.00 L13.28 21.51 L10.72 21.51 L10.32 19.00 L8.24 18.14 L6.18 19.63 L4.37 17.82 L5.86 15.76 L5.00 13.68 L2.49 13.28 L2.49 10.72 L5.00 10.32 L5.86 8.24 L4.37 6.18 L6.18 4.37 L8.24 5.86Z" /><circle cx="12" cy="12" r="3" /></Icon>;
 }
 export function IconAbrasive(p: IconProps) {
   return <Icon {...p}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="2" /><path d="M3 12h2M19 12h2M12 3v2M12 19v2" /></Icon>;

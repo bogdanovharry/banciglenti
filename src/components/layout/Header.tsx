@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useId } from "react";
 import {
   IconSearch, IconCart, IconPhone, IconMail, IconMenu,
-  IconChevron, IconWood, IconMetal, IconHobby, IconFood, IconMachine, IconRuler, IconClose, IconUser,
+  IconChevron, IconWood, IconMetal, IconLayers, IconHobby, IconFood, IconMachine, IconRuler, IconClose, IconUser,
 } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart";
 import { companyFor } from "@/lib/company";
@@ -44,6 +44,7 @@ const NAV_CATS: NavCat[] = [
       ]},
     ],
   },
+  { name: "hobby", href: "/category/hobi-bantsig", Icon: IconHobby, children: null },
   {
     name: "metal", href: "/category/metal", Icon: IconMetal,
     children: [
@@ -59,14 +60,13 @@ const NAV_CATS: NavCat[] = [
     ],
   },
   {
-    name: "other", href: "/configurator?type=slicer", Icon: IconMetal,
+    name: "other", href: "/configurator?type=slicer", Icon: IconLayers,
     children: [
       { group: "softMaterials", items: [
         { label: "softKnives", href: "/configurator?type=slicer" },
       ]},
     ],
   },
-  { name: "hobby", href: "/category/hobi-bantsig", Icon: IconHobby, children: null },
   {
     name: "food", href: "/category/hrani", Icon: IconFood,
     children: [
