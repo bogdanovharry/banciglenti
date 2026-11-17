@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { Placeholder, Btn } from "@/components/ui/primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CartSkeleton } from "@/components/layout/CartSkeleton";
 import { IconArrowRight } from "@/components/ui/icons";
+import { StickyCta } from "@/components/ui/StickyCta";
 import { useCart } from "@/lib/cart";
 import { vatLabel, type CheckoutPaymentMethod } from "@/lib/market";
 import { usePrices } from "@/lib/market-context";
@@ -104,6 +105,7 @@ function newIdempotencyKey(): string {
 
 export default function CheckoutPage() {
   const { market, gross, amount, price, symbol } = usePrices();
+  const ctaRef = useRef<HTMLDivElement>(null);
   const tc = useTranslations("common");
   const tcart = useTranslations("cart");
   const t = useTranslations("checkout");
@@ -420,7 +422,7 @@ export default function CheckoutPage() {
             )}
           </p>
         )}
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8">
+        <form id="checkout-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8">
           <div className="flex flex-col gap-6 min-w-0">
             <CheckoutCard num="01" title={t("cardContact")}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -645,7 +647,7 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            <div className="mt-5">
+            <div className="mt-5" ref={ctaRef}>
               <Btn variant="primary" size="lg" fullWidth type="submit" disabled={submitting} iconRight={<IconArrowRight size={16} />}>
                 {submitting ? t("submitting") : t("submit")}
               </Btn>
@@ -653,6 +655,18 @@ export default function CheckoutPage() {
           </aside>
         </form>
       </div>
+
+      <StickyCta target={ctaRef}>
+        <div className="min-w-0">
+          <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50">{t("total", { vatNote: tc("incVat") })}</div>
+          <div className="font-display text-2xl font-extrabold text-ink tabular-nums leading-tight">
+            {amount(total)} <span className="text-xs font-normal text-ink-50">{symbol}</span>
+          </div>
+        </div>
+        <Btn variant="primary" size="lg" type="submit" form="checkout-form" disabled={submitting} className="ml-auto shrink-0">
+          {submitting ? t("submitting") : t("submit")}
+        </Btn>
+      </StickyCta>
     </div>
   );
 }
