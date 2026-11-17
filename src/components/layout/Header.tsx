@@ -147,7 +147,7 @@ export function Header() {
     >
       {/* Top utility bar — only claims that hold up. It previously advertised
           "Доставка до 24–72ч", contradicting the 24–48ч stated everywhere else. */}
-      <div className="bg-ink text-white/80">
+      <div className="hidden md:block bg-ink text-white/80">
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 h-9 flex items-center justify-between font-mono text-[11px] tracking-[0.08em] uppercase">
           <div className="hidden md:flex gap-6">
             <span className="text-white">● {tHeader("workshop")}</span>
@@ -372,6 +372,15 @@ export function Header() {
             <IconUser size={16} /> {tAccount("navLabel")}
           </Link>
           <Link href="/contact" className="block px-4 py-3 text-ink-70 no-underline border-t border-b border-ink-05" onClick={() => setMobileOpen(false)}>{tCommon("contact")}</Link>
+          {/* The top bar is not shown on a phone, so the ways to reach us live here. */}
+          {!writtenOnly && (
+            <a href={company.phone.office.href} className="block px-4 py-3 text-ink-70 no-underline border-b border-ink-05 tabular-nums">
+              {company.phone.office.display}
+            </a>
+          )}
+          <a href={`mailto:${company.email}`} className="block px-4 py-3 text-ink-70 no-underline border-b border-ink-05">
+            {company.email}
+          </a>
         </nav>
       )}
     </header>
