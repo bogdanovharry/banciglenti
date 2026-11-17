@@ -89,9 +89,12 @@ export const MARKETS: Record<MarketCode, Market> = {
     displayCurrency: 'EUR',
     exchangeRate: 1,
     vatRate: 0.2,
-    carriage: 'flat',
-    freeShippingThreshold: 200,
-    shippingCost: 6,
+    // The courier (Еконт, Спиди) prices by weight and bills the buyer at the door, as in
+    // Romania; the shop quotes no carriage. Owner's decision, 17 Nov 2026 — it was a flat
+    // 6 € under 200 €, a figure nobody at the workshop had set.
+    carriage: 'collect',
+    freeShippingThreshold: 0,
+    shippingCost: 0,
     couriers: ['Еконт', 'Спиди'],
     pickup: true,
     paymentMethods: ['bank_transfer', 'cod'],
