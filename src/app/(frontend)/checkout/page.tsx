@@ -320,7 +320,7 @@ export default function CheckoutPage() {
   if (result) {
     return (
       <div className="bg-paper">
-        <PageHeader
+        <PageHeader compact
           eyebrowNumber={tcart("step3")}
           eyebrowLabel={t("stepConfirm")}
           title={t("successTitle")}
@@ -377,7 +377,7 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="bg-paper">
-        <PageHeader
+        <PageHeader compact
           eyebrowNumber={tcart("step2")}
           eyebrowLabel={t("stepDelivery")}
           crumbs={[{ label: tc("home"), href: "/" }, { label: tc("cart"), href: "/cart" }]}
@@ -397,7 +397,7 @@ export default function CheckoutPage() {
   return (
     <div className="bg-paper">
       {/* Transactional page: same masthead typography, no photograph. */}
-      <PageHeader
+      <PageHeader compact
         eyebrowNumber={tcart("step2")}
         eyebrowLabel={t("stepDelivery")}
         crumbs={[{ label: tc("home"), href: "/" }, { label: tc("cart"), href: "/cart" }, { label: t("crumbPayment") }]}

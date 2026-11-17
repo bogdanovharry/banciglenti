@@ -25,7 +25,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="bg-paper">
-        <PageHeader
+        <PageHeader compact
           eyebrowNumber={t("step1")}
           eyebrowLabel={tc("cart")}
           crumbs={[{ label: tc("home"), href: "/" }, { label: tc("cart") }]}
@@ -48,7 +48,7 @@ export default function CartPage() {
     <div className="bg-paper min-h-dvh">
       {/* No photograph here on purpose — a large image competes with the
           figures a buyer is on this page to check. */}
-      <PageHeader
+      <PageHeader compact
         eyebrowNumber={t("step1")}
         eyebrowLabel={tc("cart")}
         crumbs={[{ label: tc("home"), href: "/" }, { label: tc("cart") }]}

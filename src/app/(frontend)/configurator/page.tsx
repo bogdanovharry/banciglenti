@@ -36,6 +36,7 @@ export default async function ConfiguratorPage({
   return (
     <div className="bg-white">
       <PageHeader
+        compact
         eyebrowNumber="№ 01"
         eyebrowLabel={tc("configurator")}
         image="/images/hero/shutterstock_2512301009.webp"

@@ -457,7 +457,7 @@ export function AccountClient({ account, orders }: { account: AccountProfile | n
 
   return (
     <>
-      <PageHeader eyebrowNumber={t("eyebrowNumber")} eyebrowLabel={t("eyebrow")} title={t("title")} description={t("intro")}>
+      <PageHeader compact eyebrowNumber={t("eyebrowNumber")} eyebrowLabel={t("eyebrow")} title={t("title")} description={t("intro")}>
         {account && (
           <div className="mt-6 flex items-center gap-4 font-mono text-[12px] text-white/80">
             <span>{account.email}</span>

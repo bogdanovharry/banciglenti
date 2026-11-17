@@ -28,6 +28,7 @@ export function PageHeader({
   imageAlt = "",
   crumbs,
   children,
+  compact = false,
 }: {
   eyebrowNumber: string;
   eyebrowLabel: string;
@@ -37,6 +38,12 @@ export function PageHeader({
   imageAlt?: string;
   crumbs?: Crumb[];
   children?: ReactNode;
+  /**
+   * A shorter masthead on a wide screen, for the pages people come to do something on
+   * (catalogue, configurator, cart, checkout, profile): the content starts higher,
+   * not below the fold. Phones already get the short one.
+   */
+  compact?: boolean;
 }) {
   const t = useTranslations("pageHeader");
   return (
@@ -50,11 +57,11 @@ export function PageHeader({
         </div>
       )}
 
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-6 pb-7 md:pt-14 md:pb-16">
+      <div className={`max-w-[1440px] mx-auto px-4 md:px-10 ${compact ? "pt-6 pb-7 md:pt-8 md:pb-9" : "pt-6 pb-7 md:pt-14 md:pb-16"}`}>
         {crumbs && crumbs.length > 0 && (
           <nav
             aria-label={t("breadcrumb")}
-            className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/55 flex gap-2 mb-4 md:mb-8 flex-wrap"
+            className={`font-mono text-[10px] tracking-[0.12em] uppercase text-white/55 flex gap-2 mb-4 ${compact ? "md:mb-5" : "md:mb-8"} flex-wrap`}
           >
             {crumbs.map((c, i) => (
               <span key={`${c.label}-${i}`} className="flex gap-2">
@@ -73,15 +80,15 @@ export function PageHeader({
 
         <SectionNumber n={eyebrowNumber} label={eyebrowLabel} tone="light" />
 
-        <h1 className="font-display text-[32px] md:text-5xl lg:text-[68px] leading-[1] tracking-[-0.04em] font-extrabold mt-4 md:mt-7 mb-0">
+        <h1 className={`font-display ${compact ? "text-[28px] md:text-4xl lg:text-5xl mt-3 md:mt-4" : "text-[32px] md:text-5xl lg:text-[68px] mt-4 md:mt-7"} leading-[1] tracking-[-0.04em] font-extrabold mb-0`}>
           {title}
         </h1>
 
         {description && (
-          <p className="font-sans text-[15px] md:text-[17px] leading-snug md:leading-relaxed text-white/70 max-w-[620px] mt-3 md:mt-6 line-clamp-3 md:line-clamp-none">{description}</p>
+          <p className={`font-sans text-[15px] md:text-[17px] leading-snug md:leading-relaxed text-white/70 max-w-[620px] ${compact ? "mt-2 md:mt-3" : "mt-3 md:mt-6"} line-clamp-3 md:line-clamp-none`}>{description}</p>
         )}
 
-        {children && <div className="mt-5 md:mt-9">{children}</div>}
+        {children && <div className={compact ? "mt-4 md:mt-5" : "mt-5 md:mt-9"}>{children}</div>}
       </div>
     </section>
   );
