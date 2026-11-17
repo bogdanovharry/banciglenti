@@ -709,13 +709,14 @@ export function ConfiguratorPanel({ initialTab }: { initialTab?: ConfigType } = 
   return (
     <div className="bg-white">
       {/* Tabs */}
-      <div className="border-b border-ink-15 bg-paper overflow-x-auto">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-10 flex gap-0 min-w-max">
+      <div className="border-b border-ink-15 bg-paper md:overflow-x-auto">
+        {/* Phone: a fixed grid, nothing slides sideways. Wider screens: one row. */}
+        <div className="max-w-[1440px] mx-auto px-0 md:px-10 grid grid-cols-2 md:flex md:gap-0 md:min-w-max">
           {TAB_ORDER.map((key) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`px-5 py-4 font-mono text-[11px] tracking-[0.08em] uppercase border-none cursor-pointer whitespace-nowrap transition-colors ${
+              className={`px-3 md:px-5 py-3.5 md:py-4 font-mono text-[11px] tracking-[0.08em] uppercase border-none cursor-pointer md:whitespace-nowrap text-center transition-colors ${
                 activeTab === key
                   ? "bg-white text-ink border-b-2 border-orange -mb-px font-semibold"
                   : "bg-transparent text-ink-50 hover:text-ink border-b-2 border-transparent"
