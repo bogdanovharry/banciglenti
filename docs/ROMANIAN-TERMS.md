@@ -16,3 +16,9 @@ Our side: every Romanian string in `messages/` (1 006 strings). Not checked agai
 | same on both sides | gater, sudare/sudură, bimetal M42, flexback, volanți, utilaje, pânze circulare, la comandă, ascuțire | same | Keep |
 
 Not found: "panze-banzic.ro" does not exist; the shop is **panza-banzic.ro**.
+
+## Applied 17 Nov 2026 (owner confirmed "ceapraz" is right)
+"banzic" in the Romanian titles, descriptions, hero and menu; fierăstrău/fierăstraie everywhere (also the public
+category addresses, e.g. `/category/fierastraie-panglica-orizontale`); ceaprăzuire / ceaprăzuit instead of
+avoiere / avoiat; "Pânze panglică" instead of "Pânze de panglică"; decimal comma in Romanian product names and sizes;
+TPI beside two-number pitches (4/6 TPI). Not done: renaming the categories after the blade instead of the machine.

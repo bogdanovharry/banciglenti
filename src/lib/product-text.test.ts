@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { localizeName } from './product-text'
+import { commaDecimals, localizeName } from './product-text'
 
 describe('the pitch a buyer chose, in the line name', () => {
   it('a tooth pitch reads "pas" in Romanian and is left alone in Bulgarian', () => {
@@ -22,8 +22,20 @@ describe('the pitch a buyer chose, in the line name', () => {
 
 describe('bimetal cut-off bands', () => {
   it('read as a Romanian workshop would say it, whichever M the name was typed with', () => {
-    const expected = 'Pânză de panglică bimetalică M42 27×0.9 L=2480 mm — Optimum S 275 G'
+    const expected = 'Pânză panglică bimetalică M42 27×0,9 L=2480 mm — Optimum S 275 G'
     expect(localizeName('Биметална отрезна лента M42 27×0.9 L=2480мм — Optimum S 275 G', 'ro')).toBe(expected)
     expect(localizeName('Биметална отрезна лента М42 27×0.9 L=2480мм — Optimum S 275 G', 'ro')).toBe(expected)
+  })
+})
+
+describe('Romanian reading of numbers', () => {
+  it('writes a decimal comma', () => {
+    expect(commaDecimals('2360 × 13 × 0.65 mm')).toBe('2360 × 13 × 0,65 mm')
+    expect(commaDecimals('M42 L=2480 mm')).toBe('M42 L=2480 mm')
+  })
+  it('puts TPI beside a two-number pitch', () => {
+    expect(localizeName('Лента за метал 27×0.9 · стъпка 4/6', 'ro')).toContain('· pas 4/6 TPI')
+    expect(localizeName('Лента 27×0.9 · стъпка 22.2', 'ro')).toContain('· pas 22,2')
+    expect(localizeName('Лента · стъпка 8 TPI', 'ro')).toContain('· pas 8 TPI')
   })
 })

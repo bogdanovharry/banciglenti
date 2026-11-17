@@ -155,7 +155,7 @@
     "delivery": {
       "meta": {
         "title": "Livrare și plată",
-        "description": "Modalități de livrare și plată, termene și costuri la comanda de pânze de panglică și scule de tăiere de la {name}."
+        "description": "Modalități de livrare și plată, termene și costuri la comanda de pânze panglică și scule de tăiere de la {name}."
       },
       "eyebrowNumber": "№ 10",
       "eyebrowLabel": "Condiții",
