@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { localizeHref } from "@/lib/slugs";
+import { configuratorTabFor } from "@/lib/configurator-tabs";
 import { facetsFor, lengthKindFor } from "@/lib/category-facets";
 import { Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
@@ -127,6 +128,9 @@ export function CategoryClient({
 
       {/* Products + Configurator CTA */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-10 pb-20">
+        {/* Only where the configurator has a tab for this kind of product: planer
+            knives, circular saws, abrasives and machines are not made to measure. */}
+        {configuratorTabFor(categorySlug) && (
         <Link href={configuratorHref} className="no-underline block mb-8">
           <div className="bg-paper border border-ink-15 p-5 flex items-center justify-between gap-4 hover:border-ink transition-colors">
             <div className="flex items-center gap-4">
@@ -139,12 +143,15 @@ export function CategoryClient({
             <Btn variant="primary" size="sm" iconRight={<IconArrowRight size={12} />}>{tc("configurator")}</Btn>
           </div>
         </Link>
+        )}
 
         {products.length === 0 ? (
           <div className="text-center py-20">
             <h2 className="font-display text-2xl font-bold text-ink mb-2">{t("category.emptyTitle")}</h2>
             <p className="text-ink-50 mb-6">{t("category.emptyHint")}</p>
-            <Link href={configuratorHref}><Btn variant="primary" size="lg">{tc("configurator")}</Btn></Link>
+            {configuratorTabFor(categorySlug) && (
+              <Link href={configuratorHref}><Btn variant="primary" size="lg">{tc("configurator")}</Btn></Link>
+            )}
           </div>
         ) : (
           /* Sidebar only where there is something to filter on — a category of

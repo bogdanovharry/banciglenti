@@ -515,7 +515,11 @@ export function ShopClient({
     </>
   );
 
-  const configuratorCard = (
+  // A category the configurator has no tab for (planer knives, circular saws, abrasives, machines)
+  // is not made to measure: no configurator promotion there.
+  const offersConfigurator = !activeCategory || configuratorTabFor(activeCategory) !== null;
+
+  const configuratorCard = !offersConfigurator ? null : (
     <Link href={configuratorHref(activeCategory)} className="block no-underline mb-6">
       <div className="bg-ink text-white p-5 hover:bg-ink-80 transition-colors">
         <div className="flex items-center gap-3 mb-3">
@@ -653,9 +657,11 @@ export function ShopClient({
                 {t("shop.emptyText", { min: lengthMinLabel })}
               </p>
               <div className="flex gap-3 justify-center flex-wrap">
-                <Link href={configuratorHref(activeCategory)}>
-                  <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("shop.emptyCta")}</Btn>
-                </Link>
+                {offersConfigurator && (
+                  <Link href={configuratorHref(activeCategory)}>
+                    <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("shop.emptyCta")}</Btn>
+                  </Link>
+                )}
                 <button onClick={clearAll} className="bg-transparent border-none cursor-pointer">
                   <Btn variant="ghost" size="lg">{t("filters.clearAll")}</Btn>
                 </button>
@@ -663,6 +669,7 @@ export function ShopClient({
             </div>
           ) : (
             <>
+              {offersConfigurator && (
               <Link href={configuratorHref(activeCategory)} className="no-underline block mb-6">
                 <div className="bg-paper border border-ink-15 p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-ink transition-colors">
                   <div className="flex items-center gap-4">
@@ -677,6 +684,7 @@ export function ShopClient({
                   <span className="self-start sm:self-auto"><Btn variant="primary" size="sm" iconRight={<IconArrowRight size={12} />}>{tc("configurator")}</Btn></span>
                 </div>
               </Link>
+              )}
 
               <div className="grid content-start grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                 {sorted.map((p) => (
