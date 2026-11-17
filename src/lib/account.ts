@@ -65,3 +65,38 @@ export async function readJson(request: Request, maxBytes = 32_000): Promise<Rec
     return null
   }
 }
+
+/**
+ * What a shopper typed at checkout, kept on their profile so the next order is
+ * already filled in. Only gaps are filled — nothing the shopper saved on the
+ * profile page is overwritten by an order — and a delivery address is added only
+ * when the profile has none yet. Best effort: a failure here never touches the order.
+ */
+export async function rememberFromOrder(
+  account: AccountProfile,
+  typed: {
+    name: string
+    phone: string
+    company?: string
+    taxId?: string
+    vatNumber?: string
+    address?: { street: string; city: string; postalCode: string } | null
+  },
+): Promise<void> {
+  const data: Record<string, unknown> = {}
+  if (!account.phone && typed.phone) data.phone = typed.phone
+  if (!account.company && typed.company) data.company = typed.company
+  if (!account.taxId && typed.taxId) data.taxId = typed.taxId
+  if (!account.vatNumber && typed.vatNumber) data.vatNumber = typed.vatNumber
+  const a = typed.address
+  if (a && (a.street || a.city) && account.addresses.length === 0) {
+    data.addresses = [{ label: '', street: a.street, city: a.city, postalCode: a.postalCode, isDefault: true }]
+  }
+  if (Object.keys(data).length === 0) return
+  try {
+    const payload = await getPayload({ config })
+    await payload.update({ collection: 'accounts', id: account.id, overrideAccess: true, data })
+  } catch (error) {
+    console.error('[account] could not remember checkout details', error)
+  }
+}

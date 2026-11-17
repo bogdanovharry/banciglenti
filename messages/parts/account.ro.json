@@ -96,7 +96,13 @@
         "shipped": "Expediată",
         "delivered": "Livrată",
         "cancelled": "Anulată"
-      }
+      },
+      "repeat": "Repetă comanda",
+      "repeatLast": "Repetați ultima comandă",
+      "repeatLastHint": "Tot ce era în {number} va fi adăugat în coș.",
+      "repeatAdded": "Adăugat în coș",
+      "repeatSkipped": "{count, plural, one {# articol nu mai este disponibil și nu a fost adăugat.} other {# articole nu mai sunt disponibile și nu au fost adăugate.}}",
+      "repeatNone": "Articolele din această comandă nu mai sunt disponibile."
     },
     "checkout": {
       "loggedInAs": "Sunteți autentificat ca {email}",

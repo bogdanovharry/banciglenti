@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Btn } from "@/components/ui/primitives";
 import { localizeHref } from "@/lib/slugs";
 import { usePrices } from "@/lib/market-context";
+import { useCart, type CartItem } from "@/lib/cart";
+import { useRouter } from "next/navigation";
 import type { AccountProfile, Address, Machine } from "@/lib/account";
 
 export type OrderRow = {
@@ -16,7 +18,46 @@ export type OrderRow = {
   total: number;
   createdAt: string;
   items: { name: string; quantity: number }[];
+  /** The same goods as cart lines, with what is no longer sold left out. */
+  lines: Omit<CartItem, "id">[];
+  skipped: number;
 };
+
+/** Puts an earlier order back in the cart and goes there. */
+function useRepeat() {
+  const { addItem } = useCart();
+  const router = useRouter();
+  const locale = useLocale();
+  return (o: OrderRow) => {
+    if (o.lines.length === 0) return;
+    for (const line of o.lines) addItem(line);
+    router.push(localizeHref("/cart", locale));
+  };
+}
+
+function RepeatLast({ order }: { order: OrderRow }) {
+  const t = useTranslations("account");
+  const repeat = useRepeat();
+  const none = order.lines.length === 0;
+  return (
+    <section className="border border-orange bg-white p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+      <div className="flex-1">
+        <h2 className="font-display text-[20px] font-bold text-ink m-0">{t("orders.repeatLast")}</h2>
+        <p className="font-sans text-sm text-ink-70 mt-2 mb-0">
+          {none ? t("orders.repeatNone") : t("orders.repeatLastHint", { number: order.orderNumber })}
+        </p>
+        {!none && order.skipped > 0 && (
+          <p className="font-sans text-[13px] text-ink-50 mt-1 mb-0">{t("orders.repeatSkipped", { count: order.skipped })}</p>
+        )}
+      </div>
+      {!none && (
+        <Btn type="button" onClick={() => repeat(order)}>
+          {t("orders.repeat")}
+        </Btn>
+      )}
+    </section>
+  );
+}
 
 const inputCls =
   "w-full h-11 mt-1.5 px-3.5 border border-ink-15 font-sans text-sm outline-none bg-white focus:border-blue transition-colors disabled:bg-paper disabled:text-ink-50";
@@ -290,6 +331,7 @@ function Orders({ orders }: { orders: OrderRow[] }) {
   const tc = useTranslations("common");
   const locale = useLocale();
   const { amount, symbol } = usePrices();
+  const repeat = useRepeat();
   const date = (iso: string) => new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(iso));
 
   return (
@@ -319,6 +361,15 @@ function Orders({ orders }: { orders: OrderRow[] }) {
                     </li>
                   ))}
                 </ul>
+                {o.lines.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => repeat(o)}
+                    className="mt-4 bg-transparent border border-ink-15 px-3.5 py-2 cursor-pointer font-mono text-[11px] tracking-[0.08em] uppercase text-ink hover:border-ink"
+                  >
+                    {t("orders.repeat")}
+                  </button>
+                )}
               </details>
             </li>
           ))}
@@ -424,6 +475,7 @@ export function AccountClient({ account, orders }: { account: AccountProfile | n
       <div className="max-w-[1000px] mx-auto px-4 md:px-10 py-12 md:py-16">
         {account ? (
           <div className="flex flex-col gap-8">
+            {orders[0] && <RepeatLast order={orders[0]} />}
             <Profile account={account} />
             <Orders orders={orders} />
             <Security />
