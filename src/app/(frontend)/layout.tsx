@@ -40,6 +40,9 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: t("siteName"),
       title: t("title"),
       description: t("description"),
+      // What a link looks like when it is shared (Viber, Facebook, Messenger). Pages
+      // with a picture of their own — products — override it.
+      images: [{ url: "/images/hero/shutterstock_2512301009.webp", width: 1600, height: 1068 }],
     },
   };
 }

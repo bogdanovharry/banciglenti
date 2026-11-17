@@ -155,11 +155,7 @@ export function Header() {
   }, []);
 
   return (
-    <header
-      ref={headerRef}
-      className="sticky top-0 z-50 bg-white transition-[border-color] duration-200"
-      style={{ borderBottom: `1px solid ${scrolled ? "#D9D9D9" : "transparent"}` }}
-    >
+    <>
       {/* Top utility bar — only claims that hold up. It previously advertised
           "Доставка до 24–72ч", contradicting the 24–48ч stated everywhere else. */}
       <div className="hidden md:block bg-ink text-white/80">
@@ -184,6 +180,12 @@ export function Header() {
           </div>
         </div>
       </div>
+
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-50 bg-white transition-[border-color] duration-200"
+      style={{ borderBottom: `1px solid ${scrolled ? "#D9D9D9" : "transparent"}` }}
+    >
 
       {/* Main brand row.
           The search is the centre of gravity rather than a slot beside the
@@ -397,5 +399,6 @@ export function Header() {
         </nav>
       )}
     </header>
+    </>
   );
 }

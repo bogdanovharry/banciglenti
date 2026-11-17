@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 import { withPayload } from "@payloadcms/next/withPayload";
 import createNextIntlPlugin from "next-intl/plugin";
 
+import { legacyRedirects } from "./src/lib/legacy-redirects";
+
 // Locale comes from the domain, not a path segment — see src/i18n/locale.ts.
 // That is why the /bg/... redirects below are safe: they are old PHP URLs, not
 // a locale prefix, and nothing routes on /bg.
@@ -49,25 +51,8 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
-    // 301 redirects from old banciglenti.com URLs to new ones
-    return [
-      { source: "/bg/horizontalni-bantsizi", destination: "/category/horizontalni-bantsizi", permanent: true },
-      { source: "/bg/horizontalni-bantsizi/:slug", destination: "/product/:slug", permanent: true },
-      { source: "/bg/tsirkulyarni-trioni", destination: "/category/tsirkulyarni-trioni", permanent: true },
-      { source: "/bg/bimetalni-lenti", destination: "/category/bimetalni-lenti", permanent: true },
-      { source: "/bg/hobi-bantsig-1", destination: "/category/hobi-bantsig", permanent: true },
-      { source: "/bg/hobi-bantsig-1/:slug", destination: "/product/:slug", permanent: true },
-      { source: "/bg/mashini", destination: "/category/mashini", permanent: true },
-      { source: "/bg/news", destination: "/blog", permanent: true },
-      { source: "/bg/news/:slug", destination: "/blog/:slug", permanent: true },
-      { source: "/bg/tehnicheska-informatsiya", destination: "/blog", permanent: true },
-      { source: "/bg/main/contact-us", destination: "/contact", permanent: true },
-      { source: "/bg/login", destination: "/", permanent: true },
-      { source: "/bg/main/about-us", destination: "/about", permanent: true },
-      { source: "/bg/main/terms-of-use", destination: "/terms", permanent: true },
-      { source: "/bg/main/delivery-terms", destination: "/delivery", permanent: true },
-      { source: "/bg/main/privacy-policy", destination: "/privacy", permanent: true },
-    ];
+    // 301s from the old banciglenti.com addresses to their new places — see legacy-redirects.ts.
+    return legacyRedirects();
   },
 };
 

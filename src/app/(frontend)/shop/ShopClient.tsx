@@ -544,7 +544,7 @@ export function ShopClient({
 
   return (
     <>
-      <PageHeader
+      <PageHeader compact
         eyebrowNumber="№ 05"
         eyebrowLabel={tc("catalogue")}
         image="/images/hero/craftsman-using-bandsaw-for-splitting-wood-plank-i-2023-11-27-05-19-15-utc-2.avif"

@@ -136,7 +136,8 @@ export function ProductClient({ product }: { product: ProductView }) {
   // The title block (tags, SKU, name, size) is drawn twice and shown once: above the
   // photo on a phone, where the name is the first thing a buyer wants, and at the top of
   // the buy column on a desktop, beside the photo.
-  const titleBlock = (
+  // Rendered twice (phone and desktop layouts); only one of them is the page's h1.
+  const renderTitle = (Heading: "h1" | "p") => (
     <div>
       <div className="flex gap-2 mb-3 flex-wrap">
         {product.topProduct && <Tag tone="orange">TOP</Tag>}
@@ -148,7 +149,7 @@ export function ProductClient({ product }: { product: ProductView }) {
         {product.brand ? ` · ${product.brand}` : ""}
       </div>
 
-      <h1 className="font-display text-[22px] lg:text-[34px] leading-[1.15] lg:leading-[1.05] tracking-[-0.02em] font-bold m-0 mb-1 lg:mb-3 text-ink">
+      <Heading className="font-display text-[22px] lg:text-[34px] leading-[1.15] lg:leading-[1.05] tracking-[-0.02em] font-bold m-0 mb-1 lg:mb-3 text-ink">
         {product.name}
         {product.dim && (
           <>
@@ -158,7 +159,7 @@ export function ProductClient({ product }: { product: ProductView }) {
             </span>
           </>
         )}
-      </h1>
+      </Heading>
     </div>
   );
 
@@ -193,7 +194,7 @@ export function ProductClient({ product }: { product: ProductView }) {
             On a phone the order is photo, buy, description — the buy box is not pushed
             down the page by the text about the product. */}
         <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-[auto_1fr] gap-x-16 gap-y-5 lg:gap-y-10">
-          <div className="lg:hidden">{titleBlock}</div>
+          <div className="lg:hidden">{renderTitle("h1")}</div>
 
           {/* Gallery */}
           <div className="lg:col-start-1 lg:row-start-1">
@@ -274,7 +275,7 @@ export function ProductClient({ product }: { product: ProductView }) {
 
           {/* Choose and buy */}
           <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2">
-            <div className="hidden lg:block">{titleBlock}</div>
+            <div className="hidden lg:block">{renderTitle("p")}</div>
 
             {/* What is in the box. The whole reason a set sells is that
                 somebody already worked out which three blades cover the job —

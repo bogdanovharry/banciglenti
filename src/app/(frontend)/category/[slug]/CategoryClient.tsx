@@ -58,7 +58,7 @@ export function CategoryClient({
 
   return (
     <>
-      <PageHeader
+      <PageHeader compact
         eyebrowNumber="№ 05"
         eyebrowLabel={t("category.eyebrow")}
         image={categoryImage}
