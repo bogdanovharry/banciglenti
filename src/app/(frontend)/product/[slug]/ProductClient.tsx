@@ -419,7 +419,7 @@ export function ProductClient({ product }: { product: ProductView }) {
             </div>
 
             {/* Trust */}
-            <div className="grid grid-cols-3 gap-0 border-t border-b border-ink-15">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 border-t border-b border-ink-15">
               {[
                 {
                   Icon: IconTruck,
@@ -432,7 +432,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                 { Icon: IconShield, title: t("product.weldWarranty"), desc: t("product.weldWarrantyNote") },
                 { Icon: IconWrench, title: t("product.techAdvice"), desc: t("product.techAdviceNote") },
               ].map((item, i) => (
-                <div key={item.title} className={`p-4 flex gap-3 items-start ${i < 2 ? "border-r border-ink-15" : ""}`}>
+                <div key={item.title} className={`p-4 flex gap-3 items-start ${i < 2 ? "border-b sm:border-b-0 sm:border-r border-ink-15" : ""}`}>
                   <item.Icon size={22} className="text-orange shrink-0" />
                   <div>
                     <div className="font-display text-[13px] font-semibold text-ink">{item.title}</div>
@@ -446,7 +446,7 @@ export function ProductClient({ product }: { product: ProductView }) {
 
         {/* Specification */}
         {(dimensionRows.length > 0 || materialRows.length > 0 || machines.length > 0) && (
-          <div className="mt-24">
+          <div className="mt-12 md:mt-24">
             <div className="border-b border-ink-15">
               <span className="inline-block px-6 py-4 font-mono text-xs tracking-[0.12em] uppercase text-ink border-b-2 border-orange -mb-px">
                 {t("product.specification")}

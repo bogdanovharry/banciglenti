@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import { Placeholder, Btn } from "@/components/ui/primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -10,12 +11,14 @@ import { useCart } from "@/lib/cart";
 import { vatLabel } from "@/lib/market";
 import { usePrices } from "@/lib/market-context";
 import { DualPrice } from "@/components/ui/DualPrice";
+import { StickyCta } from "@/components/ui/StickyCta";
 
 export default function CartPage() {
   const { items, loaded, removeItem, updateQuantity, itemCount, vatRate, subtotal, shipping, tax, total } = useCart();
   const { market, amount, price, symbol } = usePrices();
   const tc = useTranslations("common");
   const t = useTranslations("cart");
+  const ctaRef = useRef<HTMLDivElement>(null);
 
   if (!loaded) return <CartSkeleton />;
 
@@ -73,7 +76,7 @@ export default function CartPage() {
               <span>{t("colItem")}</span><span>{t("colUnitPrice")}</span><span>{t("colQuantity")}</span><span className="text-right">{t("colAmount")}</span><span />
             </div>
             {items.map((it) => (
-              <div key={it.id} className="p-6 border-b border-ink-15 grid grid-cols-1 md:grid-cols-[2fr_120px_140px_120px_40px] items-center gap-4">
+              <div key={it.id} className="p-4 md:p-6 border-b border-ink-15 grid grid-cols-1 md:grid-cols-[2fr_120px_140px_120px_40px] items-center gap-3 md:gap-4">
                 <div className="flex gap-4 items-center min-w-0">
                   <Placeholder tone="paper" ratio="1/1" className="w-[72px] shrink-0" caption="" src={it.image} alt="" sizes="72px" />
                   <div className="min-w-0">
@@ -87,6 +90,8 @@ export default function CartPage() {
                   </div>
                 </div>
                 <DualPrice net={it.price} size="xs" />
+                {/* Phone: the stepper, the line total and the remove button share one row. */}
+                <div className="flex items-center justify-between gap-3 md:contents">
                 <div className="inline-flex border border-ink-15 bg-white w-fit">
                   <button
                     type="button"
@@ -102,13 +107,14 @@ export default function CartPage() {
                     className="w-10 h-10 bg-transparent border-none cursor-pointer flex items-center justify-center"
                   ><IconPlus size={12} /></button>
                 </div>
-                <DualPrice net={it.quantity * it.price} size="sm" className="md:text-right" />
+                <DualPrice net={it.quantity * it.price} size="sm" className="ml-auto text-right md:ml-0" />
                 <button
                   type="button"
                   onClick={() => removeItem(it.id)}
                   aria-label={t("remove", { name: it.name })}
                   className="w-10 h-10 flex items-center justify-center bg-transparent border-none cursor-pointer text-ink-50 hover:text-danger transition-colors"
                 ><IconClose size={16} /></button>
+                </div>
               </div>
             ))}
             <div className="p-5">
@@ -139,7 +145,7 @@ export default function CartPage() {
                 <span>{price(subtotal + shipping)}</span>
               </div>
             </div>
-            <div className="mt-6">
+            <div className="mt-6" ref={ctaRef}>
               <Link href="/checkout" className="no-underline">
                 <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />}>{t("toCheckout")}</Btn>
               </Link>
@@ -155,6 +161,18 @@ export default function CartPage() {
           </aside>
         </div>
       </div>
+
+      <StickyCta target={ctaRef}>
+        <div className="min-w-0">
+          <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50">{t("total", { vatNote: tc("incVat") })}</div>
+          <div className="font-display text-2xl font-extrabold text-ink tabular-nums leading-tight">
+            {amount(total)} <span className="text-xs font-normal text-ink-50">{symbol}</span>
+          </div>
+        </div>
+        <Link href="/checkout" className="no-underline ml-auto shrink-0">
+          <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("toCheckout")}</Btn>
+        </Link>
+      </StickyCta>
     </div>
   );
 }
