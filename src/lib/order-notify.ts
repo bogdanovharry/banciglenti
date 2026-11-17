@@ -2,6 +2,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 
 import { sendEmail, staffRecipients } from '@/lib/email'
+import { companyFor } from '@/lib/company'
 import type { Market } from '@/lib/market'
 import { customerEmail, staffOrderEmail, type EmailOrder } from '@/lib/order-emails'
 
@@ -26,6 +27,8 @@ export async function notifyOrder(orderId: number, order: EmailOrder, market: Ma
         subject: customer.subject,
         html: customer.html,
         text: customer.text,
+        // The sender address (…@send.<domain>) has no mailbox: a reply goes to the shop's own address.
+        replyTo: companyFor(market.locale).email,
         idempotencyKey: `order-${order.orderNumber}-customer`,
       }),
       sendEmail({
