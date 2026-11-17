@@ -20,7 +20,7 @@ import { localizeName, textLang, type Override } from '@/lib/product-text'
 import type { EmailOrder } from '@/lib/order-emails'
 import { notifyOrder } from '@/lib/order-notify'
 import { startCardPayment } from '@/lib/card-payments'
-import { getAccount } from '@/lib/account'
+import { getAccount, rememberFromOrder } from '@/lib/account'
 import { siteOrigin } from '@/lib/site-url'
 import { nameWithPitch, pitchInfoFor, pitchText } from '@/lib/product-pitch'
 
@@ -474,6 +474,25 @@ export async function POST(request: Request) {
         if (winner.docs[0]) return NextResponse.json(receipt(winner.docs[0] as unknown as Stored))
       }
       throw error
+    }
+
+    // Keep what was typed on the shopper's profile, so the next order fills itself in.
+    if (account) {
+      await rememberFromOrder(account, {
+        name,
+        phone,
+        company: billing?.company ?? company,
+        taxId: billing?.taxId,
+        vatNumber: billing?.vatNumber,
+        address:
+          shippingMethod === 'pickup'
+            ? null
+            : {
+                street: text(shipping.street, LIMITS.street),
+                city: text(shipping.city, LIMITS.city),
+                postalCode: text(shipping.postalCode, LIMITS.postalCode),
+              },
+      })
     }
 
     // --- Take the goods off the shelf --------------------------------------

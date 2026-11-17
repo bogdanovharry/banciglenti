@@ -53,3 +53,13 @@ describe('naming the choice', () => {
     expect(pitchText('8 TPI', 'ro')).toBe('8 TPI')
   })
 })
+
+import { pitchFromName as _pitchFromName } from './product-pitch'
+describe('pitchFromName', () => {
+  it('reads back what nameWithPitch wrote', () => {
+    for (const p of ['wave', 'smooth-ground', '3/4', '4']) {
+      expect(_pitchFromName(nameWithPitch('Saw-Meister X', p))).toBe(p)
+    }
+    expect(_pitchFromName('Saw-Meister X')).toBeNull()
+  })
+})

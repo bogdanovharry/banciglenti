@@ -155,6 +155,17 @@ export function nameWithPitch(name: string, pitch: string): string {
   return pitch in PITCH_NAME_BG ? `${name} · профил ${PITCH_NAME_BG[pitch]}` : `${name} · стъпка ${pitch}`
 }
 
+/** The pitch an order line was bought in, read back from its stored name (see nameWithPitch). */
+export function pitchFromName(name: string): string | null {
+  const profile = / · профил (.+)$/.exec(name)
+  if (profile) {
+    const key = Object.keys(PITCH_NAME_BG).find((k) => PITCH_NAME_BG[k] === profile[1])
+    return key ?? null
+  }
+  const step = / · стъпка (.+)$/.exec(name)
+  return step ? step[1] : null
+}
+
 export const PITCH_NAME_RO: Record<string, string> = {
   'cleaner-tooth': 'Dinte cu curățitor',
   'concave-wave': 'Val concav',
