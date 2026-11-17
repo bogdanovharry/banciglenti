@@ -151,7 +151,8 @@
       "emptyText": "Sudăm pânze pentru ferăstrău panglică la dimensiuni personalizate, de la {min} mm în sus, fără limită superioară.",
       "emptyCta": "Configurați pânza",
       "bannerTitle": "Comandați pânza la dimensiunea dvs.",
-      "bannerHint": "{types} tipuri de pânze · Lungime de la {min} mm în sus"
+      "bannerHint": "{types} tipuri de pânze · Lungime de la {min} mm în sus",
+      "showMore": "Arată mai multe"
     },
     "series": {
       "procut": {
