@@ -110,14 +110,14 @@ export async function Footer() {
               {company.address.street}<br />
               {company.address.country}
             </div>
-            <div className="mt-5 flex flex-col gap-1.5 font-mono text-xs">
+            <div className="mt-5 flex flex-col gap-0 md:gap-1.5 font-mono text-xs">
               {!market.writtenOnly && (
                 <>
-                  <a href={phone.office.href} className="text-white no-underline hover:text-orange-light transition-colors">{phone.office.display}</a>
-                  <a href={phone.mobile.href} className="text-white no-underline hover:text-orange-light transition-colors">{phone.mobile.display}</a>
+                  <a href={phone.office.href} className="py-2.5 md:py-0 text-white no-underline hover:text-orange-light transition-colors">{phone.office.display}</a>
+                  <a href={phone.mobile.href} className="py-2.5 md:py-0 text-white no-underline hover:text-orange-light transition-colors">{phone.mobile.display}</a>
                 </>
               )}
-              <a href={`mailto:${company.email}`} className="text-orange-light no-underline hover:text-white transition-colors">{company.email}</a>
+              <a href={`mailto:${company.email}`} className="py-2.5 md:py-0 text-orange-light no-underline hover:text-white transition-colors">{company.email}</a>
             </div>
           </div>
 
