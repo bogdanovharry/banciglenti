@@ -73,6 +73,7 @@ export function ProductClient({ product }: { product: ProductView }) {
   const t = useTranslations("catalog");
   const tc = useTranslations("common");
   const tStock = useTranslations("stock");
+  const locale = useLocale();
 
   // Made to order is always buyable; only a real zero in stock is refused.
   const inStock = product.stock !== "out";
