@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { SectionNumber, Placeholder, Btn } from "@/components/ui/primitives";
 import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
@@ -114,22 +114,19 @@ function HeroCustom() {
 
 // ========== TICKER ==========
 /**
- * A marquee that can be stopped (WCAG 2.2.2): it pauses while the pointer is
- * over it or keyboard focus is inside it, there is a visible pause/play button,
- * and for visitors who prefer reduced motion the animation is switched off in
- * globals.css (it matches the inline "tl-marquee" animation) and the button is
- * hidden, since there is then nothing to pause.
+ * The strip of facts. It pauses while the pointer is over it or keyboard focus is
+ * inside it, and for visitors who prefer reduced motion the animation is switched
+ * off in globals.css (it matches the inline "tl-marquee" animation). The visible
+ * pause button was removed at the owner's request.
  */
 function TickerStrip() {
   const t = useTranslations("home.ticker");
   const th = useTranslations("homepage");
   const tc = useTranslations("common");
   const { market, price } = usePrices();
-  const [userPaused, setUserPaused] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const paused = userPaused || hovered || focused;
+  const paused = hovered || focused;
 
   // The threshold is authored in EUR without VAT; formatted here so a Romanian
   // visitor reads it in lei, like every other figure on the page.
@@ -156,7 +153,7 @@ function TickerStrip() {
       aria-label={th("tickerLabel")}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onFocus={(e) => { if (e.target !== (buttonRef.current as EventTarget | null)) setFocused(true); }}
+      onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
     >
       <div
@@ -168,18 +165,6 @@ function TickerStrip() {
           <span key={i} aria-hidden={i >= items.length || undefined} className={i % 7 === 0 ? "opacity-100" : "opacity-70"}>{text}</span>
         ))}
       </div>
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={() => setUserPaused((p) => !p)}
-        aria-pressed={userPaused}
-        aria-label={userPaused ? th("tickerPlay") : th("tickerPause")}
-        className="motion-reduce:hidden absolute right-0 top-0 bottom-0 w-12 flex items-center justify-center bg-navy/90 text-white/80 hover:text-white border-0 border-l border-white/15 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-orange-light"
-      >
-        <svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor" aria-hidden="true">
-          {userPaused ? <path d="M1 0.5v13l10-6.5z" /> : <path d="M1 0h3.5v14H1zM7.5 0H11v14H7.5z" />}
-        </svg>
-      </button>
     </div>
   );
 }
