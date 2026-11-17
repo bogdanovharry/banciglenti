@@ -56,7 +56,7 @@ function SpecBlock({
     // 4:3 rather than square. A square tile left a lot of empty drafting grid
     // above and below a single line of figures, which read as a broken image
     // slot rather than as a deliberate spec panel.
-    <div className="relative aspect-[4/3] bg-paper border-b border-ink-15 flex flex-col justify-center px-5 overflow-hidden">
+    <div className="relative aspect-[2/1] sm:aspect-[4/3] bg-paper border-b border-ink-15 flex flex-col justify-center px-5 overflow-hidden">
       {/* Engineering grid, very low contrast — reads as drafting paper */}
       <div
         aria-hidden
@@ -137,6 +137,8 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
               <Placeholder
                 tone="paper"
                 ratio="4/3"
+                // A shorter picture on a phone, so a card is not most of a screen tall.
+                className="max-sm:!aspect-[2/1]"
                 src={p.image}
                 alt={p.name}
                 fit="contain"
@@ -177,7 +179,7 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
         </div>
 
         {/* Info */}
-        <div className={`${compact ? "p-4" : "p-5"} flex flex-col gap-2 flex-1`}>
+        <div className={`${compact ? "p-3 sm:p-4" : "p-4 sm:p-5"} flex flex-col gap-2 flex-1`}>
           <div className="flex justify-between items-center font-mono text-[10px] tracking-[0.1em] uppercase text-ink-50 gap-2">
             <span className="truncate">{p.brandName || p.industry}</span>
             <span className={`${stockColor} shrink-0`}>● {tStock(p.stock)}</span>
@@ -187,7 +189,7 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
             {p.name}
           </h3>
 
-          <div className="mt-auto pt-4 border-t border-ink-05 flex justify-between items-end gap-2">
+          <div className="mt-auto pt-3 sm:pt-4 border-t border-ink-05 flex justify-between items-end gap-2">
             <div>
               <DualPrice net={p.price} size="sm" />
               {/* A box is N of one blade, so a per-blade price is the number a

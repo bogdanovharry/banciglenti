@@ -289,6 +289,14 @@ export function ShopClient({
     return list;
   }, [filtered, sort]);
 
+  // A phone cannot scroll through hundreds of cards: show a page at a time.
+  // The count starts over whenever the filters or the sort change.
+  const PAGE = 12;
+  const viewSignature = JSON.stringify([activeCategory, query, materials, brands, series, machines, inStockOnly, widthMin, widthMax, lengthMin, lengthMax, sort]);
+  const [more, setMore] = useState({ signature: viewSignature, count: PAGE });
+  const visibleCount = more.signature === viewSignature ? more.count : PAGE;
+  const visible = sorted.slice(0, visibleCount);
+
   const mm = t("unit.mm");
   const filterChips = [
     ...(activeCategory ? [{ label: filters.find((f) => f.slug === activeCategory)?.label ?? activeCategory, clear: () => setActiveCategory("") }] : []),
@@ -687,10 +695,24 @@ export function ShopClient({
               )}
 
               <div className="grid content-start grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {sorted.map((p) => (
+                {visible.map((p) => (
                   <ProductCard key={p.sku} p={p} compact />
                 ))}
               </div>
+              {sorted.length > visible.length && (
+                <div className="mt-8 flex flex-col items-center gap-2">
+                  <span className="font-mono text-[11px] text-ink-50">
+                    {t("shop.count", { shown: visible.length, total: sorted.length })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMore({ signature: viewSignature, count: visibleCount + PAGE })}
+                    className="bg-white border border-ink text-ink px-8 py-3 cursor-pointer font-mono text-[11px] tracking-[0.1em] uppercase hover:bg-ink hover:text-white transition-colors"
+                  >
+                    {t("shop.showMore")}
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
