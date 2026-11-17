@@ -62,6 +62,7 @@ const LIMITS = {
   taxId: 40,
   vatNumber: 40,
   billingAddress: 300,
+  mol: 120,
   key: 80,
 } as const
 
@@ -194,12 +195,14 @@ export async function POST(request: Request) {
         taxId: text(billingIn.taxId, LIMITS.taxId),
         vatNumber: text(billingIn.vatNumber, LIMITS.vatNumber),
         address: text(billingIn.address, LIMITS.billingAddress),
+        mol: market.invoiceRepresentative ? text(billingIn.mol, LIMITS.mol) : '',
       }
     : null
   if (billing) {
     if (!billing.company) errors.billingCompany = say.billingCompany
     if (!billing.taxId) errors.billingTaxId = say.billingTaxId
     if (!billing.address) errors.billingAddress = say.billingAddress
+    if (market.invoiceRepresentative && !billing.mol) errors.billingMol = say.billingMol
   }
 
   if (rawItems.length === 0) errors.items = say.itemsEmpty

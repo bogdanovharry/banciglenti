@@ -35,7 +35,7 @@ type OrderDoc = {
   contact?: { name?: string | null; email?: string | null; phone?: string | null; company?: string | null } | null
   shipping?: { method?: string | null; address?: string | null; cost?: number | null } | null
   payment?: { method?: string | null; status?: string | null; transactionId?: string | null } | null
-  billing?: { invoice?: boolean | null; company?: string | null; taxId?: string | null; vatNumber?: string | null; address?: string | null } | null
+  billing?: { invoice?: boolean | null; company?: string | null; taxId?: string | null; vatNumber?: string | null; address?: string | null; mol?: string | null } | null
   items?: { name?: string | null; sku?: string | null; quantity?: number | null; price?: number | null; customSpecs?: unknown }[] | null
   log?: Row[] | null
 }
@@ -162,7 +162,7 @@ export async function reconcileCardPayment(where: { id: number } | { clientKey: 
 /** The data the two e-mails are written from, rebuilt from the stored order. */
 export function emailOrderFrom(doc: OrderDoc): EmailOrder {
   const billing = doc.billing?.invoice
-    ? { company: doc.billing.company ?? '', taxId: doc.billing.taxId ?? '', vatNumber: doc.billing.vatNumber ?? undefined, address: doc.billing.address ?? '' }
+    ? { company: doc.billing.company ?? '', taxId: doc.billing.taxId ?? '', vatNumber: doc.billing.vatNumber ?? undefined, address: doc.billing.address ?? '', ...(doc.billing.mol ? { mol: doc.billing.mol } : {}) }
     : null
   return {
     orderNumber: doc.orderNumber,

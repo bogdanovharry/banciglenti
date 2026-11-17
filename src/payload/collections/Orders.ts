@@ -386,6 +386,7 @@ export const Orders: CollectionConfig = {
           ],
         },
         { name: 'address', type: 'textarea', label: 'Седалище' },
+        { name: 'mol', type: 'text', label: 'МОЛ (представляващ)' },
       ],
     },
     // The three money fields sit in the sidebar, read-only, because /api/checkout

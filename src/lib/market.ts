@@ -64,6 +64,8 @@ export type Market = {
    * other, so a method switched off here cannot be posted by hand.
    */
   paymentMethods: CheckoutPaymentMethod[]
+  /** Whether a company invoice asks for the buyer's МОЛ (a Bulgarian habit). */
+  invoiceRepresentative: boolean
 }
 
 export const MARKETS: Record<MarketCode, Market> = {
@@ -83,6 +85,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     couriers: ['Еконт', 'Спиди'],
     pickup: true,
     paymentMethods: ['bank_transfer', 'cod'],
+    invoiceRepresentative: true,
   },
   ro: {
     code: 'ro',
@@ -111,6 +114,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     // Cash on delivery only at launch — the courier collects lei, so no RON
     // bank account is needed. Cards are to follow once a provider is connected.
     paymentMethods: ['cod'],
+    invoiceRepresentative: false,
   },
   gr: {
     code: 'gr',
@@ -128,6 +132,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     pickup: false,
     // TODO: follows whatever Romania proves out.
     paymentMethods: ['cod'],
+    invoiceRepresentative: false,
   },
 }
 
