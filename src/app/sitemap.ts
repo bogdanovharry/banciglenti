@@ -3,6 +3,8 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 
 import { siteOrigin } from '@/lib/site-url'
+import { getMarket } from '@/i18n/locale'
+import { visibleWhere } from '@/lib/blog'
 
 /**
  * Every page worth finding, on the domain being asked.
@@ -13,8 +15,8 @@ import { siteOrigin } from '@/lib/site-url'
  * the file stays cheap at a few hundred products; a retired product is left out,
  * matching the shop, which stops listing it.
  *
- * Not listed on purpose: the cart and checkout (nothing to index), /blog (it
- * returns 404 until it is backed by real articles) and the admin screens.
+ * Not listed on purpose: the cart and checkout (nothing to index) and the admin
+ * screens. The blog is listed only once this shop has published an article.
  *
  * hreflang alternates between the markets' domains are the one thing missing —
  * they need to know every domain, and the Romanian one is not bought yet. Add
@@ -28,7 +30,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const origin = await siteOrigin()
   const payload = await getPayload({ config })
 
-  const [products, categories] = await Promise.all([
+  const market = await getMarket()
+  const [products, categories, articles] = await Promise.all([
     payload.find({
       collection: 'products',
       where: { status: { not_equals: 'inactive' } },
@@ -44,6 +47,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       pagination: false,
       depth: 0,
     }),
+    payload.find({
+      collection: 'articles',
+      where: visibleWhere(market.code),
+      select: { slug: true, updatedAt: true },
+      limit: 500,
+      pagination: false,
+      depth: 0,
+    }),
   ])
 
   const entry = (path: string, priority: number, lastModified?: string): MetadataRoute.Sitemap[number] => ({
@@ -54,6 +65,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...STATIC_PAGES.map((path) => entry(path, path === '/' ? 1 : 0.6)),
+    ...(articles.totalDocs > 0 ? [entry('/blog', 0.5)] : []),
+    ...(articles.docs as unknown as { slug?: string; updatedAt?: string }[])
+      .filter((a): a is { slug: string; updatedAt?: string } => Boolean(a.slug))
+      .map((a) => entry(`/blog/${a.slug}`, 0.6, a.updatedAt)),
     ...(categories.docs as unknown as { slug?: string }[])
       .filter((c): c is { slug: string } => Boolean(c.slug))
       .map((c) => entry(`/category/${c.slug}`, 0.8)),

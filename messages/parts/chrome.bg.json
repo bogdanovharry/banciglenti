@@ -40,7 +40,8 @@
     "office": "Централен офис",
     "addressLine": "гр. {city} {postalCode}",
     "vatNo": "ДДС {number}",
-    "site": "www.banciglenti.com"
+    "site": "www.banciglenti.com",
+    "cBlog": "Блог"
   },
   "notFound": {
     "metaTitle": "Страницата не е намерена",

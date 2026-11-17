@@ -40,7 +40,8 @@
     "office": "Sediul central",
     "addressLine": "{postalCode} {city}",
     "vatNo": "Cod TVA {number}",
-    "site": ""
+    "site": "",
+    "cBlog": "Blog"
   },
   "notFound": {
     "metaTitle": "Pagina nu a fost găsită",

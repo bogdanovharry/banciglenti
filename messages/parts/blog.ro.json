@@ -1,0 +1,26 @@
+{
+  "blog": {
+    "navLabel": "Blog",
+    "eyebrowNumber": "№ 08",
+    "eyebrow": "Blog",
+    "title": "Blog și sfaturi tehnice",
+    "description": "Cum alegem o pânză, cum o folosim și cum o întreținem.",
+    "filterAll": "Toate",
+    "categories": {
+      "blog": "Blog",
+      "technical": "Informații tehnice"
+    },
+    "readMore": "Citește",
+    "back": "← Toate articolele",
+    "empty": "Vom publica în curând primele articole.",
+    "emptyCategory": "Nu există încă articole în această categorie.",
+    "page": "Pagina {page} din {pages}",
+    "previous": "← Mai noi",
+    "next": "Mai vechi →",
+    "ctaTitle": "Aveți nevoie de o pânză la dimensiune?",
+    "ctaText": "Introduceți dimensiunile în configurator și vedeți prețul imediat.",
+    "ctaButton": "Către configurator",
+    "metaTitle": "Blog",
+    "metaDescription": "Sfaturi practice despre pânze de panglică și scule de tăiere: alegere, utilizare și întreținere."
+  }
+}

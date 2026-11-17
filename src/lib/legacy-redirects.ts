@@ -46,7 +46,7 @@ const PAGES: Record<string, string> = {
   'main/delivery-terms': '/delivery',
   'main/privacy-policy': '/privacy',
   'main/products-payout': '/delivery',
-  'main/technical-info': '/about',
+  'main/technical-info': '/blog?category=technical',
   'main/certificates': '/about',
   'main/promo': '/shop',
   'main/custom-price': '/configurator',
@@ -57,9 +57,9 @@ const PAGES: Record<string, string> = {
   'main/configurator-bantsig-lenti-za-meso': '/configurator?type=meat',
   'main/configurator-bantsig-lenti-za-pyana-dunapren': '/configurator?type=slicer',
   'main/konfigurator-bantsig-lenti-za-tekstil-i-hartiya': '/configurator?type=slicer',
-  'tehnicheska-informatsiya': '/about',
+  'tehnicheska-informatsiya': '/blog?category=technical',
   login: '/account',
-  news: '/',
+  news: '/blog',
 }
 
 export function legacyRedirects(): Redirect[] {
@@ -73,7 +73,7 @@ export function legacyRedirects(): Redirect[] {
     // …/<category>/<product>: the product pages of that shelf.
     add(`/bg/${from}/:product`, to)
   }
-  add('/bg/news/:slug', '/')
+  add('/bg/news/:slug', '/blog')
   add('/bg/services', '/configurator')
   add('/bg/services/:slug*', '/configurator')
   add('/bg', '/')
