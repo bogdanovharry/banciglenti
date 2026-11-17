@@ -50,11 +50,11 @@ export function PageHeader({
         </div>
       )}
 
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-10 pb-12 md:pt-14 md:pb-16">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-6 pb-7 md:pt-14 md:pb-16">
         {crumbs && crumbs.length > 0 && (
           <nav
             aria-label={t("breadcrumb")}
-            className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/55 flex gap-2 mb-8 flex-wrap"
+            className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/55 flex gap-2 mb-4 md:mb-8 flex-wrap"
           >
             {crumbs.map((c, i) => (
               <span key={`${c.label}-${i}`} className="flex gap-2">
@@ -73,15 +73,15 @@ export function PageHeader({
 
         <SectionNumber n={eyebrowNumber} label={eyebrowLabel} tone="light" />
 
-        <h1 className="font-display text-4xl md:text-5xl lg:text-[68px] leading-[0.98] tracking-[-0.04em] font-extrabold mt-7 mb-0">
+        <h1 className="font-display text-[32px] md:text-5xl lg:text-[68px] leading-[1] tracking-[-0.04em] font-extrabold mt-4 md:mt-7 mb-0">
           {title}
         </h1>
 
         {description && (
-          <p className="font-sans text-[17px] leading-relaxed text-white/70 max-w-[620px] mt-6">{description}</p>
+          <p className="font-sans text-[15px] md:text-[17px] leading-snug md:leading-relaxed text-white/70 max-w-[620px] mt-3 md:mt-6 line-clamp-3 md:line-clamp-none">{description}</p>
         )}
 
-        {children && <div className="mt-9">{children}</div>}
+        {children && <div className="mt-5 md:mt-9">{children}</div>}
       </div>
     </section>
   );

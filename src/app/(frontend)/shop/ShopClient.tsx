@@ -664,7 +664,7 @@ export function ShopClient({
           ) : (
             <>
               <Link href={configuratorHref(activeCategory)} className="no-underline block mb-6">
-                <div className="bg-paper border border-ink-15 p-5 flex items-center justify-between gap-4 hover:border-ink transition-colors">
+                <div className="bg-paper border border-ink-15 p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-ink transition-colors">
                   <div className="flex items-center gap-4">
                     <IconRuler size={28} className="text-blue shrink-0" />
                     <div>
@@ -674,7 +674,7 @@ export function ShopClient({
                       </div>
                     </div>
                   </div>
-                  <Btn variant="primary" size="sm" iconRight={<IconArrowRight size={12} />}>{tc("configurator")}</Btn>
+                  <span className="self-start sm:self-auto"><Btn variant="primary" size="sm" iconRight={<IconArrowRight size={12} />}>{tc("configurator")}</Btn></span>
                 </div>
               </Link>
 
