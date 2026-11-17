@@ -373,11 +373,9 @@ export function Header() {
           </Link>
           <Link href="/contact" className="block px-4 py-3 text-ink-70 no-underline border-t border-b border-ink-05" onClick={() => setMobileOpen(false)}>{tCommon("contact")}</Link>
           {/* The top bar is not shown on a phone, so the ways to reach us live here. */}
-          {!writtenOnly && (
-            <a href={company.phone.office.href} className="block px-4 py-3 text-ink-70 no-underline border-b border-ink-05 tabular-nums">
-              {company.phone.office.display}
-            </a>
-          )}
+          <a href={company.phone.office.href} className="block px-4 py-3 text-ink-70 no-underline border-b border-ink-05 tabular-nums">
+            {company.phone.office.display}
+          </a>
           <a href={`mailto:${company.email}`} className="block px-4 py-3 text-ink-70 no-underline border-b border-ink-05">
             {company.email}
           </a>
