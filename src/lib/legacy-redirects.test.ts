@@ -6,7 +6,7 @@ const NEW_CATEGORIES = [
   'tsirkulyarni-trioni', 'vertikalni-bantsizi', 'horizontalni-bantsizi', 'konsumativi', 'mashini', 'abrazivi',
   'hobi-bantsig', 'hrani', 'metal', 'dyrvo',
 ]
-const NEW_PAGES = ['/', '/shop', '/configurator', '/contact', '/about', '/delivery', '/terms', '/privacy', '/account']
+const NEW_PAGES = ['/', '/shop', '/configurator', '/contact', '/about', '/delivery', '/terms', '/privacy', '/account', '/blog']
 
 describe('legacy redirects', () => {
   const list = legacyRedirects()
@@ -24,7 +24,8 @@ describe('legacy redirects', () => {
     expect(new Set(sources).size).toBe(sources.length)
   })
 
-  it('never sends the news pages to a blog that does not exist', () => {
-    expect(list.some((r) => r.destination.startsWith('/blog'))).toBe(false)
+  it('sends the old news and technical pages to the blog', () => {
+    expect(list.find((r) => r.source === '/bg/news')?.destination).toBe('/blog')
+    expect(list.find((r) => r.source === '/bg/main/technical-info')?.destination).toBe('/blog?category=technical')
   })
 })

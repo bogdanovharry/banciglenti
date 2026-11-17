@@ -313,3 +313,38 @@ input[type="range"]::-webkit-slider-thumb {
     animation: none !important;
   }
 }
+
+/* Article body (blog): longer reading than the legal pages, so a little larger. */
+.tl-article p,
+.tl-article li {
+  font-size: 17px;
+  line-height: 1.8;
+}
+.tl-article ul {
+  list-style: disc;
+}
+.tl-article ol {
+  list-style: decimal;
+}
+.tl-article h2 {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin: 2.5rem 0 0.9rem;
+}
+.tl-article h3 {
+  font-size: 20px;
+  margin-top: 2rem;
+}
+.tl-article blockquote {
+  margin: 1.5rem 0;
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  border-left: 3px solid var(--color-orange);
+}
+.tl-article img {
+  max-width: 100%;
+  height: auto;
+  margin: 1.5rem 0;
+}

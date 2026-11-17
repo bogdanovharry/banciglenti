@@ -6,6 +6,7 @@ import { COMPANY, COMPANY_LATIN, companyFor } from "@/lib/company";
 import { localizeHref } from "@/lib/slugs";
 import { CATALOG_FACTS } from "@/lib/catalog-facts";
 import { getLocale, getMarket } from "@/i18n/locale";
+import { countArticles } from "@/lib/blog";
 
 const columns = [
   { title: "colProducts", links: [
@@ -40,6 +41,8 @@ export async function Footer() {
   const t = await getTranslations("siteFooter");
   const locale = await getLocale();
   const market = await getMarket();
+  // The blog is linked only once this shop has something published in it.
+  const hasBlog = (await countArticles(market.code)) > 0;
   const company = companyFor(locale);
   // The footer states numbers in full international form: it is the formal
   // identity block, and it is read from outside Bulgaria. Display and href
@@ -122,7 +125,10 @@ export async function Footer() {
           </div>
 
           {/* Nav columns */}
-          {columns.map((col) => (
+          {columns.map((col) => ({
+            ...col,
+            links: col.title === "colCompany" && hasBlog ? [...col.links, { label: "cBlog", href: "/blog" }] : col.links,
+          })).map((col) => (
             <div key={col.title}>
               <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-4">{t(col.title)}</div>
               <ul className="list-none m-0 p-0 flex flex-col gap-2.5">
