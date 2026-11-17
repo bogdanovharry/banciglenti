@@ -642,9 +642,6 @@ export default function CheckoutPage() {
                 {submitting ? t("submitting") : t("submit")}
               </Btn>
             </div>
-            <p className="font-mono text-[10px] text-ink-50 mt-3 text-center leading-relaxed">
-              {t("recalcNote")}
-            </p>
           </aside>
         </form>
       </div>
