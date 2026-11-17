@@ -157,9 +157,19 @@ export function getOptionsForWidth(blades: BladeConfig[], width: number) {
  * Get available pitches after selecting width + thickness + brand
  */
 export function getAvailablePitches(blades: BladeConfig[], width: number, thickness: number, brand: string) {
-  return blades
+  const pitches = blades
     .filter((b) => b.width === width && b.thickness === thickness && b.brand === brand)
     .map((b) => b.pitch);
+  // Coarsest first (2/3 before 3/4 before 8/12; 4 before 14), named profiles after the numbers in table order.
+  const lead = (p: string) => Number.parseFloat(p);
+  return [...pitches].sort((a, b) => {
+    const na = lead(a)
+    const nb = lead(b)
+    if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb
+    if (Number.isFinite(na)) return -1
+    if (Number.isFinite(nb)) return 1
+    return 0
+  });
 }
 
 /**
