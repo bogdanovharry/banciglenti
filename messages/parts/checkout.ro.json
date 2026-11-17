@@ -96,7 +96,8 @@
     "returnProblemTitle": "Plata nu a fost finalizată",
     "returnFailedText": "Plata nu a fost efectuată, iar comanda a fost anulată. Puteți încerca din nou.",
     "returnProblemText": "Nu am putut confirma plata. Dacă vi s-au retras bani, scrieți-ne cu numărul comenzii.",
-    "returnTryAgain": "Încercați din nou"
+    "returnTryAgain": "Încercați din nou",
+    "invoiceMol": "Reprezentant legal"
   },
   "contact": {
     "eyebrow": "Asistență tehnică",

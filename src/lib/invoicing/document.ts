@@ -37,6 +37,8 @@ export type InvoiceBuyer = {
   taxId: string | null
   vatNumber: string | null
   address: string
+  /** The buyer's МОЛ, when it was asked (Bulgarian checkout). */
+  representative?: string | null
 }
 
 export type SnapshotLine = {

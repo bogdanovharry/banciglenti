@@ -94,6 +94,7 @@ export function InvoiceDocument({ s }: { s: InvoiceSnapshot }) {
             <strong key="n">{buy.name}</strong>,
             buy.taxId && `${LABELS.cui.ro} / ${LABELS.cui.bg}: ${buy.taxId}`,
             buy.vatNumber && `${LABELS.vatNo.ro} / ${LABELS.vatNo.bg}: ${buy.vatNumber}`,
+            buy.representative && `${LABELS.representative.ro} / ${LABELS.representative.bg}: ${buy.representative}`,
             buy.address,
           ]}
         />

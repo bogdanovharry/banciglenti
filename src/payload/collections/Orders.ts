@@ -386,6 +386,7 @@ export const Orders: CollectionConfig = {
           ],
         },
         { name: 'address', type: 'textarea', label: 'Седалище' },
+        { name: 'mol', type: 'text', label: 'МОЛ (представляващ)' },
         // Consent to receive the invoice electronically (art. 114(9) ЗДДС).
         // Written by the order route only; without it no invoice is e-mailed.
         { name: 'einvoiceConsent', type: 'checkbox', label: 'Съгласие за електронна фактура', defaultValue: false, access: serverOnly },

@@ -70,7 +70,7 @@ const FIELDS = [
 ] as const;
 type Field = (typeof FIELDS)[number];
 
-const BILLING_FIELDS = ["company", "taxId", "vatNumber", "address"] as const;
+const BILLING_FIELDS = ["company", "taxId", "vatNumber", "address", "mol"] as const;
 type BillingField = (typeof BILLING_FIELDS)[number];
 
 /** [method, label, detail] */
@@ -217,6 +217,7 @@ export default function CheckoutPage() {
       if (!billing.company.trim()) errors.billingCompany = t("fieldRequired");
       if (!billing.taxId.trim()) errors.billingTaxId = t("fieldRequired");
       if (!billing.address.trim()) errors.billingAddress = t("fieldRequired");
+      if (market.invoiceRepresentative && !billing.mol.trim()) errors.billingMol = t("fieldRequired");
     }
     return errors;
   };
@@ -259,6 +260,7 @@ export default function CheckoutPage() {
             taxId: invoice ? billing.taxId.trim() : "",
             vatNumber: invoice ? billing.vatNumber.trim() : "",
             address: invoice ? billing.address.trim() : "",
+            mol: invoice && market.invoiceRepresentative ? billing.mol.trim() : "",
           },
           acceptedTerms: true,
           idempotencyKey,
@@ -453,6 +455,12 @@ export default function CheckoutPage() {
                     value={billing.taxId} onChange={setBill("taxId")} error={fieldErrors.billingTaxId} />
                   <Input label={t("invoiceVat")}
                     value={billing.vatNumber} onChange={setBill("vatNumber")} />
+                  {market.invoiceRepresentative && (
+                    <div className="md:col-span-2">
+                      <Input label={t("invoiceMol")} required autoComplete="off"
+                        value={billing.mol} onChange={setBill("mol")} error={fieldErrors.billingMol} />
+                    </div>
+                  )}
                   <div className="md:col-span-2">
                     <Input label={t("invoiceAddress")} required autoComplete="off"
                       value={billing.address} onChange={setBill("address")} error={fieldErrors.billingAddress} />

@@ -38,7 +38,7 @@ export type EmailOrder = {
   tax: number
   total: number
   vatRate: number
-  billing?: { company: string; taxId: string; vatNumber?: string; address: string } | null
+  billing?: { company: string; taxId: string; vatNumber?: string; address: string; mol?: string } | null
   notes?: string
 }
 
@@ -216,7 +216,7 @@ export function staffOrderEmail(order: EmailOrder, market: Market, origin: strin
     ...(order.billing
       ? [
           '',
-          `Фактура на: ${order.billing.company}, ЕИК/CUI ${order.billing.taxId}${order.billing.vatNumber ? `, ДДС ${order.billing.vatNumber}` : ''}`,
+          `Фактура на: ${order.billing.company}, ЕИК/CUI ${order.billing.taxId}${order.billing.vatNumber ? `, ДДС ${order.billing.vatNumber}` : ''}${order.billing.mol ? `, МОЛ ${order.billing.mol}` : ''}`,
           order.billing.address,
         ]
       : []),

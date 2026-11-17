@@ -340,6 +340,7 @@ export default async function OrderPage({
                 <span className="text-ink-70">
                   {order.billing.taxId && ` · ЕИК/CUI ${order.billing.taxId}`}
                   {order.billing.vatNumber && ` · ДДС ${order.billing.vatNumber}`}
+                  {order.billing.mol && ` · МОЛ ${order.billing.mol}`}
                 </span>
               </div>
               {order.billing.address && (

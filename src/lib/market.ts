@@ -79,6 +79,11 @@ export type Market = {
    * price, it is just not itemised. The server refuses an order that asks for one.
    */
   processingOptions: boolean
+  /**
+   * Whether a company invoice asks for the person who represents the company (МОЛ).
+   * A Bulgarian habit — buyers expect their МОЛ on the invoice. Not asked in Romania.
+   */
+  invoiceRepresentative: boolean
 }
 
 export const MARKETS: Record<MarketCode, Market> = {
@@ -100,6 +105,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     paymentMethods: ['bank_transfer', 'cod'],
     writtenOnly: false,
     processingOptions: true,
+    invoiceRepresentative: true,
   },
   ro: {
     code: 'ro',
@@ -132,6 +138,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     writtenOnly: true,
     // Owner's decision, 12 Nov 2026.
     processingOptions: false,
+    invoiceRepresentative: false,
   },
   gr: {
     code: 'gr',
@@ -151,6 +158,7 @@ export const MARKETS: Record<MarketCode, Market> = {
     paymentMethods: ['cod'],
     writtenOnly: false,
     processingOptions: true,
+    invoiceRepresentative: false,
   },
 }
 

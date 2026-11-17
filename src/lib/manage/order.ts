@@ -48,7 +48,7 @@ export type OrderDetail = {
   }
 
   /** Invoice details, when the buyer asked for an invoice to a company. */
-  billing: { company: string | null; taxId: string | null; vatNumber: string | null; address: string | null } | null
+  billing: { company: string | null; taxId: string | null; vatNumber: string | null; address: string | null; mol: string | null } | null
 
   lines: OrderLine[]
 
@@ -145,6 +145,7 @@ type RawOrder = {
     taxId?: string | null
     vatNumber?: string | null
     address?: string | null
+    mol?: string | null
   } | null
   log?: { note?: string | null; at?: string | null; author?: unknown }[] | null
 }
@@ -244,6 +245,7 @@ export async function getOrder(id: number): Promise<OrderDetail | null> {
           taxId: doc.billing.taxId ?? null,
           vatNumber: doc.billing.vatNumber ?? null,
           address: doc.billing.address ?? null,
+          mol: doc.billing.mol ?? null,
         }
       : null,
 

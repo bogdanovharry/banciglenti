@@ -80,6 +80,7 @@ function buyerOf(order: OrderDetail): InvoiceBuyer {
       taxId: order.billing.taxId,
       vatNumber: order.billing.vatNumber || null,
       address: oneLine(order.billing.address) || oneLine(order.shipping.address),
+      representative: order.billing.mol || null,
     }
   }
   return {
