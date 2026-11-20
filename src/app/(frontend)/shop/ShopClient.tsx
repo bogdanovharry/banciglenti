@@ -15,6 +15,10 @@ import { FilterDrawer } from "@/components/catalog/FilterDrawer";
 import { SERIES, isSeriesKey, type SeriesKey } from "@/lib/series";
 import { SORT_OPTIONS, compareBy, formatInt, type SortKey } from "@/lib/catalog-ui";
 import { CATALOG_FACTS } from "@/lib/catalog-facts";
+import { bladeLineOf } from "@/lib/product-images";
+
+/** A product's line: its series, or ProCut / SoftCut told by the name on the ready-cut blades. */
+const seriesKeyOf = (p: { name: string; series?: string | null }): string | null => p.series ?? bladeLineOf(p);
 
 export type ShopFilter = { slug: string; label: string; count: number };
 
@@ -186,7 +190,8 @@ export function ShopClient({
   const seriesFacets = useMemo(() => {
     const counts = new Map<string, number>();
     for (const p of inCategory) {
-      if (p.series) counts.set(p.series, (counts.get(p.series) ?? 0) + 1);
+      const key = seriesKeyOf(p);
+      if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     return Object.keys(SERIES)
       .filter((k) => counts.has(k))
@@ -274,7 +279,7 @@ export function ShopClient({
       }
       if (materials.length && !(p.specs?.material && materials.includes(p.specs.material))) return false;
       if (brands.length && !(p.brandName && brands.includes(p.brandName))) return false;
-      if (series.length && !(p.series && series.includes(p.series))) return false;
+      if (series.length && !(seriesKeyOf(p) && series.includes(seriesKeyOf(p) as string))) return false;
       if (machines.length && !(p.machines ?? []).some((m) => machines.includes(m))) return false;
       if (inStockOnly && p.stock === "out") return false;
       if (!inRange(p.specs?.width, wMin, wMax)) return false;

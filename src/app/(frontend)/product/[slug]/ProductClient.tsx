@@ -6,7 +6,8 @@ import { useState } from "react";
 import { PitchPicker } from "./PitchPicker";
 import { PhotoDimensions } from "@/components/product/PhotoDimensions";
 import { PhotoBadge } from "@/components/product/PhotoBadge";
-import { PLANER_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame } from "@/lib/product-images";
+import { LineBadge } from "@/components/product/LineBadge";
+import { PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame } from "@/lib/product-images";
 import { configuratorHrefForAny } from "@/lib/configurator-tabs";
 import type { PitchInfo } from "@/lib/product-pitch";
 import { useLocale, useTranslations } from "next-intl";
@@ -217,6 +218,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                   <PhotoDimensions width={product.specs.width} size={dimensionLabelSize(product.image)} />
                 )}
                 {product.image === PLANER_PHOTO && <PhotoBadge name={product.name} />}
+                {(product.image === PROCUT_PHOTO || product.image === SOFTCUT_PHOTO) && <LineBadge name={product.name} series={product.series} />}
               </div>
             ) : (
               <Placeholder tone="paper" ratio="1/1" caption={product.name} />

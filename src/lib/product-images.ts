@@ -48,3 +48,18 @@ export const sawPhotoFor = (slug: string): string => (/-vz$/.test(slug) ? CIRCUL
 /** A ready-cut horizontal blade has no series in the database, only the line in its name. */
 export const horizontalPhotoFromName = (name: string): string | undefined =>
   /ProCut/i.test(name) ? PROCUT_PHOTO : /SoftCut/i.test(name) ? SOFTCUT_PHOTO : undefined
+
+/**
+ * Which Saw-Meister line a horizontal blade belongs to: ProCut (the universal 10/30° tooth) or
+ * SoftCut (the 14° tooth for soft wood). The series when the product has one, otherwise the line
+ * written in its name, as on the ready-cut blades.
+ */
+export type BladeLine = 'procut' | 'softcut'
+export const bladeLineOf = (p: { name?: string; series?: string | null }): BladeLine | null =>
+  p.series === 'procut' || p.series === 'softcut'
+    ? p.series
+    : /ProCut/i.test(p.name ?? '')
+      ? 'procut'
+      : /SoftCut/i.test(p.name ?? '')
+        ? 'softcut'
+        : null
