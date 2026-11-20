@@ -11,7 +11,11 @@
  * (database) category slugs.
  */
 
+import { bladeLineOf } from './product-images'
+
 export type FacetProduct = {
+  name?: string
+  series?: string | null
   specs?: { width?: number; thickness?: number; length?: number; material?: string }
 }
 
@@ -47,8 +51,27 @@ const KNIVES: SpecFacet[] = [
   { id: 'width', title: 'width', read: (p) => num(p.specs?.width) },
 ]
 
+/** The two Saw-Meister horizontal lines: told apart by the tooth (10/30° universal, 14° for soft wood). */
+const HORIZONTAL: SpecFacet[] = [
+  {
+    id: 'line',
+    title: 'line',
+    messageValues: true,
+    read: (p) => {
+      const line = bladeLineOf(p)
+      return line === 'procut' ? 'lineProcut' : line === 'softcut' ? 'lineSoftcut' : null
+    },
+  },
+]
+
 export const facetsFor = (categorySlug: string | null | undefined): SpecFacet[] =>
-  categorySlug === 'tsirkulyarni-trioni' ? CIRCULAR : categorySlug === 'nozhove-za-abriht' ? KNIVES : []
+  categorySlug === 'tsirkulyarni-trioni'
+    ? CIRCULAR
+    : categorySlug === 'nozhove-za-abriht'
+      ? KNIVES
+      : categorySlug === 'horizontalni-bantsizi'
+        ? HORIZONTAL
+        : []
 
 /**
  * What "length" means on this page. A band blade's is the length of its loop and

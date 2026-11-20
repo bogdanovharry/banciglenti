@@ -10,7 +10,8 @@ describe('category facets', () => {
     expect(facetsFor('nozhove-za-abriht').map((f) => f.id)).toEqual(['material', 'width'])
   })
   it('every other category has none of its own', () => {
-    for (const slug of ['horizontalni-bantsizi', 'mashini', 'abrazivi', 'hobi-bantsig', 'nope']) expect(facetsFor(slug)).toEqual([])
+    expect(facetsFor('horizontalni-bantsizi').map((f) => f.id)).toEqual(['line'])
+    for (const slug of ['mashini', 'abrazivi', 'hobi-bantsig', 'nope']) expect(facetsFor(slug)).toEqual([])
     expect(facetsFor(undefined)).toEqual([])
   })
   it('a saw with a carbide material is carbide, one with none is plain steel', () => {

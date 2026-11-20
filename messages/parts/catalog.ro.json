@@ -107,7 +107,10 @@
       "fitsMachine": "Se potrivește pe utilaj",
       "button": "Filtre",
       "title": "Filtre",
-      "show": "{count, plural, one {Afișați # produs} few {Afișați # produse} other {Afișați # de produse}}"
+      "show": "{count, plural, one {Afișați # produs} few {Afișați # produse} other {Afișați # de produse}}",
+      "line": "Modelul pânzei",
+      "lineProcut": "ProCut · universală, 10/30°",
+      "lineSoftcut": "SoftCut · pentru lemn moale, 14°"
     },
     "shop": {
       "sortBy": "Sortare",
@@ -303,7 +306,9 @@
     },
     "photo": {
       "hardwood": "lemn tare",
-      "softwood": "lemn moale"
+      "softwood": "lemn moale",
+      "universal": "universală",
+      "softLine": "pentru lemn moale"
     }
   }
 }

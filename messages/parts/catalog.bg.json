@@ -107,7 +107,10 @@
       "fitsMachine": "Пасва на машина",
       "button": "Филтри",
       "title": "Филтри",
-      "show": "{count, plural, one {Покажи # продукт} other {Покажи # продукта}}"
+      "show": "{count, plural, one {Покажи # продукт} other {Покажи # продукта}}",
+      "line": "Модел лента",
+      "lineProcut": "ProCut · универсална, 10/30°",
+      "lineSoftcut": "SoftCut · за меко дърво, 14°"
     },
     "shop": {
       "sortBy": "Подреди",
@@ -303,7 +306,9 @@
     },
     "photo": {
       "hardwood": "твърдо дърво",
-      "softwood": "меко дърво"
+      "softwood": "меко дърво",
+      "universal": "универсална",
+      "softLine": "за меко дърво"
     }
   }
 }
