@@ -27,3 +27,12 @@ describe('planer knives', () => {
     expect(hasWhiteFrame('/images/products/kodiak.png')).toBe(false)
   })
 })
+
+import { sawPhotoFor, CIRCULAR_OZ_PHOTO, CIRCULAR_VZ_PHOTO } from './product-images'
+
+describe('plain circular saw photos', () => {
+  it('follow the tooth type in the address', () => {
+    expect(sawPhotoFor('circular-350x2-15-oz')).toBe(CIRCULAR_OZ_PHOTO)
+    expect(sawPhotoFor('circular-350x2-15-vz')).toBe(CIRCULAR_VZ_PHOTO)
+  })
+})
