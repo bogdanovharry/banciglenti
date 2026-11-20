@@ -22,8 +22,6 @@ import { BLADE_TABLES, type BladeTableKey } from './order-pricing'
  */
 
 export type PitchProduct = {
-  /** The product's address; plain circular saws are told apart by it. */
-  slug?: string
   categorySlugs: string[]
   series: string | null
   name: string
@@ -46,8 +44,7 @@ export type PitchOption = {
 }
 
 export type PitchInfo = {
-  /** The price table the options come from; 'circular' is the tooth type of a plain circular saw (no table). */
-  table: BladeTableKey | 'circular'
+  table: BladeTableKey
   options: PitchOption[]
   /** The option the product is already (its recorded pitch, or the one its price is quoted at). Null = the buyer must choose. */
   defaultPitch: string | null
@@ -101,24 +98,8 @@ const byPitch = (a: PitchOption, b: PitchOption): number => {
   return 0
 }
 
-/** The two tooth types of a plain circular saw. */
-export const SAW_TEETH = ['oz', 'vz'] as const
-export const isSawTooth = (pitch: string): boolean => (SAW_TEETH as readonly string[]).includes(pitch)
-export const isPlainCircularSaw = (p: Pick<PitchProduct, 'slug' | 'categorySlugs'>): boolean =>
-  Boolean(p.slug?.startsWith('circular-')) && p.categorySlugs.includes('tsirkulyarni-trioni')
-
 export function pitchInfoFor(p: PitchProduct): PitchInfo | null {
   if (p.width === null || p.thickness === null) return null
-
-  // A circular saw without carbide plates comes in two tooth types, OZ and VZ, at one price.
-  if (isPlainCircularSaw(p)) {
-    return {
-      table: 'circular',
-      options: SAW_TEETH.map((pitch) => ({ pitch, brand: '', unitPrice: p.price })),
-      defaultPitch: null,
-    }
-  }
-
   const family = familyOf(p)
   if (!family) return null
 
@@ -171,14 +152,11 @@ export const PITCH_NAME_BG: Record<string, string> = {
 }
 
 export function nameWithPitch(name: string, pitch: string): string {
-  if (isSawTooth(pitch)) return `${name} · зъб ${pitch.toUpperCase()}`
   return pitch in PITCH_NAME_BG ? `${name} · профил ${PITCH_NAME_BG[pitch]}` : `${name} · стъпка ${pitch}`
 }
 
 /** The pitch an order line was bought in, read back from its stored name (see nameWithPitch). */
 export function pitchFromName(name: string): string | null {
-  const tooth = / · зъб (OZ|VZ)$/.exec(name)
-  if (tooth) return tooth[1].toLowerCase()
   const profile = / · профил (.+)$/.exec(name)
   if (profile) {
     const key = Object.keys(PITCH_NAME_BG).find((k) => PITCH_NAME_BG[k] === profile[1])
@@ -198,4 +176,4 @@ export const PITCH_NAME_RO: Record<string, string> = {
 
 /** "8 TPI" stays as it is; a named profile is written in the language asked for. */
 export const pitchText = (pitch: string, lang: 'bg' | 'ro'): string =>
-  isSawTooth(pitch) ? pitch.toUpperCase() : (lang === 'ro' ? PITCH_NAME_RO : PITCH_NAME_BG)[pitch] ?? pitch
+  (lang === 'ro' ? PITCH_NAME_RO : PITCH_NAME_BG)[pitch] ?? pitch
