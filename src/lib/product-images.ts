@@ -42,7 +42,8 @@ export const hasWhiteFrame = (image: string | null | undefined): boolean =>
   image === SOFTCUT_PHOTO ||
   image === BIMETAL_PHOTO ||
   image === CIRCULAR_OZ_PHOTO ||
-  image === CIRCULAR_VZ_PHOTO
+  image === CIRCULAR_VZ_PHOTO ||
+  isProfilePhoto(image)
 
 /** A plain circular saw is a product of its own per tooth type: …-oz (sharp tooth) or …-vz (wolf tooth). */
 export const sawPhotoFor = (slug: string): string => (/-vz$/.test(slug) ? CIRCULAR_VZ_PHOTO : CIRCULAR_OZ_PHOTO)
@@ -70,4 +71,33 @@ export const bladeLineOf = (p: { name?: string; series?: string | null }): Blade
 export const bimetalGrade = (name: string): string | null => {
   const m = /[MМ]\s?(42|51|90)\b/.exec(name)
   return m ? `M${m[1]}` : null
+}
+
+/**
+ * Studio shots of the edge profiles of food blades. Chosen profile → its photograph, replacing the
+ * product's own photo on the product page (they are shot on white, with the tooth enlarged).
+ */
+export const PROFILE_WAVE_PHOTO = '/images/products/profile-wave.webp'
+export const PROFILE_SLICER_PHOTO = '/images/products/profile-slicer-teeth.webp'
+export const PROFILE_SMOOTH_PHOTO = '/images/products/profile-smooth.webp'
+export const PROFILE_CONVEX_PHOTO = '/images/products/profile-convex.webp'
+
+const PROFILE_PHOTOS: Record<string, string> = {
+  wave: PROFILE_WAVE_PHOTO,
+  'concave-wave': PROFILE_WAVE_PHOTO,
+  'convex-wave': PROFILE_CONVEX_PHOTO,
+  'smooth-ground': PROFILE_SMOOTH_PHOTO,
+}
+
+/** The photograph of an edge profile, or undefined when there is none (a TPI step, the cleaner tooth). */
+export const profilePhoto = (pitch: string | null | undefined): string | undefined =>
+  pitch ? PROFILE_PHOTOS[pitch] : undefined
+
+function isProfilePhoto(image: string | null | undefined): boolean {
+  return (
+    image === PROFILE_WAVE_PHOTO ||
+    image === PROFILE_SLICER_PHOTO ||
+    image === PROFILE_SMOOTH_PHOTO ||
+    image === PROFILE_CONVEX_PHOTO
+  )
 }
