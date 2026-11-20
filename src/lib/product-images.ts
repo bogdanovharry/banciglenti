@@ -44,3 +44,7 @@ export const hasWhiteFrame = (image: string | null | undefined): boolean =>
 
 /** A plain circular saw is a product of its own per tooth type: …-oz (sharp tooth) or …-vz (wolf tooth). */
 export const sawPhotoFor = (slug: string): string => (/-vz$/.test(slug) ? CIRCULAR_VZ_PHOTO : CIRCULAR_OZ_PHOTO)
+
+/** A ready-cut horizontal blade has no series in the database, only the line in its name. */
+export const horizontalPhotoFromName = (name: string): string | undefined =>
+  /ProCut/i.test(name) ? PROCUT_PHOTO : /SoftCut/i.test(name) ? SOFTCUT_PHOTO : undefined

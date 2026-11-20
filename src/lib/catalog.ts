@@ -7,7 +7,7 @@ import type { ProductCardData } from '@/components/product/ProductCard'
 import { isSeriesKey, type SeriesKey } from '@/lib/series'
 import { stockStateFor } from '@/lib/catalog-ui'
 import { getMarket } from '@/i18n/locale'
-import { FLEXBACK_PHOTO, MEAT_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, sawPhotoFor } from './product-images'
+import { FLEXBACK_PHOTO, MEAT_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, horizontalPhotoFromName, sawPhotoFor } from './product-images'
 import {
   localizeCategory,
   localizeDescription,
@@ -126,6 +126,7 @@ function fallbackImage(
   series: SeriesKey | null,
   material?: string,
   slug?: string,
+  name?: string,
 ): string | undefined {
   // Plain circular saws: one photograph per tooth type (OZ sharp, VZ wolf).
   if (slug?.startsWith('circular-') && categorySlugs.includes('tsirkulyarni-trioni')) return sawPhotoFor(slug)
@@ -139,6 +140,13 @@ function fallbackImage(
   if (categorySlugs.includes('meso-i-riba')) return MEAT_PHOTO
 
   if (series) return SERIES_IMAGE[series]
+
+  // The ready-cut horizontal blades (a length and a machine in the name) carry no series in the
+  // database, only the line in their name: ProCut or SoftCut decides the photograph.
+  if (categorySlugs.includes('horizontalni-bantsizi') && name) {
+    const photo = horizontalPhotoFromName(name)
+    if (photo) return photo
+  }
 
   // Products outside the five series — bimetal above all — keep the old rules.
   if (brandName === 'Kodiak') return '/images/products/kodiak.png'
@@ -286,7 +294,7 @@ function toCatalogProduct(
     industry,
     stock: stockStateFor(stockCount, madeToOrder),
     badge: doc.topProduct ? 'TOP' : null,
-    image: uploadedUrl ?? fallbackImage(categorySlugs, brandName, series, specs.material, String(doc.slug)),
+    image: uploadedUrl ?? fallbackImage(categorySlugs, brandName, series, specs.material, String(doc.slug), String(doc.name)),
     stockCount,
     madeToOrder,
     categorySlugs,
