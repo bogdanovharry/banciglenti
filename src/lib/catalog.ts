@@ -358,7 +358,8 @@ export const getProductBySlug = cache(async (slug: string): Promise<CatalogProdu
     collection: 'products',
     limit: 1,
     depth: 1,
-    where: { slug: { equals: slug } },
+    // A withdrawn product is not a page any more (the list already leaves it out).
+    where: { and: [{ slug: { equals: slug } }, { status: { not_equals: 'inactive' } }] },
   })
 
   const doc = result.docs[0]
