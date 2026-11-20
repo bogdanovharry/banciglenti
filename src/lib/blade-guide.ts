@@ -1,5 +1,6 @@
 import { SERIES, type SeriesKey } from '@/lib/series'
 import type { BladeTableKey } from '@/lib/order-pricing'
+import { BIMETAL_PHOTO, FLEXBACK_PHOTO, MEAT_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, profilePhoto } from '@/lib/product-images'
 
 /**
  * What a configured blade actually is, and what it is for.
@@ -46,14 +47,14 @@ export type Translate = (key: string, values?: Record<string, string | number>) 
 
 /** Photography by series, matching what the catalogue cards use. */
 const SERIES_IMAGE: Record<SeriesKey, string> = {
-  softcut: '/images/products/kodiak.png',
-  procut: '/images/products/mastergold.png',
+  softcut: SOFTCUT_PHOTO,
+  procut: PROCUT_PHOTO,
   vector: '/images/products/kodiak.png',
-  flexcut: '/images/products/hardback_fixed.png',
+  flexcut: FLEXBACK_PHOTO,
   finecut: '/images/products/hardback_fixed.png',
 }
 
-const BIMETAL_IMAGE = '/images/products/bohler_fixed.png'
+const BIMETAL_IMAGE = BIMETAL_PHOTO
 
 /** What the configurator knows about a blade once the row is resolved. */
 export type BladeSelection = {
@@ -511,7 +512,8 @@ export function bladeGuide(t: Translate, table: BladeTableKey, blade: BladeSelec
     type: table === 'textile' ? t('guide.identity.bandKnife') : id.type,
     application: isFood ? foodApplication(t, table, edge) : id.application,
     description: width ? `${base} ${width}` : base,
-    image: id.image,
+    // A food blade shows the photograph of the edge profile chosen; meat blades otherwise the meat photo.
+    image: (isFood ? profilePhoto(blade.pitch) : undefined) ?? (table === 'meat' ? MEAT_PHOTO : id.image),
     pitchNote: pitchNoteFor(t, table, blade),
   }
 }
