@@ -7,7 +7,7 @@ import type { ProductCardData } from '@/components/product/ProductCard'
 import { isSeriesKey, type SeriesKey } from '@/lib/series'
 import { stockStateFor } from '@/lib/catalog-ui'
 import { getMarket } from '@/i18n/locale'
-import { FLEXBACK_PHOTO, MEAT_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, horizontalPhotoFromName, sawPhotoFor } from './product-images'
+import { FLEXBACK_PHOTO, MEAT_PHOTO, BIMETAL_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, horizontalPhotoFromName, sawPhotoFor } from './product-images'
 import {
   localizeCategory,
   localizeDescription,
@@ -153,8 +153,8 @@ function fallbackImage(
   if (brandName === 'MasterGold') return '/images/products/mastergold.png'
 
   // Fine-pitch dark blades for metal; the coarse bright ones are for wood.
-  if (material && /M42|M51|HSS|BiMetal/i.test(material)) return '/images/products/bohler_fixed.png'
-  if (categorySlugs.includes('bimetalni-lenti')) return '/images/products/bohler_fixed.png'
+  if (material && /M42|M51|HSS|BiMetal/i.test(material)) return BIMETAL_PHOTO
+  if (categorySlugs.includes('bimetalni-lenti')) return BIMETAL_PHOTO
   if (categorySlugs.includes('horizontalni-bantsizi')) return '/images/products/kodiak.png'
 
   return '/images/products/hardback_fixed.png'

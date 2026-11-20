@@ -25,6 +25,7 @@ export const hasDimensionLabel = (image: string | null | undefined): boolean =>
 export const PLANER_PHOTO = '/images/products/planer-knife.webp'
 export const PROCUT_PHOTO = '/images/products/band-procut.webp'
 export const SOFTCUT_PHOTO = '/images/products/band-softcut.webp'
+export const BIMETAL_PHOTO = '/images/products/band-bimetal.webp'
 export const CIRCULAR_OZ_PHOTO = '/images/products/circular-oz.webp'
 export const CIRCULAR_VZ_PHOTO = '/images/products/circular-vz.webp'
 
@@ -39,6 +40,7 @@ export const hasWhiteFrame = (image: string | null | undefined): boolean =>
   image === PLANER_PHOTO ||
   image === PROCUT_PHOTO ||
   image === SOFTCUT_PHOTO ||
+  image === BIMETAL_PHOTO ||
   image === CIRCULAR_OZ_PHOTO ||
   image === CIRCULAR_VZ_PHOTO
 
@@ -63,3 +65,9 @@ export const bladeLineOf = (p: { name?: string; series?: string | null }): Blade
       : /SoftCut/i.test(p.name ?? '')
         ? 'softcut'
         : null
+
+/** The steel of a bimetal band, read from its name: "M42" or "M51" (a Cyrillic М is read as the Latin one). */
+export const bimetalGrade = (name: string): string | null => {
+  const m = /[MМ]\s?(42|51|90)\b/.exec(name)
+  return m ? `M${m[1]}` : null
+}
