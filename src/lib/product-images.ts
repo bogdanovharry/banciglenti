@@ -41,3 +41,6 @@ export const hasWhiteFrame = (image: string | null | undefined): boolean =>
   image === SOFTCUT_PHOTO ||
   image === CIRCULAR_OZ_PHOTO ||
   image === CIRCULAR_VZ_PHOTO
+
+/** A plain circular saw is a product of its own per tooth type: …-oz (sharp tooth) or …-vz (wolf tooth). */
+export const sawPhotoFor = (slug: string): string => (/-vz$/.test(slug) ? CIRCULAR_VZ_PHOTO : CIRCULAR_OZ_PHOTO)

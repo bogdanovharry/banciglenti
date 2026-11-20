@@ -39,3 +39,10 @@ describe('Romanian reading of numbers', () => {
     expect(localizeName('Лента · стъпка 8 TPI', 'ro')).toContain('· pas 8 TPI')
   })
 })
+
+describe('plain circular saws', () => {
+  it('read in Romanian with the tooth type and the number of teeth', () => {
+    expect(localizeName('Циркулярен трион Ø350 x 2.15 x 30 · OZ остър зъб · z=60', 'ro')).toBe('Pânză de fierăstrău circular Ø350×2,15×30 · OZ dinte ascuțit · z=60')
+    expect(localizeName('Циркулярен трион Ø350 x 2.15 x 30 · VZ вълчи зъб · z=48', 'ro')).toBe('Pânză de fierăstrău circular Ø350×2,15×30 · VZ dinte de lup · z=48')
+  })
+})

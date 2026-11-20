@@ -86,6 +86,9 @@ const NAME_RO: Rule[] = [
 
   // Small words and units, wherever they fall.
   [/ стъпка /g, ' pas '],
+  // Plain circular saws: OZ is the sharp tooth, VZ the wolf tooth.
+  [/ · OZ остър зъб · z=/g, ' · OZ dinte ascuțit · z='],
+  [/ · VZ вълчи зъб · z=/g, ' · VZ dinte de lup · z='],
   // A pitch written as two numbers (4/6, 10/14) is teeth per inch: Romanian buyers expect to read TPI beside it.
   [/ pas (\d+(?:\.\d+)?\/\d+(?:\.\d+)?)(?! TPI)/g, ' pas $1 TPI'],
   [/(\d)\s*мм/g, '$1 mm'],

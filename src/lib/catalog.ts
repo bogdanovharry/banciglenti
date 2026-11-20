@@ -7,7 +7,7 @@ import type { ProductCardData } from '@/components/product/ProductCard'
 import { isSeriesKey, type SeriesKey } from '@/lib/series'
 import { stockStateFor } from '@/lib/catalog-ui'
 import { getMarket } from '@/i18n/locale'
-import { FLEXBACK_PHOTO, MEAT_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO } from './product-images'
+import { FLEXBACK_PHOTO, MEAT_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, sawPhotoFor } from './product-images'
 import {
   localizeCategory,
   localizeDescription,
@@ -125,7 +125,11 @@ function fallbackImage(
   brandName: string | null,
   series: SeriesKey | null,
   material?: string,
+  slug?: string,
 ): string | undefined {
+  // Plain circular saws: one photograph per tooth type (OZ sharp, VZ wolf).
+  if (slug?.startsWith('circular-') && categorySlugs.includes('tsirkulyarni-trioni')) return sawPhotoFor(slug)
+
   // Planer knives have one photograph; the steel is written on it in orange (see PhotoBadge).
   if (categorySlugs.includes('nozhove-za-abriht')) return PLANER_PHOTO
 
@@ -282,7 +286,7 @@ function toCatalogProduct(
     industry,
     stock: stockStateFor(stockCount, madeToOrder),
     badge: doc.topProduct ? 'TOP' : null,
-    image: uploadedUrl ?? fallbackImage(categorySlugs, brandName, series, specs.material),
+    image: uploadedUrl ?? fallbackImage(categorySlugs, brandName, series, specs.material, String(doc.slug)),
     stockCount,
     madeToOrder,
     categorySlugs,
