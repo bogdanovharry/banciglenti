@@ -13,7 +13,8 @@ import { lengthKindFor } from "@/lib/category-facets";
 import { PhotoDimensions } from "@/components/product/PhotoDimensions";
 import { PhotoBadge } from "@/components/product/PhotoBadge";
 import { LineBadge } from "@/components/product/LineBadge";
-import { PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame } from "@/lib/product-images";
+import { BimetalBadge } from "@/components/product/BimetalBadge";
+import { BIMETAL_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame } from "@/lib/product-images";
 
 
 export interface ProductCardData {
@@ -150,6 +151,7 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
               {hasDimensionLabel(p.image) && <PhotoDimensions width={p.specs?.width} size={dimensionLabelSize(p.image)} />}
               {p.image === PLANER_PHOTO && <PhotoBadge name={p.name} />}
               {(p.image === PROCUT_PHOTO || p.image === SOFTCUT_PHOTO) && <LineBadge name={p.name} />}
+              {p.image === BIMETAL_PHOTO && <BimetalBadge name={p.name} width={p.specs?.width} />}
             </div>
           ) : (
             <SpecBlock

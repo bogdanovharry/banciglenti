@@ -7,7 +7,8 @@ import { PitchPicker } from "./PitchPicker";
 import { PhotoDimensions } from "@/components/product/PhotoDimensions";
 import { PhotoBadge } from "@/components/product/PhotoBadge";
 import { LineBadge } from "@/components/product/LineBadge";
-import { PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame } from "@/lib/product-images";
+import { BimetalBadge } from "@/components/product/BimetalBadge";
+import { BIMETAL_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame } from "@/lib/product-images";
 import { configuratorHrefForAny } from "@/lib/configurator-tabs";
 import type { PitchInfo } from "@/lib/product-pitch";
 import { useLocale, useTranslations } from "next-intl";
@@ -219,6 +220,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                 )}
                 {product.image === PLANER_PHOTO && <PhotoBadge name={product.name} />}
                 {(product.image === PROCUT_PHOTO || product.image === SOFTCUT_PHOTO) && <LineBadge name={product.name} series={product.series} />}
+                {product.image === BIMETAL_PHOTO && <BimetalBadge name={product.name} width={product.specs.width} />}
               </div>
             ) : (
               <Placeholder tone="paper" ratio="1/1" caption={product.name} />

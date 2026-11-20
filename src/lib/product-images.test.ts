@@ -46,3 +46,14 @@ describe('horizontal blade photo from the name', () => {
     expect(horizontalPhotoFromName('Another blade')).toBeUndefined()
   })
 })
+
+import { bimetalGrade } from './product-images'
+
+describe('bimetal grade from the name', () => {
+  it('reads M42 and M51, Latin or Cyrillic М', () => {
+    expect(bimetalGrade('Биметална отрезна лента M42 27×0.9 L=2480мм')).toBe('M42')
+    expect(bimetalGrade('Биметална отрезна лента М51 27×0.9')).toBe('M51')
+    expect(bimetalGrade('Pânză panglică bimetalică M42 13×0,6 L=1638 mm')).toBe('M42')
+    expect(bimetalGrade('Лента за дърво')).toBeNull()
+  })
+})
