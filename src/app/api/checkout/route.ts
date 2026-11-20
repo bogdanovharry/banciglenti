@@ -337,6 +337,7 @@ export async function POST(request: Request) {
       let lineName = productName
       if (chosenPitch) {
         const info = pitchInfoFor({
+          slug: sku,
           categorySlugs: (product.categories ?? []).map((c) => (typeof c === 'object' ? (c.slug ?? '') : '')).filter(Boolean),
           series: product.series ?? null,
           name: productName,
