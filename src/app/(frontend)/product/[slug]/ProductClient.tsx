@@ -5,7 +5,8 @@ import { useState } from "react";
 
 import { PitchPicker } from "./PitchPicker";
 import { PhotoDimensions } from "@/components/product/PhotoDimensions";
-import { dimensionLabelSize, hasDimensionLabel } from "@/lib/product-images";
+import { PhotoBadge } from "@/components/product/PhotoBadge";
+import { PLANER_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame } from "@/lib/product-images";
 import { configuratorHrefForAny } from "@/lib/configurator-tabs";
 import type { PitchInfo } from "@/lib/product-pitch";
 import { useLocale, useTranslations } from "next-intl";
@@ -208,13 +209,14 @@ export function ProductClient({ product }: { product: ProductView }) {
                   src={product.image}
                   alt={product.name}
                   fit="contain"
-                  background={hasDimensionLabel(product.image) ? "#fff" : undefined}
+                  background={hasWhiteFrame(product.image) ? "#fff" : undefined}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   preload
                 />
                 {hasDimensionLabel(product.image) && (
                   <PhotoDimensions width={product.specs.width} size={dimensionLabelSize(product.image)} />
                 )}
+                {product.image === PLANER_PHOTO && <PhotoBadge name={product.name} />}
               </div>
             ) : (
               <Placeholder tone="paper" ratio="1/1" caption={product.name} />

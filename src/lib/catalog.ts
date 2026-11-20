@@ -7,7 +7,7 @@ import type { ProductCardData } from '@/components/product/ProductCard'
 import { isSeriesKey, type SeriesKey } from '@/lib/series'
 import { stockStateFor } from '@/lib/catalog-ui'
 import { getMarket } from '@/i18n/locale'
-import { FLEXBACK_PHOTO, MEAT_PHOTO } from './product-images'
+import { FLEXBACK_PHOTO, MEAT_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO } from './product-images'
 import {
   localizeCategory,
   localizeDescription,
@@ -92,7 +92,7 @@ function relationName(value: unknown): string | null {
  * catalogue, where a 35 mm and a 40 mm blade of the same series are visually
  * identical.
  *
- * Deliberately restricted to band blades. Circular saws, planer knives,
+ * Deliberately restricted to band blades. Circular saws,
  * abrasives, machines and consumables keep their spec tile: putting a bandsaw
  * blade next to a circular saw would misrepresent the product.
  */
@@ -113,8 +113,8 @@ const BLADE_CATEGORIES = new Set([
  * longer distinguishes one blade from another — the series does.
  */
 const SERIES_IMAGE: Record<SeriesKey, string> = {
-  softcut: '/images/products/kodiak.png',
-  procut: '/images/products/mastergold.png',
+  softcut: SOFTCUT_PHOTO,
+  procut: PROCUT_PHOTO,
   vector: '/images/products/kodiak.png',
   flexcut: FLEXBACK_PHOTO,
   finecut: '/images/products/hardback_fixed.png',
@@ -126,6 +126,9 @@ function fallbackImage(
   series: SeriesKey | null,
   material?: string,
 ): string | undefined {
+  // Planer knives have one photograph; the steel is written on it in orange (see PhotoBadge).
+  if (categorySlugs.includes('nozhove-za-abriht')) return PLANER_PHOTO
+
   if (!categorySlugs.some((s) => BLADE_CATEGORIES.has(s))) return undefined
 
   // Meat blades have a photograph of their own; the rest of the food blades keep the series photo.

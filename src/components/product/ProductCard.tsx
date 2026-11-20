@@ -11,7 +11,8 @@ import { packFromSlug, unitPriceInPack } from "@/lib/packs";
 import { useTranslations } from "next-intl";
 import { lengthKindFor } from "@/lib/category-facets";
 import { PhotoDimensions } from "@/components/product/PhotoDimensions";
-import { dimensionLabelSize, hasDimensionLabel } from "@/lib/product-images";
+import { PhotoBadge } from "@/components/product/PhotoBadge";
+import { PLANER_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame } from "@/lib/product-images";
 
 
 export interface ProductCardData {
@@ -142,10 +143,11 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
                 src={p.image}
                 alt={p.name}
                 fit="contain"
-                background={hasDimensionLabel(p.image) ? "#fff" : undefined}
+                background={hasWhiteFrame(p.image) ? "#fff" : undefined}
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
               {hasDimensionLabel(p.image) && <PhotoDimensions width={p.specs?.width} size={dimensionLabelSize(p.image)} />}
+              {p.image === PLANER_PHOTO && <PhotoBadge name={p.name} />}
             </div>
           ) : (
             <SpecBlock

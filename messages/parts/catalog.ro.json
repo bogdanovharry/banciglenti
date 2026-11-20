@@ -300,6 +300,10 @@
         "carbonBase": "Pânză pentru fierăstrău panglică din oțel carbon pentru bandă, călit, pentru gater. Corpul rămâne tenace, iar doar dintele este călit, așa că pânza suportă ceaprăzuire și ascuțire pe toată durata vieții.",
         "bandKnife": "Cuțit-bandă"
       }
+    },
+    "photo": {
+      "hardwood": "lemn tare",
+      "softwood": "lemn moale"
     }
   }
 }
