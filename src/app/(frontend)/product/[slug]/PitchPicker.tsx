@@ -35,12 +35,10 @@ export function PitchPicker({
 }) {
   const t = useTranslations("catalog");
   const guideT = t as unknown as Translate;
-  // A plain circular saw: the choice is the tooth type, OZ or VZ, and there is no pitch guide to read.
-  const isTooth = info.table === "circular";
-  const label = (pitch: string) => (isTooth ? pitch.toUpperCase() : PROFILES.has(pitch) ? t(`pitch.${pitch}`) : pitch);
+  const label = (pitch: string) => (PROFILES.has(pitch) ? t(`pitch.${pitch}`) : pitch);
   const hasProfile = info.options.some((o) => PROFILES.has(o.pitch));
   const note = (o: PitchInfo["options"][number]) =>
-    info.table === "circular" ? t(`product.toothNote.${o.pitch}`) : bladeGuide(guideT, info.table, { width, thickness, pitch: o.pitch, brand: o.brand }).pitchNote;
+    bladeGuide(guideT, info.table, { width, thickness, pitch: o.pitch, brand: o.brand }).pitchNote;
 
   // Prices are shown per option only when the options really differ in price.
   const priced = new Set(info.options.map((o) => o.unitPrice)).size > 1;
@@ -50,11 +48,11 @@ export function PitchPicker({
   return (
     <div className="mb-6 border border-ink-15 p-4">
       <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 mb-3">
-        {isTooth ? t("product.toothTitle") : hasProfile ? t("product.pitchTitleProfile") : t("product.pitchTitle")}
+        {hasProfile ? t("product.pitchTitleProfile") : t("product.pitchTitle")}
       </div>
 
       {!single && (
-        <div role="radiogroup" aria-label={isTooth ? t("product.toothTitle") : t("product.pitchTitle")} className="flex flex-wrap gap-2">
+        <div role="radiogroup" aria-label={t("product.pitchTitle")} className="flex flex-wrap gap-2">
           {info.options.map((o) => {
             const on = o.pitch === value;
             return (
@@ -87,11 +85,11 @@ export function PitchPicker({
         ) : single ? (
           note(info.options[0])
         ) : (
-          t(isTooth ? "product.toothChoose" : "product.pitchChoose")
+          t("product.pitchChoose")
         )}
       </p>
 
-      {!single && !isTooth && (
+      {!single && (
         <details className="mt-3 group">
           <summary className="cursor-pointer font-sans text-[13px] text-blue select-none">{t("product.pitchCompare")}</summary>
           <ul className="list-none m-0 mt-3 p-0 flex flex-col gap-3">

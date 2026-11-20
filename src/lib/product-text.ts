@@ -86,7 +86,6 @@ const NAME_RO: Rule[] = [
 
   // Small words and units, wherever they fall.
   [/ стъпка /g, ' pas '],
-  [/ зъб (?=OZ|VZ)/g, ' dinte '],
   // A pitch written as two numbers (4/6, 10/14) is teeth per inch: Romanian buyers expect to read TPI beside it.
   [/ pas (\d+(?:\.\d+)?\/\d+(?:\.\d+)?)(?! TPI)/g, ' pas $1 TPI'],
   [/(\d)\s*мм/g, '$1 mm'],
