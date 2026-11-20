@@ -1,5 +1,6 @@
 "use client";
 
+import { VolumeBadge } from "@/components/product/VolumeDiscountInfo";
 import { useRef } from "react";
 import Link from "next/link";
 import { Placeholder, Btn } from "@/components/ui/primitives";
@@ -82,6 +83,7 @@ export default function CartPage() {
                   <div className="min-w-0">
                     <div className="font-display text-[15px] font-semibold text-ink">{it.name}</div>
                     <div className="font-mono text-[11px] text-ink-50 mt-1 break-words">{it.dim} · SKU {it.sku}</div>
+                    <VolumeBadge percent={it.volumePercent} />
                     {it.customSpecs && (
                       <div className="inline-block mt-2 px-2 py-1 bg-orange/10 border border-orange/40 font-mono text-[10px] tracking-[0.04em] text-ink">
                         {t("madeToMeasure")}

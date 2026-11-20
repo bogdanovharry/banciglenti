@@ -25,6 +25,8 @@ import { usePrices } from "@/lib/market-context";
 import { DualPrice } from "@/components/ui/DualPrice";
 import { MATERIAL_EDGE_GUIDE, bladeGuide, edgeKind, materialEdgeText, type Translate } from "@/lib/blade-guide";
 import Image from "next/image";
+import { VolumeDiscountInfo } from "@/components/product/VolumeDiscountInfo";
+import { roundMoney, volumePercent } from "@/lib/volume-discount";
 
 // Prices here are quoted at the consumer rate of the market being served (see
 // DualPrice). Business customers in another EU state are reverse charged at 0%,
@@ -114,10 +116,17 @@ function Select({ label, options, required, value, onChange, format }: {
  */
 function OrderTotal({ unitPrice, qty }: { unitPrice: number; qty: number }) {
   const t = useTranslations("configurator");
+  const tVol = useTranslations("catalog.volume");
+  const percent = volumePercent(qty);
   return (
     <div className="mt-4 mb-5 pt-3 border-t border-ink-15">
       <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">{t("price.total", { qty })}</div>
-      <DualPrice net={Math.round(unitPrice * qty * 100) / 100} size="sm" className="mt-1" />
+      <DualPrice net={roundMoney(unitPrice * (1 - percent / 100) * qty)} size="sm" className="mt-1" />
+      {percent > 0 && (
+        <div className="inline-block mt-1.5 px-1.5 py-0.5 bg-orange text-white font-mono text-[10px] leading-snug">
+          {tVol("inCart", { percent })}
+        </div>
+      )}
     </div>
   );
 }
@@ -283,6 +292,7 @@ function QuantityStepper({ value, onChange }: { value: number; onChange: (v: num
         </button>
         <span className="px-3 font-sans text-sm text-ink-50">{t("field.pieces")}</span>
       </div>
+      <VolumeDiscountInfo qty={value} className="mt-3 max-w-[420px]" />
     </div>
   );
 }
@@ -566,7 +576,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">
             {t("price.label")}
           </div>
-          <DualPrice net={unitPrice} size="lg" className="mt-1" />
+          <DualPrice net={roundMoney(unitPrice * (1 - volumePercent(qty) / 100))} size="lg" className="mt-1" />
           <OrderTotal unitPrice={unitPrice} qty={qty} />
           <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAdd} disabled={!canAdd}>
             {added ? t("price.added") : t("price.add")}
@@ -679,7 +689,7 @@ function RealDataConfigurator({
         )}
         <div className="mt-auto border-t-2 border-ink pt-4">
           <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">{t("price.label")}</div>
-          <DualPrice net={unitPrice} size="lg" className="mt-1" />
+          <DualPrice net={roundMoney(unitPrice * (1 - volumePercent(qty) / 100))} size="lg" className="mt-1" />
           <OrderTotal unitPrice={unitPrice} qty={qty} />
           <Btn variant="primary" size="lg" fullWidth onClick={handleAdd} disabled={!canAdd}>
             {added ? t("price.addedShort") : t("price.add")}

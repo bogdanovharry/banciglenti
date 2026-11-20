@@ -12,6 +12,14 @@
       "unavailable": "Няма",
       "add": "Добави"
     },
+    "volume": {
+      "title": "Отстъпка при количество",
+      "from": "от {qty} бр.",
+      "applied": "Приложена е отстъпка {percent}% за всеки брой от един вид.",
+      "appliedNext": "Приложена е отстъпка {percent}%. Още {more} бр. до {next}% отстъпка.",
+      "hint": "Отстъпката е за бройки от един и същ вид. Още {more} бр. до {percent}% отстъпка.",
+      "inCart": "−{percent}% за количество"
+    },
     "pack": {
       "pieces": "{qty} бр.",
       "perPiece": "{amount} {symbol}/бр.",
