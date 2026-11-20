@@ -1,5 +1,6 @@
 'use server'
 
+import { volumeUnitPrice } from '@/lib/volume-discount'
 import { redirect } from 'next/navigation'
 
 import {
@@ -518,7 +519,8 @@ export async function addCatalogueLine(
     name: product.name,
     sku,
     quantity,
-    price: round2(product.basePrice ?? 0),
+    // The same quantity discount the shop gives (not on boxes and sets).
+    price: volumeUnitPrice(product.basePrice ?? 0, quantity, sku),
   }
 
   return commitLines(
@@ -572,7 +574,7 @@ export async function addCustomLine(
     name,
     sku: customSku(specs),
     quantity,
-    price: round2(unit),
+    price: volumeUnitPrice(unit, quantity, 'CUSTOM'),
     customSpecs: specs,
   }
 

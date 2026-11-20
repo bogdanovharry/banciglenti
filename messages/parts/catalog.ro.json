@@ -12,6 +12,14 @@
       "unavailable": "Indisponibil",
       "add": "Adaugă"
     },
+    "volume": {
+      "title": "Reducere la cantitate",
+      "from": "de la {qty} buc.",
+      "applied": "Reducerea de {percent}% se aplică fiecărei piese de același fel.",
+      "appliedNext": "Reducere de {percent}% aplicată. Încă {more} buc. până la reducerea de {next}%.",
+      "hint": "Reducerea este pentru piese de același fel. Încă {more} buc. până la reducerea de {percent}%.",
+      "inCart": "−{percent}% reducere la cantitate"
+    },
     "pack": {
       "pieces": "{qty} buc.",
       "perPiece": "{amount} {symbol}/buc.",

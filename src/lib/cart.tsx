@@ -1,11 +1,12 @@
 "use client";
 
-import { createContext, useContext, useCallback, useSyncExternalStore, ReactNode } from "react";
+import { createContext, useContext, useCallback, useMemo, useSyncExternalStore, ReactNode } from "react";
 
 import type { CustomSpecs } from "./order-pricing";
 import { computeOrderTotals, type OrderTotals } from "./order-totals";
 import { carriageTerms, vatRateFor } from "./market";
 import { useMarket } from "./market-context";
+import { roundMoney, volumeEligible, volumePercent } from "./volume-discount";
 
 type ShippingMethod = "courier" | "pickup";
 
@@ -29,6 +30,10 @@ export interface CartItem {
    * blades, prices it.
    */
   pitch?: string;
+  /** Set by the cart, never stored: the whole-percent quantity discount in force on this line (price is already net of it). */
+  volumePercent?: number;
+  /** Set by the cart, never stored: the unit price before the quantity discount. */
+  listPrice?: number;
 }
 
 interface CartContextType {
@@ -125,7 +130,18 @@ function writeItems(next: CartItem[]) {
 export function CartProvider({ children }: { children: ReactNode }) {
   const snapshot = useSyncExternalStore<CartItem[] | null>(subscribe, getSnapshot, getServerSnapshot);
   const loaded = snapshot !== null;
-  const items = snapshot ?? NO_ITEMS;
+  // What is stored is the list price; the quantity discount is applied on the way out, so
+  // changing the quantity moves the price and the stored cart never holds a stale one.
+  const items = useMemo(
+    () =>
+      (snapshot ?? NO_ITEMS).map((i) => {
+        const percent = volumeEligible(i.sku) ? volumePercent(i.quantity) : 0;
+        return percent
+          ? { ...i, listPrice: i.price, volumePercent: percent, price: roundMoney(i.price * (1 - percent / 100)) }
+          : i;
+      }),
+    [snapshot],
+  );
 
   const addItem = useCallback((item: Omit<CartItem, "id">) => {
     const id = generateId(item);

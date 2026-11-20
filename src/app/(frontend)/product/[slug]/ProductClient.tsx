@@ -20,6 +20,8 @@ import { SAW_MEISTER, SERIES, type SeriesKey } from "@/lib/series";
 import { usePrices } from "@/lib/market-context";
 import { DualPrice } from "@/components/ui/DualPrice";
 import { packFromSlug, unitPriceInPack } from "@/lib/packs";
+import { VolumeDiscountInfo } from "@/components/product/VolumeDiscountInfo";
+import { volumePercent } from "@/lib/volume-discount";
 import type { StockState } from "@/lib/catalog-ui";
 
 export type ProductView = {
@@ -406,6 +408,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                   </button>
                 </div>
               </div>
+              {!pack && <VolumeDiscountInfo qty={qty} className="mb-4" />}
               <div className="flex gap-2">
                 <div className="flex-1">
                   <Btn
@@ -422,7 +425,7 @@ export function ProductClient({ product }: { product: ProductView }) {
                         ? t("product.pitchChooseShort")
                         : added
                           ? t("product.added")
-                          : t("product.addToCart", { price: price(gross(unitPrice * qty)) })}
+                          : t("product.addToCart", { price: price(gross(unitPrice * qty * (1 - (pack ? 0 : volumePercent(qty)) / 100))) })}
                   </Btn>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { VolumeBadge } from "@/components/product/VolumeDiscountInfo";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
@@ -594,6 +595,7 @@ export default function CheckoutPage() {
                   <div className="font-mono text-[10px] text-ink-50 mt-0.5 tabular-nums">
                     {it.quantity} × {price(gross(it.price))} {tc("incVat")} · {price(it.price)} {tc("exVat")}
                   </div>
+                  <VolumeBadge percent={it.volumePercent} />
                   {it.customSpecs && (
                     <div className="inline-block mt-1.5 px-1.5 py-0.5 bg-orange/10 border border-orange/40 font-mono text-[10px] text-ink leading-snug">
                       {t("madeToMeasure")}

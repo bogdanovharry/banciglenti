@@ -23,6 +23,7 @@ import { startCardPayment } from '@/lib/card-payments'
 import { getAccount, rememberFromOrder } from '@/lib/account'
 import { siteOrigin } from '@/lib/site-url'
 import { nameWithPitch, pitchInfoFor, pitchText } from '@/lib/product-pitch'
+import { volumeUnitPrice } from '@/lib/volume-discount'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -296,7 +297,8 @@ export async function POST(request: Request) {
           // Built here, never taken from the browser — see customSku.
           sku: customSku(specs),
           quantity,
-          price: round2(unit),
+          // Quantity discount: 5% from 10 pieces, 10% from 20 (see volume-discount.ts).
+          price: volumeUnitPrice(unit, quantity, 'CUSTOM'),
           customSpecs: specs,
         })
         continue
@@ -358,7 +360,8 @@ export async function POST(request: Request) {
         name: lineName,
         sku,
         quantity,
-        price: unitPrice,
+        // Quantity discount, except on boxes and sets, which carry their own.
+        price: volumeUnitPrice(unitPrice, quantity, sku),
         ...(chosenPitch ? { pitch: chosenPitch } : {}),
       })
     }
