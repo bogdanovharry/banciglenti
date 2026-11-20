@@ -63,3 +63,23 @@ describe('pitchFromName', () => {
     expect(_pitchFromName('Saw-Meister X')).toBeNull()
   })
 })
+
+import { isPlainCircularSaw, nameWithPitch as _nameWithPitch, pitchFromName as _pitchFromName2, pitchInfoFor as _pitchInfoFor } from './product-pitch'
+
+describe('plain circular saws', () => {
+  const saw = { slug: 'circular-350x2-24', categorySlugs: ['tsirkulyarni-trioni'], series: null, name: 'Циркулярен трион Ø350', width: 350, thickness: 2.24, length: null, toothPitch: null, price: 25.41 }
+  it('come in two tooth types at one price', () => {
+    const info = _pitchInfoFor(saw)
+    expect(info?.table).toBe('circular')
+    expect(info?.options.map((o) => o.pitch)).toEqual(['oz', 'vz'])
+    expect(new Set(info?.options.map((o) => o.unitPrice))).toEqual(new Set([25.41]))
+  })
+  it('are told apart from the carbide-plate saws', () => {
+    expect(isPlainCircularSaw({ slug: 'hm-350x36x30-z40', categorySlugs: ['tsirkulyarni-trioni'] })).toBe(false)
+    expect(_pitchInfoFor({ ...saw, slug: 'hm-350x36x30-z40' })).toBeNull()
+  })
+  it('keep the tooth type in the order line name and read it back', () => {
+    expect(_nameWithPitch('Циркулярен трион Ø350', 'vz')).toBe('Циркулярен трион Ø350 · зъб VZ')
+    expect(_pitchFromName2('Циркулярен трион Ø350 · зъб VZ')).toBe('vz')
+  })
+})

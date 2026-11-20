@@ -85,6 +85,7 @@ export default async function ProductPage({ params }: PageProps) {
     categorySlugs: product.categorySlugs,
     // The pitches this size is made in, from the same price tables the configurator reads.
     pitch: pitchInfoFor({
+      slug: product.slug,
       categorySlugs: product.categorySlugs,
       series: product.series,
       name: product.name,

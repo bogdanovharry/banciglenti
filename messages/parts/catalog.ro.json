@@ -59,7 +59,13 @@
       "specification": "Specificații",
       "dimensions": "Dimensiuni",
       "construction": "Execuție",
-      "fitsMachines": "Se potrivește pentru"
+      "fitsMachines": "Se potrivește pentru",
+      "toothTitle": "Tip de dinte",
+      "toothChoose": "Alegeți tipul de dinte: OZ este pentru tăiere transversală, VZ pentru tăiere longitudinală. Fără alegere, fierăstrăul circular nu se adaugă în coș.",
+      "toothNote": {
+        "oz": "Pentru tăiere transversală.",
+        "vz": "Pentru tăiere longitudinală."
+      }
     },
     "meta": {
       "productDescription": "{name} — {gross} {incVat} ({net} {exVat}). Livrare prin curier la adresa dvs. sau la un punct de ridicare.",

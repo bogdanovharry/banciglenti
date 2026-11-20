@@ -59,7 +59,13 @@
       "specification": "Спецификация",
       "dimensions": "Размери",
       "construction": "Изпълнение",
-      "fitsMachines": "Пасва на"
+      "fitsMachines": "Пасва на",
+      "toothTitle": "Вид зъб",
+      "toothChoose": "Изберете вида зъб: OZ е за напречно рязане, VZ е за надлъжно. Без избор триона не се добавя в количката.",
+      "toothNote": {
+        "oz": "За напречно рязане.",
+        "vz": "За надлъжно рязане."
+      }
     },
     "meta": {
       "productDescription": "{name} — {gross} {incVat} ({net} {exVat}). Доставка с куриер до адрес или офис.",

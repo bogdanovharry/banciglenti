@@ -6,7 +6,7 @@ import { useState } from "react";
 import { PitchPicker } from "./PitchPicker";
 import { PhotoDimensions } from "@/components/product/PhotoDimensions";
 import { PhotoBadge } from "@/components/product/PhotoBadge";
-import { PLANER_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame } from "@/lib/product-images";
+import { CIRCULAR_OZ_PHOTO, CIRCULAR_VZ_PHOTO, PLANER_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame } from "@/lib/product-images";
 import { configuratorHrefForAny } from "@/lib/configurator-tabs";
 import type { PitchInfo } from "@/lib/product-pitch";
 import { useLocale, useTranslations } from "next-intl";
@@ -92,8 +92,11 @@ export function ProductClient({ product }: { product: ProductView }) {
   const needsPitch = Boolean(product.pitch && product.pitch.options.length > 1 && !pitchOption);
   // Meat blades price the edge profile; everything else keeps the product's own price.
   const unitPrice = pitchOption?.unitPrice ?? product.price;
+  // A plain circular saw shows the photograph of the tooth type chosen (OZ is shown until then).
+  const shownImage =
+    product.pitch?.table === "circular" ? (pitchChoice === "vz" ? CIRCULAR_VZ_PHOTO : CIRCULAR_OZ_PHOTO) : product.image;
   const pitchLabel = (p: string) =>
-    /^[a-z-]+$/.test(p) ? t(`pitch.${p}`) : locale.startsWith("ro") && /^\d+(\.\d+)?\/\d+(\.\d+)?$/.test(p) ? `${p} TPI` : p;
+    product.pitch?.table === "circular" ? p.toUpperCase() : /^[a-z-]+$/.test(p) ? t(`pitch.${p}`) : locale.startsWith("ro") && /^\d+(\.\d+)?\/\d+(\.\d+)?$/.test(p) ? `${p} TPI` : p;
 
   const handleAddToCart = () => {
     if (needsPitch) return;
@@ -103,7 +106,7 @@ export function ProductClient({ product }: { product: ProductView }) {
       dim: pitchOption ? `${product.dim} · ${pitchLabel(pitchOption.pitch)}` : product.dim,
       price: unitPrice,
       quantity: qty,
-      image: product.image ?? undefined,
+      image: shownImage ?? undefined,
       ...(pitchOption ? { pitch: pitchOption.pitch } : {}),
     });
     setAdded(true);
@@ -201,15 +204,15 @@ export function ProductClient({ product }: { product: ProductView }) {
 
           {/* Gallery */}
           <div className="lg:col-start-1 lg:row-start-1">
-            {product.image ? (
+            {shownImage ? (
               <div className="relative">
                 <Placeholder
                   tone="paper"
                   ratio="1/1"
-                  src={product.image}
+                  src={shownImage}
                   alt={product.name}
                   fit="contain"
-                  background={hasWhiteFrame(product.image) ? "#fff" : undefined}
+                  background={hasWhiteFrame(shownImage) ? "#fff" : undefined}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   preload
                 />
