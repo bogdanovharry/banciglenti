@@ -63,6 +63,8 @@ describe('profile photos', () => {
     expect(profilePhoto('wave')).toBe(profilePhoto('concave-wave'))
     expect(profilePhoto('convex-wave')).toContain('profile-convex')
     expect(profilePhoto('smooth-ground')).toContain('profile-smooth')
+    expect(profilePhoto('cleaner-tooth')).toContain('profile-cleaner')
+    expect(profilePhoto('3 TPI')).toContain('profile-3tpi')
     expect(profilePhoto('4 TPI')).toBeUndefined()
     expect(profilePhoto(null)).toBeUndefined()
   })
