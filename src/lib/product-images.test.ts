@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FLEXBACK_PHOTO, MEAT_PHOTO, hasDimensionLabel } from './product-images'
+import { FLEXBACK_PHOTO, MEAT_PHOTO, hasDimensionLabel, profilePhoto } from './product-images'
 
 describe('hasDimensionLabel', () => {
   it('is true only for the two photos that have a free corner for the size', () => {
@@ -55,5 +55,18 @@ describe('bimetal grade from the name', () => {
     expect(bimetalGrade('Биметална отрезна лента М51 27×0.9')).toBe('M51')
     expect(bimetalGrade('Pânză panglică bimetalică M42 13×0,6 L=1638 mm')).toBe('M42')
     expect(bimetalGrade('Лента за дърво')).toBeNull()
+  })
+})
+
+describe('profile photos', () => {
+  it('maps edge profiles to their photograph', () => {
+    expect(profilePhoto('wave')).toBe(profilePhoto('concave-wave'))
+    expect(profilePhoto('convex-wave')).toContain('profile-convex')
+    expect(profilePhoto('smooth-ground')).toContain('profile-smooth')
+    expect(profilePhoto('4 TPI')).toBeUndefined()
+    expect(profilePhoto(null)).toBeUndefined()
+  })
+  it('sits on a white frame', () => {
+    expect(hasWhiteFrame(profilePhoto('wave'))).toBe(true)
   })
 })

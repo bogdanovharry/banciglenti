@@ -8,7 +8,7 @@ import { PhotoDimensions } from "@/components/product/PhotoDimensions";
 import { PhotoBadge } from "@/components/product/PhotoBadge";
 import { LineBadge } from "@/components/product/LineBadge";
 import { BimetalBadge } from "@/components/product/BimetalBadge";
-import { BIMETAL_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame } from "@/lib/product-images";
+import { BIMETAL_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, dimensionLabelSize, hasDimensionLabel, hasWhiteFrame, profilePhoto } from "@/lib/product-images";
 import { configuratorHrefForAny } from "@/lib/configurator-tabs";
 import type { PitchInfo } from "@/lib/product-pitch";
 import { useLocale, useTranslations } from "next-intl";
@@ -94,6 +94,8 @@ export function ProductClient({ product }: { product: ProductView }) {
   const needsPitch = Boolean(product.pitch && product.pitch.options.length > 1 && !pitchOption);
   // Meat blades price the edge profile; everything else keeps the product's own price.
   const unitPrice = pitchOption?.unitPrice ?? product.price;
+  // A chosen edge profile shows its own photograph in place of the product's.
+  const shownImage = (product.image ? profilePhoto(pitchOption?.pitch) : undefined) ?? product.image;
   const pitchLabel = (p: string) =>
     /^[a-z-]+$/.test(p) ? t(`pitch.${p}`) : locale.startsWith("ro") && /^\d+(\.\d+)?\/\d+(\.\d+)?$/.test(p) ? `${p} TPI` : p;
 
@@ -203,20 +205,20 @@ export function ProductClient({ product }: { product: ProductView }) {
 
           {/* Gallery */}
           <div className="lg:col-start-1 lg:row-start-1">
-            {product.image ? (
+            {shownImage ? (
               <div className="relative">
                 <Placeholder
                   tone="paper"
                   ratio="1/1"
-                  src={product.image}
+                  src={shownImage}
                   alt={product.name}
                   fit="contain"
-                  background={hasWhiteFrame(product.image) ? "#fff" : undefined}
+                  background={hasWhiteFrame(shownImage) ? "#fff" : undefined}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   preload
                 />
-                {hasDimensionLabel(product.image) && (
-                  <PhotoDimensions width={product.specs.width} size={dimensionLabelSize(product.image)} />
+                {hasDimensionLabel(shownImage) && (
+                  <PhotoDimensions width={product.specs.width} size={dimensionLabelSize(shownImage)} />
                 )}
                 {product.image === PLANER_PHOTO && <PhotoBadge name={product.name} />}
                 {(product.image === PROCUT_PHOTO || product.image === SOFTCUT_PHOTO) && <LineBadge name={product.name} series={product.series} />}

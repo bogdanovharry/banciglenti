@@ -7,7 +7,7 @@ import type { ProductCardData } from '@/components/product/ProductCard'
 import { isSeriesKey, type SeriesKey } from '@/lib/series'
 import { stockStateFor } from '@/lib/catalog-ui'
 import { getMarket } from '@/i18n/locale'
-import { FLEXBACK_PHOTO, MEAT_PHOTO, BIMETAL_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, horizontalPhotoFromName, sawPhotoFor } from './product-images'
+import { PROFILE_SLICER_PHOTO, FLEXBACK_PHOTO, MEAT_PHOTO, BIMETAL_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, horizontalPhotoFromName, sawPhotoFor } from './product-images'
 import {
   localizeCategory,
   localizeDescription,
@@ -138,6 +138,9 @@ function fallbackImage(
 
   // Meat blades have a photograph of their own; the rest of the food blades keep the series photo.
   if (categorySlugs.includes('meso-i-riba')) return MEAT_PHOTO
+
+  // A toothed slicer knife ("Назъбен слайсър") has a photograph of its own.
+  if (categorySlugs.includes('slicers') && name && /назъб|dantat/i.test(name)) return PROFILE_SLICER_PHOTO
 
   if (series) return SERIES_IMAGE[series]
 
