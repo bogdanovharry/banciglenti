@@ -35,7 +35,7 @@ export default function CartPage() {
         />
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-16 pb-[120px]">
           <div className="flex gap-3 flex-wrap">
-            <Link href="/shop"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("toCatalogue")}</Btn></Link>
+            <Link href="/"><Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("toCatalogue")}</Btn></Link>
             <Link href="/configurator"><Btn variant="ghost" size="lg">{tc("configurator")}</Btn></Link>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function CartPage() {
               </div>
             ))}
             <div className="p-5">
-              <Link href="/shop" className="font-mono text-xs text-ink-70 tracking-[0.05em] no-underline hover:text-ink">{t("continueShopping")}</Link>
+              <Link href="/" className="font-mono text-xs text-ink-70 tracking-[0.05em] no-underline hover:text-ink">{t("continueShopping")}</Link>
             </div>
           </div>
 

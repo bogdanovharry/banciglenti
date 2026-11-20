@@ -189,12 +189,7 @@ export function ProductClient({ product }: { product: ProductView }) {
               </Link>
               <span className="hidden md:inline">/</span>
             </>
-          ) : (
-            <>
-              <Link href="/shop" className="cursor-pointer no-underline text-ink-50 hover:text-ink">{tc("catalogue")}</Link>
-              <span>/</span>
-            </>
-          )}
+          ) : null}
           {/* On a phone the name is the heading right below; saying it a third time is noise. */}
           <span className="text-ink hidden md:inline">{product.name}</span>
         </div>

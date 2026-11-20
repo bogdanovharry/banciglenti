@@ -279,13 +279,6 @@ export function Header() {
       {/* Category nav — desktop */}
       <nav className="hidden md:block border-t border-b border-ink-05" aria-label={tCommon("mainNav")} onMouseLeave={() => setOpen(null)} onKeyDown={(e) => { if (e.key === "Escape") setOpen(null); }}>
         <div className="max-w-[1440px] mx-auto px-10 flex items-stretch gap-0">
-          <Link
-            href="/shop"
-            className="flex items-center gap-2.5 px-5 cursor-pointer font-sans text-[13px] font-semibold text-white bg-navy tracking-tight no-underline hover:brightness-110 transition-all"
-          >
-            <IconMenu size={16} /> {tSite("allProducts")}
-          </Link>
-
           {NAV_CATS.map((cat) => {
             const CatIcon = cat.Icon;
             const isOpen = open === cat.name;
@@ -368,9 +361,6 @@ export function Header() {
               {tSite("search")}
             </button>
           </form>
-          <Link href="/shop" className="flex items-center gap-3 px-4 py-3 font-semibold text-white bg-navy no-underline" onClick={() => setMobileOpen(false)}>
-            <IconMenu size={16} /> {tSite("allProducts")}
-          </Link>
           {NAV_CATS.map((cat) => {
             const CatIcon = cat.Icon;
             return (

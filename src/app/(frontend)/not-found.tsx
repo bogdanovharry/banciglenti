@@ -35,20 +35,9 @@ export default async function NotFound() {
       />
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-14 pb-[120px]">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-ink-15 border border-ink-15">
-          <Link href="/shop" className="group bg-white p-7 no-underline text-ink hover:bg-paper transition-colors">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-ink-15 border border-ink-15">
+          <Link href="/configurator" className="group bg-white p-7 no-underline text-ink hover:bg-paper transition-colors">
             <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">01</div>
-            <div className="font-display text-xl font-bold tracking-tight mt-3">{t("catalogueTitle")}</div>
-            <p className="font-sans text-sm text-ink-70 mt-2 mb-4">
-              {t("catalogueText")}
-            </p>
-            <span className="font-mono text-[11px] text-orange flex items-center gap-1.5">
-              {t("browse")} <IconArrowRight size={12} className="transition-transform group-hover:translate-x-1" />
-            </span>
-          </Link>
-
-          <Link href="/shop?mode=custom" className="group bg-white p-7 no-underline text-ink hover:bg-paper transition-colors">
-            <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">02</div>
             <div className="font-display text-xl font-bold tracking-tight mt-3 flex items-center gap-2">
               <IconRuler size={20} className="text-blue" /> {t("customTitle")}
             </div>
@@ -61,7 +50,7 @@ export default async function NotFound() {
           </Link>
 
           <div className="bg-white p-7">
-            <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">03</div>
+            <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50">02</div>
             <div className="font-display text-xl font-bold tracking-tight mt-3">{t("askTitle")}</div>
             <p className="font-sans text-sm text-ink-70 mt-2 mb-4">
               {t("askText")}

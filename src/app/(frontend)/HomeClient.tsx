@@ -94,7 +94,6 @@ function HeroCustom() {
             <Link href="/configurator">
               <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("ctaConfigure")}</Btn>
             </Link>
-            <Link href="/shop"><Btn variant="ghostLight" size="lg">{t("ctaCatalogue")}</Btn></Link>
           </div>
         </div>
 
@@ -381,10 +380,6 @@ function BestsellersBlock({ products }: { products: ProductCardData[] }) {
               <ProductCard p={p} />
             </Reveal>
           ))}
-        </div>
-
-        <div className="mt-14 text-center">
-          <Link href="/shop"><Btn variant="dark" size="lg" iconRight={<IconArrowRight size={16} />}>{t("viewAll")}</Btn></Link>
         </div>
       </div>
     </section>

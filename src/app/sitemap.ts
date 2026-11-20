@@ -25,7 +25,7 @@ import { visibleWhere } from '@/lib/blog'
  */
 export const dynamic = 'force-dynamic'
 
-const STATIC_PAGES = ['/', '/shop', '/configurator', '/contact', '/about', '/delivery', '/terms', '/privacy']
+const STATIC_PAGES = ['/', '/configurator', '/contact', '/about', '/delivery', '/terms', '/privacy']
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const origin = await siteOrigin()
