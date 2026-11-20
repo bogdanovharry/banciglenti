@@ -80,6 +80,8 @@ export const bimetalGrade = (name: string): string | null => {
 export const PROFILE_WAVE_PHOTO = '/images/products/profile-wave.webp'
 export const PROFILE_SLICER_PHOTO = '/images/products/profile-slicer-teeth.webp'
 export const PROFILE_SMOOTH_PHOTO = '/images/products/profile-smooth.webp'
+export const PROFILE_CLEANER_PHOTO = '/images/products/profile-cleaner.webp'
+export const PROFILE_3TPI_PHOTO = '/images/products/profile-3tpi.webp'
 export const PROFILE_CONVEX_PHOTO = '/images/products/profile-convex.webp'
 
 const PROFILE_PHOTOS: Record<string, string> = {
@@ -87,6 +89,8 @@ const PROFILE_PHOTOS: Record<string, string> = {
   'concave-wave': PROFILE_WAVE_PHOTO,
   'convex-wave': PROFILE_CONVEX_PHOTO,
   'smooth-ground': PROFILE_SMOOTH_PHOTO,
+  'cleaner-tooth': PROFILE_CLEANER_PHOTO,
+  '3 TPI': PROFILE_3TPI_PHOTO,
 }
 
 /** The photograph of an edge profile, or undefined when there is none (a TPI step, the cleaner tooth). */
@@ -98,6 +102,8 @@ function isProfilePhoto(image: string | null | undefined): boolean {
     image === PROFILE_WAVE_PHOTO ||
     image === PROFILE_SLICER_PHOTO ||
     image === PROFILE_SMOOTH_PHOTO ||
-    image === PROFILE_CONVEX_PHOTO
+    image === PROFILE_CONVEX_PHOTO ||
+    image === PROFILE_CLEANER_PHOTO ||
+    image === PROFILE_3TPI_PHOTO
   )
 }
