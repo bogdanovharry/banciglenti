@@ -36,3 +36,13 @@ describe('plain circular saw photos', () => {
     expect(sawPhotoFor('circular-350x2-15-vz')).toBe(CIRCULAR_VZ_PHOTO)
   })
 })
+
+import { horizontalPhotoFromName, PROCUT_PHOTO as _P, SOFTCUT_PHOTO as _S } from './product-images'
+
+describe('horizontal blade photo from the name', () => {
+  it('tells ProCut from SoftCut', () => {
+    expect(horizontalPhotoFromName('Saw-Meister ProCut 32×1.1 L=3330 mm — Wood-Mizer LX50')).toBe(_P)
+    expect(horizontalPhotoFromName('Saw-Meister SoftCut 38×1.14 L=4010 mm — Foo')).toBe(_S)
+    expect(horizontalPhotoFromName('Another blade')).toBeUndefined()
+  })
+})
