@@ -278,7 +278,7 @@ export function Header() {
 
       {/* Category nav — desktop */}
       <nav className="hidden md:block border-t border-b border-ink-05" aria-label={tCommon("mainNav")} onMouseLeave={() => setOpen(null)} onKeyDown={(e) => { if (e.key === "Escape") setOpen(null); }}>
-        <div className="max-w-[1440px] mx-auto px-10 flex items-stretch gap-0">
+        <div className="max-w-[1440px] mx-auto px-4 lg:px-6 xl:px-10 flex items-stretch gap-0">
           {NAV_CATS.map((cat) => {
             const CatIcon = cat.Icon;
             const isOpen = open === cat.name;
@@ -294,9 +294,9 @@ export function Header() {
                   href={localizeHref(cat.href, locale)}
                   aria-haspopup={cat.children ? "true" : undefined}
                   aria-expanded={cat.children ? isOpen : undefined}
-                  className={`flex items-center gap-1.5 xl:gap-2 px-2 lg:px-3.5 xl:px-[18px] h-12 whitespace-nowrap font-sans text-[12px] xl:text-[13px] font-medium text-ink no-underline transition-colors hover:text-blue ${isOpen ? "border-b-2 border-orange" : "border-b-2 border-transparent"}`}
+                  className={`flex items-center gap-2 px-2.5 xl:px-[18px] h-12 xl:h-14 whitespace-nowrap font-sans text-[13px] lg:text-[14px] xl:text-[15px] font-medium text-ink no-underline transition-colors hover:text-blue ${isOpen ? "border-b-2 border-orange" : "border-b-2 border-transparent"}`}
                 >
-                  <span className="hidden xl:inline-flex"><CatIcon size={16} /></span> {tNav(cat.name)}
+                  <span className="hidden lg:inline-flex"><CatIcon size={18} /></span> {tNav(cat.name)}
                   {cat.children && <span className="hidden xl:inline-flex"><IconChevron size={12} className="opacity-50" /></span>}
                 </Link>
                 {isOpen && cat.children && (
@@ -332,7 +332,7 @@ export function Header() {
 
           <div className="flex-1" />
 
-          <Link href="/contact" className="flex items-center px-4 h-12 font-sans text-[13px] text-ink-70 no-underline hover:text-ink transition-colors">
+          <Link href="/contact" className="flex items-center px-3 xl:px-4 h-12 xl:h-14 font-sans text-[13px] lg:text-[14px] xl:text-[15px] text-ink-70 no-underline hover:text-ink transition-colors">
             {tCommon("contact")}
           </Link>
         </div>
