@@ -17,12 +17,12 @@ type PageProps = { params: Promise<{ slug: string }> };
  * unrelated photograph.
  */
 const CATEGORY_IMAGES: Record<string, string> = {
-  dyrvo: "/images/hero/craftsman-using-bandsaw-for-splitting-wood-plank-i-2023-11-27-05-19-15-utc-2.avif",
+  dyrvo: "/images/hero/cat-wood.webp",
   metal: "/images/hero/metal-cutting-2023-11-27-04-59-56-utc-2.avif",
   hrani: "/images/hero/shutterstock_1313584316.avif",
-  "hobi-bantsig": "/images/hero/hardworking-man-doing-his-job-woodshop-2.avif",
+  "hobi-bantsig": "/images/hero/cat-hobby.webp",
   mashini: "/images/hero/man_working_bandsaw_blades.avif",
-  abrazivi: "/images/hero/punching.webp",
+  abrazivi: "/images/hero/cat-abrasives.webp",
   konsumativi: "/images/hero/man_working_bandsaw_blades.avif",
   slicers: "/images/hero/shutterstock_1510054877.avif",
 };

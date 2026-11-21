@@ -172,12 +172,12 @@ function TickerStrip() {
 // recognises their own shop floor faster than they parse an icon, and the
 // licensed photography was already sitting unused in the repo.
 const industriesBase = [
-  { name: "wood", Icon: IconWood, desc: "woodDesc", href: "/category/dyrvo", img: "/images/hero/craftsman-using-bandsaw-for-splitting-wood-plank-i-2023-11-27-05-19-15-utc-2.avif" },
+  { name: "wood", Icon: IconWood, desc: "woodDesc", href: "/category/dyrvo", img: "/images/hero/cat-wood.webp" },
   { name: "metal", Icon: IconMetal, desc: "metalDesc", href: "/category/metal", img: "/images/hero/metal-cutting-2023-11-27-04-59-56-utc-2.avif" },
   { name: "food", Icon: IconFood, desc: "foodDesc", href: "/category/hrani", img: "/images/hero/shutterstock_1313584316.avif" },
-  { name: "hobby", Icon: IconHobby, desc: "hobbyDesc", href: "/category/hobi-bantsig", img: "/images/hero/hardworking-man-doing-his-job-woodshop-2.avif" },
+  { name: "hobby", Icon: IconHobby, desc: "hobbyDesc", href: "/category/hobi-bantsig", img: "/images/hero/cat-hobby.webp" },
   { name: "machines", Icon: IconMachine, desc: "machinesDesc", href: "/category/mashini", img: "/images/hero/man_working_bandsaw_blades.avif" },
-  { name: "abrasives", Icon: IconAbrasive, desc: "abrasivesDesc", href: "/category/abrazivi", img: "/images/hero/punching.webp" },
+  { name: "abrasives", Icon: IconAbrasive, desc: "abrasivesDesc", href: "/category/abrazivi", img: "/images/hero/cat-abrasives.webp" },
 ];
 
 function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
@@ -467,7 +467,7 @@ function ServicesBlock() {
           {/* Photograph carries the left column full-bleed to the section edge */}
           <Reveal className="relative min-h-[320px] lg:min-h-full">
             <Image
-              src="/images/hero/punching.webp"
+              src="/images/hero/cat-abrasives.webp"
               alt={tSvc("imageAlt")}
               fill
               sizes="(max-width: 1024px) 100vw, 40vw"
