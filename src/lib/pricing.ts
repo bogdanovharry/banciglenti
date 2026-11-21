@@ -304,9 +304,9 @@ export const BREAD_BLADES: BladeConfig[] = [
  * table yet. See MATERIAL_EDGE_GUIDE in lib/blade-guide.ts.
  */
 export const TEXTILE_BLADES: BladeConfig[] = [
-  { width: 10, thickness: 0.45, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 2.09, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 15, thickness: 0.50, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.53, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 20, thickness: 0.60, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.64, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 25, thickness: 0.60, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.84, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
-  { width: 30, thickness: 0.70, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.99, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 10, thickness: 0.45, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 2.20, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 15, thickness: 0.50, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.80, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.60, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.90, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 25, thickness: 0.60, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 2.00, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 30, thickness: 0.70, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 2.40, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
 ];
