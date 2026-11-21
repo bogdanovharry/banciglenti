@@ -6,7 +6,7 @@ import { bladeGuide, type Translate } from "@/lib/blade-guide";
 import type { PitchInfo } from "@/lib/product-pitch";
 
 /** Named edge shapes are words; "8 TPI" and "12.5" are numbers and read the same everywhere. */
-const PROFILES = new Set(["cleaner-tooth", "concave-wave", "convex-wave", "smooth-ground", "wave"]);
+const PROFILES = new Set(["cleaner-tooth", "concave-wave", "convex-wave", "smooth-ground", "v-tooth", "wave"]);
 
 /**
  * Choose the tooth pitch (or the edge profile, for food blades) of a ready-made

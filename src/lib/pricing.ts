@@ -28,6 +28,7 @@ export const PITCH_LABELS: Record<string, string> = {
   'concave-wave': 'Concave',
   'convex-wave': 'Convex',
   'smooth-ground': 'Гладко заточен',
+  'v-tooth': 'Назъбен (V-зъб)',
   wave: 'Вълна',
 };
 
@@ -305,8 +306,23 @@ export const BREAD_BLADES: BladeConfig[] = [
  */
 export const TEXTILE_BLADES: BladeConfig[] = [
   { width: 10, thickness: 0.45, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 2.09, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 10, thickness: 0.45, pitch: "wave", brand: "Tehnoles", pricePerMeter: 3.14, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 10, thickness: 0.45, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 3.66, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 10, thickness: 0.45, pitch: "v-tooth", brand: "Tehnoles", pricePerMeter: 2.30, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
   { width: 15, thickness: 0.50, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.53, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 15, thickness: 0.50, pitch: "wave", brand: "Tehnoles", pricePerMeter: 2.30, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 15, thickness: 0.50, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 2.68, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 15, thickness: 0.50, pitch: "v-tooth", brand: "Tehnoles", pricePerMeter: 1.68, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
   { width: 20, thickness: 0.60, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.64, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.60, pitch: "wave", brand: "Tehnoles", pricePerMeter: 2.46, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.60, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 2.87, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.60, pitch: "v-tooth", brand: "Tehnoles", pricePerMeter: 1.80, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
   { width: 25, thickness: 0.60, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.84, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 25, thickness: 0.60, pitch: "wave", brand: "Tehnoles", pricePerMeter: 2.76, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 25, thickness: 0.60, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 3.22, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 25, thickness: 0.60, pitch: "v-tooth", brand: "Tehnoles", pricePerMeter: 2.02, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
   { width: 30, thickness: 0.70, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.99, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 30, thickness: 0.70, pitch: "wave", brand: "Tehnoles", pricePerMeter: 2.99, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 30, thickness: 0.70, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 3.48, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 30, thickness: 0.70, pitch: "v-tooth", brand: "Tehnoles", pricePerMeter: 2.19, welding: 1.84, sharpening: 0, heatTreatment: 0, setting: 0 },
 ];

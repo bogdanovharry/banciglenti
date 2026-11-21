@@ -160,6 +160,7 @@ export const PITCH_NAME_BG: Record<string, string> = {
   'concave-wave': 'Concave',
   'convex-wave': 'Convex',
   'smooth-ground': 'Гладко заточен',
+  'v-tooth': 'Назъбен (V-зъб)',
   wave: 'Вълна',
 }
 
@@ -185,6 +186,7 @@ export const PITCH_NAME_RO: Record<string, string> = {
   'concave-wave': 'Concave',
   'convex-wave': 'Convex',
   'smooth-ground': 'Ascuțit neted',
+  'v-tooth': 'Zimțat (dinte în V)',
   wave: 'Val',
 }
 
