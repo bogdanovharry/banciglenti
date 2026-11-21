@@ -8,6 +8,7 @@ import { formatPrice, vatRateFor, withVat } from "@/lib/market";
 import { getMarket } from "@/i18n/locale";
 import { localizeHref } from "@/lib/slugs";
 import { pitchInfoFor } from "@/lib/product-pitch";
+import { packFromSlug } from "@/lib/packs";
 import { absoluteUrl } from "@/lib/site-url";
 import { ProductClient, type ProductView } from "./ProductClient";
 
@@ -66,6 +67,12 @@ export default async function ProductPage({ params }: PageProps) {
   const attached = categories.filter((c) => product.categorySlugs.includes(c.slug));
   const leaf = attached.find((c) => c.parentSlug !== null) ?? attached[0] ?? null;
 
+  // A hobby band comes with an offer: the Start set (three widths) at the same loop length.
+  const startSet =
+    product.series === "flexcut" && product.specs.length && !packFromSlug(product.slug)
+      ? await getProductBySlug(`flexcut-l${product.specs.length}-set-start`)
+      : null;
+
   const view: ProductView = {
     slug: product.slug,
     name: product.name,
@@ -81,6 +88,9 @@ export default async function ProductPage({ params }: PageProps) {
     setContents: product.setContents,
     machines: product.machines,
     image: product.image ?? null,
+    startSet: startSet
+      ? { slug: startSet.slug, name: startSet.name, price: startSet.price, contents: startSet.setContents, length: product.specs.length ?? 0 }
+      : null,
     breadcrumb: leaf ? { slug: leaf.slug, name: leaf.name } : null,
     categorySlugs: product.categorySlugs,
     // The pitches this size is made in, from the same price tables the configurator reads.

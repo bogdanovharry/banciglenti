@@ -12,6 +12,11 @@
       "unavailable": "Indisponibil",
       "add": "Adaugă"
     },
+    "startSet": {
+      "eyebrow": "Ofertă · buclă {length} mm",
+      "text": "Trei pânze pentru fierăstrău panglică hobby, pe aceeași buclă — curbe, universală și tăiere longitudinală. Mai avantajos decât să le cauți pe rând.",
+      "cta": "Vezi setul"
+    },
     "volume": {
       "title": "Reducere la cantitate",
       "from": "de la {qty} buc.",
