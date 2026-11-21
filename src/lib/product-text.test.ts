@@ -22,6 +22,19 @@ describe('the pitch a buyer chose, in the line name', () => {
   })
 })
 
+describe('abrasives, circular and workshop names', () => {
+  it.each([
+    ['Циркулярен трион с твърдосплавни пластини (HM) Ø200 × 3.2 × 30 мм · z=64 · WZ', 'Pânză de fierăstrău circular cu plăcuțe din carbură (HM) Ø200 × 3,2 × 30 mm · z=64 · WZ'],
+    ['CBN диск за заточване (Боразон)', 'Disc de ascuțire CBN (Borazon)'],
+    ['Диамантен диск за заточване Ø125 мм · 12A2-20', 'Disc diamantat de ascuțire Ø125 mm · 12A2-20'],
+    ['Абразивен диск за заточване Ø150 · 10/3', 'Disc abraziv de ascuțire Ø150 · 10/3'],
+    ['Охлаждаща течност ACP-2E', 'Lichid de răcire ACP-2E'],
+    ['Заточна машина за банцигови ленти ZM101', 'Mașină de ascuțit pânze panglică ZM101'],
+  ])('"%s" reads "%s" in Romanian', (bg, ro) => {
+    expect(localizeName(bg, 'ro')).toBe(ro)
+  })
+})
+
 describe('bimetal cut-off bands', () => {
   it('read as a Romanian workshop would say it, whichever M the name was typed with', () => {
     const expected = 'Pânză panglică bimetalică M42 27×0,9 L=2480 mm — Optimum S 275 G'
