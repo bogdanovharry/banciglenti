@@ -121,7 +121,7 @@ function OrderTotal({ unitPrice, qty }: { unitPrice: number; qty: number }) {
   return (
     <div className="mt-4 mb-5 pt-3 border-t border-ink-15">
       <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">{t("price.total", { qty })}</div>
-      <DualPrice net={roundMoney(unitPrice * (1 - percent / 100) * qty)} size="sm" className="mt-1" />
+      <DualPrice net={roundMoney(unitPrice * (1 - percent / 100) * qty)} size={qty > 1 ? "lg" : "sm"} className="mt-1" />
       {percent > 0 && (
         <div className="inline-block mt-1.5 px-1.5 py-0.5 bg-orange text-white font-mono text-[10px] leading-snug">
           {tVol("inCart", { percent })}
@@ -576,7 +576,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">
             {t("price.label")}
           </div>
-          <DualPrice net={roundMoney(unitPrice * (1 - volumePercent(qty) / 100))} size="lg" className="mt-1" />
+          <DualPrice net={roundMoney(unitPrice * (1 - volumePercent(qty) / 100))} size={qty > 1 ? "sm" : "lg"} className="mt-1" />
           <OrderTotal unitPrice={unitPrice} qty={qty} />
           <Btn variant="primary" size="lg" fullWidth iconRight={<IconArrowRight size={16} />} onClick={handleAdd} disabled={!canAdd}>
             {added ? t("price.added") : t("price.add")}
@@ -689,7 +689,7 @@ function RealDataConfigurator({
         )}
         <div className="mt-auto border-t-2 border-ink pt-4">
           <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-50">{t("price.label")}</div>
-          <DualPrice net={roundMoney(unitPrice * (1 - volumePercent(qty) / 100))} size="lg" className="mt-1" />
+          <DualPrice net={roundMoney(unitPrice * (1 - volumePercent(qty) / 100))} size={qty > 1 ? "sm" : "lg"} className="mt-1" />
           <OrderTotal unitPrice={unitPrice} qty={qty} />
           <Btn variant="primary" size="lg" fullWidth onClick={handleAdd} disabled={!canAdd}>
             {added ? t("price.addedShort") : t("price.add")}
