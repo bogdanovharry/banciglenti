@@ -67,11 +67,14 @@ export default async function ProductPage({ params }: PageProps) {
   const attached = categories.filter((c) => product.categorySlugs.includes(c.slug));
   const leaf = attached.find((c) => c.parentSlug !== null) ?? attached[0] ?? null;
 
-  // A hobby band comes with an offer: the Start set (three widths) at the same loop length.
-  const startSet =
+  // A hobby band comes with an offer: the three sets (Start, Curves, Resaw) at the same loop length.
+  const setKeys = ["start", "curves", "resaw"] as const;
+  const sets =
     product.series === "flexcut" && product.specs.length && !packFromSlug(product.slug)
-      ? await getProductBySlug(`flexcut-l${product.specs.length}-set-start`)
-      : null;
+      ? (await Promise.all(setKeys.map((k) => getProductBySlug(`flexcut-l${product.specs.length}-set-${k}`))))
+          .map((set, i) => (set ? { key: setKeys[i], slug: set.slug, name: set.name, price: set.price, contents: set.setContents } : null))
+          .filter((x): x is NonNullable<typeof x> => x !== null)
+      : [];
 
   const view: ProductView = {
     slug: product.slug,
@@ -88,9 +91,7 @@ export default async function ProductPage({ params }: PageProps) {
     setContents: product.setContents,
     machines: product.machines,
     image: product.image ?? null,
-    startSet: startSet
-      ? { slug: startSet.slug, name: startSet.name, price: startSet.price, contents: startSet.setContents, length: product.specs.length ?? 0 }
-      : null,
+    sets: sets.length ? { length: product.specs.length ?? 0, items: sets } : null,
     breadcrumb: leaf ? { slug: leaf.slug, name: leaf.name } : null,
     categorySlugs: product.categorySlugs,
     // The pitches this size is made in, from the same price tables the configurator reads.
