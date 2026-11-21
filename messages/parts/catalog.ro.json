@@ -200,8 +200,8 @@
     },
     "pitch": {
       "cleaner-tooth": "Dinte cu curățitor",
-      "concave-wave": "Val concav",
-      "convex-wave": "Val convex",
+      "concave-wave": "Concave",
+      "convex-wave": "Convex",
       "smooth-ground": "Ascuțit neted",
       "wave": "Val"
     },
@@ -235,12 +235,12 @@
           "3_TPI": "Dinte universal pentru porc, vită și miel congelate și refrigerate, și pentru despicarea peștelui congelat adânc. Dintele mai mare îndepărtează mai puțin material în tăietură și rezistă la os la viteză mare de avans.",
           "4_TPI": "Dintele mai fin lasă o tăietură mai netedă pe carne proaspătă și refrigerată, pasăre și pește — acolo unde aspectul tăieturii face parte din produs. Pe un bloc congelat adânc se tocește mai repede decât 3 TPI.",
           "cleaner-tooth": "Dintele cu curățitor este pentru despicarea carcaselor proaspete și congelate. Curățitorul scoate pasta de os din gol, în loc să o îndese acolo — pânza nu se înfundă, taie mai curat și lucrează mai silențios.",
-          "concave-wave": "Valul concav mușcă cu vârfurile coaja, membrana și pielea alunecoasă, iar semiluna dintre ele taie. Pentru pește, mezeluri, brânză și legume, și pentru pâine cu crustă tare.",
-          "convex-wave": "Valul convex este pentru tăierea și filetarea peștelui proaspăt, necongelat, și pentru secționarea oaselor subțiri. Muchia rotunjită intră prin piele fără să rupă fibra de sub ea.",
+          "concave-wave": "Concave mușcă cu vârfurile coaja, membrana și pielea alunecoasă, iar semiluna dintre ele taie. Pentru pește, mezeluri, brânză și legume, și pentru pâine cu crustă tare.",
+          "convex-wave": "Convex este pentru tăierea și filetarea peștelui proaspăt, necongelat, și pentru secționarea oaselor subțiri. Muchia rotunjită intră prin piele fără să rupă fibra de sub ea.",
           "smooth-ground": "Muchia ascuțită neted nu are dinte și nu are ceaprăzuire — taie, în loc să zgârie. Cea mai curată tăietură posibilă pe pește și carne dezosate, fără firimituri și fără rupturi; nu se folosește pe os.",
           "wave": "Muchia ondulată taie prin alunecare și nu strivește produsul de sub ea — felii perfecte, cu un minim de firimituri, la pâine și produse de panificație, și o alegere sigură la pește și produse din pește."
         },
-        "breadConcaveWave": "Valul concav mușcă cu vârfurile crusta tare, iar semiluna dintre ele taie miezul. Pentru pâine rustică și integrală cu crustă tare, unde valul obișnuit alunecă, în loc să intre.",
+        "breadConcaveWave": "Concave mușcă cu vârfurile crusta tare, iar semiluna dintre ele taie miezul. Pentru pâine rustică și integrală cu crustă tare, unde valul obișnuit alunecă, în loc să intre.",
         "steel": "Execuția este din oțel inoxidabil, apt pentru contactul cu alimentele și pentru spălare și dezinfectare zilnică.",
         "baseTextile": "Cuțit-bandă pentru materiale moi — burete și spumă poliuretanică, textile în straturi, piele, hârtie, carton și plută. Lucrează pe o mașină de debitat cu bandă și ascuțire integrată: muchia se reînnoiește din mers, de aceea ultimul metru din pachet iese ca primul.",
         "baseBread": "Cuțit-bandă pentru mașina de feliat pâine. Muchia ondulată taie crusta, în loc să o rupă — de aici vin feliile egale și puținele firimituri. {steel}",
@@ -267,7 +267,7 @@
           "note": "Creste line, fără vârfuri ascuțite. Prinde mai bine decât muchia netedă, dar taie fibra, în loc să o tragă așa cum o face dintele — de aceea este alegerea pentru fetru și pentru spuma care fuge din fața lamei. Face praf minim."
         },
         "concave-wave": {
-          "name": "Val concav (scalop)",
+          "name": "Concave (scalop)",
           "materials": "Spumă mai densă, cauciuc și furtunuri de cauciuc, carton și straturi mai dure",
           "note": "Semilune decupate, cu un vârf clar între ele. Mai agresiv decât valul și mai controlat decât dintele — vârfurile străpung materialul dens, iar semiluna termină tăietura. Poziția de mijloc, care face cea mai multă treabă."
         },

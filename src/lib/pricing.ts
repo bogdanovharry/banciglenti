@@ -25,8 +25,8 @@ export interface BladeConfig {
  */
 export const PITCH_LABELS: Record<string, string> = {
   'cleaner-tooth': 'Зъб чистач',
-  'concave-wave': 'Вдлъбната вълна',
-  'convex-wave': 'Изпъкнала вълна',
+  'concave-wave': 'Concave',
+  'convex-wave': 'Convex',
   'smooth-ground': 'Гладко заточен',
   wave: 'Вълна',
 };
