@@ -348,3 +348,9 @@ input[type="range"]::-webkit-slider-thumb {
   height: auto;
   margin: 1.5rem 0;
 }
+
+/* Lead paragraphs: the light Inter of the ТЕХНОЛЕС slogan, on the Bulgarian storefront only. */
+html[lang="bg"] .lede {
+  font-weight: 300;
+  letter-spacing: 0.005em;
+}

@@ -86,7 +86,7 @@ function HeroCustom() {
             {t("title1")}<br />{t("title2")}<br />
             <span className={`${accent} text-orange-light`}>{t("title3")}</span>
           </h1>
-          <p className="font-sans text-lg leading-relaxed text-white/75 max-w-[560px] mb-10">
+          <p className="lede font-sans text-lg leading-relaxed text-white/75 max-w-[560px] mb-10">
             {t("lede")}
           </p>
           <div className="flex gap-3 items-center flex-wrap">
@@ -200,7 +200,7 @@ function IndustriesBlock({ counts }: { counts: Record<string, number> }) {
               {t("title1")}<br />{t("title2")} <span className={`${accent} text-orange`}>{t("title3")}</span>.
             </h2>
           </Reveal>
-          <Reveal as="p" delay={120} className="font-sans text-base leading-relaxed text-ink-70 max-w-[480px] lg:justify-self-end">
+          <Reveal as="p" delay={120} className="lede font-sans text-base leading-relaxed text-ink-70 max-w-[480px] lg:justify-self-end">
             {t("lede")}
           </Reveal>
         </div>
@@ -311,7 +311,7 @@ function ConfiguratorSection() {
               </h2>
             </Reveal>
             <Reveal delay={120}>
-              <p className="font-sans text-[17px] leading-relaxed text-white/70 max-w-[460px] mb-6">
+              <p className="lede font-sans text-[17px] leading-relaxed text-white/70 max-w-[460px] mb-6">
                 {t("lede1")} {t("lede2")}
               </p>
               <div className="flex flex-wrap gap-x-8 gap-y-3 font-mono text-[10px] tracking-[0.12em] uppercase text-white/50">
@@ -415,7 +415,7 @@ function ExpertiseBlock() {
             {t("title1")}<br />{t("title2")}<br />
             <span className={`${accent} text-orange-light`}>{t("title3")}</span>
           </h2>
-          <p className="font-sans text-[17px] leading-relaxed text-white/75 max-w-[560px] mb-10">
+          <p className="lede font-sans text-[17px] leading-relaxed text-white/75 max-w-[560px] mb-10">
             {t("lede")}
           </p>
           <div className="grid grid-cols-2 gap-px bg-white/10 border border-white/10">

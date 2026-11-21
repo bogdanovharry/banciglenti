@@ -85,7 +85,7 @@ export function PageHeader({
         </h1>
 
         {description && (
-          <p className={`font-sans text-[15px] md:text-[17px] leading-snug md:leading-relaxed text-white/70 max-w-[620px] ${compact ? "mt-2 md:mt-3" : "mt-3 md:mt-6"} line-clamp-3 md:line-clamp-none`}>{description}</p>
+          <p className={`lede font-sans text-[15px] md:text-[17px] leading-snug md:leading-relaxed text-white/70 max-w-[620px] ${compact ? "mt-2 md:mt-3" : "mt-3 md:mt-6"} line-clamp-3 md:line-clamp-none`}>{description}</p>
         )}
 
         {children && <div className={compact ? "mt-4 md:mt-5" : "mt-5 md:mt-9"}>{children}</div>}
