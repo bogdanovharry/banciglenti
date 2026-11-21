@@ -79,3 +79,16 @@ describe('pitchFromName', () => {
     expect(_pitchFromName('Saw-Meister X')).toBeNull()
   })
 })
+
+describe('pitchInfoFor — bimetal steels', () => {
+  it('an M51 band offers the M51 pitches, an M42 band of the same size the M42 ones', () => {
+    const m51 = pitchInfoFor(product({ categorySlugs: ['bimetalni-lenti'], name: 'Биметална отрезна лента M51 27×0.9 L=2450мм', width: 27, thickness: 0.9 }))!
+    expect(m51.options.map((o) => o.pitch).sort()).toEqual(['3/4', '4/6'])
+    const m42 = pitchInfoFor(product({ categorySlugs: ['bimetalni-lenti'], name: 'Биметална отрезна лента M42 27×0.9 L=2450мм', width: 27, thickness: 0.9 }))!
+    expect(m42.options.length).toBeGreaterThan(2)
+  })
+  it('41×1.3 is made in M42 pitches', () => {
+    const i = pitchInfoFor(product({ categorySlugs: ['bimetalni-lenti'], name: 'Биметална отрезна лента M42 41×1.3 L=4115мм', width: 41, thickness: 1.3 }))!
+    expect(i.options.map((o) => o.pitch).sort()).toEqual(['1.4/2', '2/3', '3/4', '4/6'])
+  })
+})
