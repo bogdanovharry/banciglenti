@@ -177,7 +177,7 @@ const industriesBase = [
   { name: "metal", Icon: IconMetal, desc: "metalDesc", href: "/category/metal", img: "/images/hero/metal-cutting-2023-11-27-04-59-56-utc-2.avif" },
   { name: "food", Icon: IconFood, desc: "foodDesc", href: "/category/hrani", img: "/images/hero/shutterstock_1313584316.avif" },
   { name: "hobby", Icon: IconHobby, desc: "hobbyDesc", href: "/category/hobi-bantsig", img: "/images/hero/cat-hobby.webp" },
-  { name: "machines", Icon: IconMachine, desc: "machinesDesc", href: "/category/mashini", img: "/images/hero/man_working_bandsaw_blades.avif" },
+  { name: "machines", Icon: IconMachine, desc: "machinesDesc", href: "/category/mashini", img: "/images/hero/cat-machines.webp" },
   { name: "abrasives", Icon: IconAbrasive, desc: "abrasivesDesc", href: "/category/abrazivi", img: "/images/hero/cat-abrasives.webp" },
 ];
 

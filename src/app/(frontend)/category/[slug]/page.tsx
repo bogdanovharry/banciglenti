@@ -21,9 +21,9 @@ const CATEGORY_IMAGES: Record<string, string> = {
   metal: "/images/hero/metal-cutting-2023-11-27-04-59-56-utc-2.avif",
   hrani: "/images/hero/shutterstock_1313584316.avif",
   "hobi-bantsig": "/images/hero/cat-hobby.webp",
-  mashini: "/images/hero/man_working_bandsaw_blades.avif",
+  mashini: "/images/hero/cat-machines.webp",
   abrazivi: "/images/hero/cat-abrasives.webp",
-  konsumativi: "/images/hero/man_working_bandsaw_blades.avif",
+  konsumativi: "/images/hero/cat-machines.webp",
   slicers: "/images/hero/shutterstock_1510054877.avif",
 };
 
