@@ -453,11 +453,9 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const [brandChoice, setBrand] = useState("");
   const [length, setLength] = useState(0);
   const [qty, setQty] = useState(1);
-  // The optional paid processes start unticked: a pre-ticked extra is a charge
-  // the buyer never chose, which consumer law does not allow. Welding is not
-  // one of them — see below.
-  const [settingOpt, setSetting] = useState(false);
-  const [sharpeningOpt, setSharpening] = useState(false);
+  // Welding, sharpening and setting are in every price. Heat treatment is the
+  // one paid extra left, and starts unticked: a pre-ticked extra is a charge the
+  // buyer never chose, which consumer law does not allow.
   const [heatTreatOpt, setHeatTreat] = useState(false);
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
@@ -494,8 +492,8 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   const welding = avail.welding;
   // Where the processes are not offered the choice is not shown, and counts as off.
   const { processingOptions } = market;
-  const setting = processingOptions && settingOpt && avail.setting;
-  const sharpening = processingOptions && sharpeningOpt && avail.sharpening;
+  const setting = avail.setting;
+  const sharpening = avail.sharpening;
   const heatTreat = processingOptions && heatTreatOpt && avail.heatTreatment;
 
   // Only quote a length the workshop will actually weld — a price against a
@@ -554,17 +552,18 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
       {/* Right — extras + price */}
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-3">
+          {avail.welding && (
+            <p className="font-mono text-[11px] tracking-[0.05em] text-ink-70 m-0">
+              ✓ {tCat("configurator.weldingIncluded")}
+            </p>
+          )}
+          {(avail.sharpening || avail.setting) && (
+            <p className="font-mono text-[11px] tracking-[0.05em] text-ink-70 m-0">
+              ✓ {tCat("configurator.sharpeningSettingIncluded")}
+            </p>
+          )}
           {processingOptions && (
-            <>
-              {avail.welding && (
-                <p className="font-mono text-[11px] tracking-[0.05em] text-ink-70 m-0">
-                  ✓ {tCat("configurator.weldingIncluded")}
-                </p>
-              )}
-              <Checkbox label={tCat("configurator.setting")} checked={settingOpt} onChange={setSetting} unavailable={!avail.setting} unavailableLabel={tCat("configurator.unavailable")} />
-              <Checkbox label={t("extras.sharpening")} checked={sharpeningOpt} onChange={setSharpening} unavailable={!avail.sharpening} unavailableLabel={tCat("configurator.unavailable")} />
-              <Checkbox label={t("extras.heatTreatment")} checked={heatTreatOpt} onChange={setHeatTreat} unavailable={!avail.heatTreatment} unavailableLabel={tCat("configurator.unavailable")} />
-            </>
+            <Checkbox label={t("extras.heatTreatment")} checked={heatTreatOpt} onChange={setHeatTreat} unavailable={!avail.heatTreatment} unavailableLabel={tCat("configurator.unavailable")} />
           )}
         </div>
 
@@ -573,7 +572,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           // the end rather than after every figure.
           <div className="p-3 bg-paper font-mono text-[10px] text-ink-50 tracking-[0.05em]">
             {t("price.perMeter")}: {price(selectedBlade.pricePerMeter)}
-            {processingOptions && welding && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
+            {welding && selectedBlade.welding > 0 && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
             {sharpening && selectedBlade.sharpening > 0 && <> · {t("extras.sharpening")}: {t("price.perMetreUnit", { price: price(selectedBlade.sharpening) })}</>}
             {heatTreat && selectedBlade.heatTreatment > 0 && <> · {t("extras.heatShort")}: {t("price.perMetreUnit", { price: price(selectedBlade.heatTreatment) })}</>}
             {setting && selectedBlade.setting > 0 && <> · {tCat("configurator.setting")}: {t("price.perMetreUnit", { price: price(selectedBlade.setting) })}</>}
@@ -744,7 +743,7 @@ export function ConfiguratorPanel({ initialTab }: { initialTab?: ConfigType } = 
       {/* Where the optional processes are not offered, say what the blade comes with.
           Only the tabs of blades that are welded, ground and set: the food and textile
           blades have a smooth edge and nothing to set. */}
-      {!market.processingOptions && INCLUDED_NOTE_TABS.includes(activeTab) && (
+      {INCLUDED_NOTE_TABS.includes(activeTab) && (
         <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-8">
           <p className="m-0 border border-ink-15 bg-paper px-4 py-3 font-sans text-[14px] leading-relaxed text-ink-70">
             <span aria-hidden className="text-ok mr-2">✓</span>

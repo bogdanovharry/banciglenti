@@ -64,7 +64,7 @@ export const MIN_CUSTOM_LENGTH = 1000
 export const MAX_CUSTOM_LENGTH = 50000
 
 /** True when a quote asks for one of the optional processes (setting, sharpening, heat treatment). Welding is part of every loop and is not one. */
-export const usesProcessingOptions = (s: CustomSpecs): boolean => Boolean(s.setting || s.sharpening || s.heatTreatment)
+export const usesProcessingOptions = (s: CustomSpecs): boolean => Boolean(s.heatTreatment)
 
 export function parseCustomSpecs(value: unknown): CustomSpecs | null {
   if (!value || typeof value !== 'object') return null
@@ -86,9 +86,10 @@ export function parseCustomSpecs(value: unknown): CustomSpecs | null {
     thickness,
     pitch: s.pitch,
     brand: s.brand,
-    welding: s.welding === true,
-    setting: s.setting === true,
-    sharpening: s.sharpening === true,
+    // Welding, sharpening and setting are part of every blade and are in the price; only heat treatment is a choice.
+    welding: true,
+    setting: true,
+    sharpening: true,
     heatTreatment: s.heatTreatment === true,
   }
 }
@@ -130,10 +131,10 @@ export function priceCustomItem(specs: CustomSpecs): number | null {
   if (!blade) return null
 
   return calculateBladePrice(blade, specs.length, {
-    welding: specs.welding ?? false,
-    sharpening: specs.sharpening ?? false,
+    welding: true,
+    sharpening: true,
     heatTreatment: specs.heatTreatment ?? false,
-    setting: specs.setting ?? false,
+    setting: true,
   }).totalWithoutVat
 }
 

@@ -52,12 +52,12 @@ describe('processing options on made-to-length blades', () => {
     expect(MARKETS.ro.processingOptions).toBe(false)
     expect(MARKETS.bg.processingOptions).toBe(true)
   })
-  it('only setting, sharpening and heat treatment count as options; welding never does', () => {
+  it('only heat treatment counts as an option; welding, sharpening and setting are in every price', () => {
     const base = { table: 'wood-v', length: 3000, width: 20, thickness: 0.6, pitch: '6', brand: 'Kodiak' } as const
     expect(usesProcessingOptions({ ...base })).toBe(false)
     expect(usesProcessingOptions({ ...base, welding: true })).toBe(false)
-    expect(usesProcessingOptions({ ...base, setting: true })).toBe(true)
-    expect(usesProcessingOptions({ ...base, sharpening: true })).toBe(true)
+    expect(usesProcessingOptions({ ...base, setting: true })).toBe(false)
+    expect(usesProcessingOptions({ ...base, sharpening: true })).toBe(false)
     expect(usesProcessingOptions({ ...base, heatTreatment: true })).toBe(true)
   })
 })
