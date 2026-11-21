@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Vercel__create_deployment",
+      "mcp__Vercel__get_deployment",
+      "mcp__Vercel__list_deployments",
+      "mcp__Vercel__get_project",
+      "mcp__Neon__run_sql",
+      "mcp__Neon__run_sql_transaction"
+    ]
+  }
+}
