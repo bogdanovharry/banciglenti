@@ -191,9 +191,13 @@ export function Header() {
         </div>
       </div>
 
+    {/* Phone: the bar is fixed rather than sticky. iOS Safari places a sticky bar from where its own
+        collapsing toolbar was, so content showed through a gap above it while scrolling; a fixed bar is
+        flush with the top of what is visible. The spacer keeps its room in the page. */}
+    <div aria-hidden className="md:hidden" style={{ height: "var(--header-h, 78px)" }} />
     <header
       ref={headerRef}
-      className="sticky top-0 z-50 bg-white transition-[border-color] duration-200"
+      className="fixed inset-x-0 top-0 md:sticky md:inset-x-auto z-50 bg-white transition-[border-color] duration-200"
       style={{ borderBottom: `1px solid ${scrolled ? "#D9D9D9" : "transparent"}` }}
     >
 
