@@ -309,4 +309,17 @@ export const TEXTILE_BLADES: BladeConfig[] = [
   { width: 20, thickness: 0.60, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 1.90, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
   { width: 25, thickness: 0.60, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 2.00, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
   { width: 30, thickness: 0.70, pitch: "smooth-ground", brand: "Tehnoles", pricePerMeter: 2.40, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  // Edge profiles for the same soft materials, at the prices of the Meat list (16 and 20 mm) and the Bread list (10 and 12 mm).
+  { width: 10, thickness: 0.50, pitch: "wave", brand: "Tehnoles", pricePerMeter: 4.23, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 12, thickness: 0.45, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 5.09, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 16, thickness: 0.50, pitch: "3 TPI", brand: "Tehnoles", pricePerMeter: 4.50, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 16, thickness: 0.50, pitch: "4 TPI", brand: "Tehnoles", pricePerMeter: 4.50, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 16, thickness: 0.50, pitch: "cleaner-tooth", brand: "Tehnoles", pricePerMeter: 5.20, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 16, thickness: 0.50, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 7.30, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 16, thickness: 0.50, pitch: "convex-wave", brand: "Tehnoles", pricePerMeter: 7.30, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.50, pitch: "3 TPI", brand: "Tehnoles", pricePerMeter: 4.90, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.50, pitch: "4 TPI", brand: "Tehnoles", pricePerMeter: 4.90, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.50, pitch: "cleaner-tooth", brand: "Tehnoles", pricePerMeter: 5.50, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.50, pitch: "concave-wave", brand: "Tehnoles", pricePerMeter: 8.40, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
+  { width: 20, thickness: 0.50, pitch: "convex-wave", brand: "Tehnoles", pricePerMeter: 8.40, welding: 2.00, sharpening: 0, heatTreatment: 0, setting: 0 },
 ];
