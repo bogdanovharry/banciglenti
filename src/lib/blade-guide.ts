@@ -224,8 +224,6 @@ export function edgeKind(table: BladeTableKey, pitch: string): EdgeKind {
       return 'convex'
     case 'cleaner-tooth':
       return 'cleaner'
-    case 'v-tooth':
-      return 'teeth-fine'
   }
 
   if (pitch.includes('/')) return 'teeth-variable'
@@ -293,9 +291,9 @@ export type MaterialEdgeText = { name: string; materials: string; note: string }
 
 export const MATERIAL_EDGE_GUIDE: MaterialEdge[] = [
   { code: 'smooth-ground', kind: 'straight', stocked: true },
-  { code: 'wave', kind: 'wave', stocked: true },
-  { code: 'concave-wave', kind: 'scallop', stocked: true },
-  { code: 'v-tooth', kind: 'teeth-fine', stocked: true },
+  { code: 'wave', kind: 'wave', stocked: false },
+  { code: 'concave-wave', kind: 'scallop', stocked: false },
+  { code: 'v-tooth', kind: 'teeth-fine', stocked: false },
 ]
 
 export const materialEdgeText = (t: Translate, code: string): MaterialEdgeText => ({

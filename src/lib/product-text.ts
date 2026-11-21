@@ -52,7 +52,6 @@ const NAME_RO: Rule[] = [
   [/ · профил Вдлъбната вълна$/, ' · profil Val concav'],
   [/ · профил Изпъкнала вълна$/, ' · profil Val convex'],
   [/ · профил Concave$/, ' · profil Concave'],
-  [/ · профил Назъбен \(V-зъб\)$/, ' · profil Zimțat (dinte în V)'],
   [/ · профил Convex$/, ' · profil Convex'],
   [/ · профил Гладко заточен$/, ' · profil Ascuțit neted'],
   [/ · профил Вълна$/, ' · profil Val'],

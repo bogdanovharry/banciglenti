@@ -89,7 +89,6 @@ const PROFILE_PHOTOS: Record<string, string> = {
   'concave-wave': PROFILE_WAVE_PHOTO,
   'convex-wave': PROFILE_CONVEX_PHOTO,
   'smooth-ground': PROFILE_SMOOTH_PHOTO,
-  'v-tooth': PROFILE_SLICER_PHOTO,
   'cleaner-tooth': PROFILE_CLEANER_PHOTO,
   '3 TPI': PROFILE_3TPI_PHOTO,
 }
