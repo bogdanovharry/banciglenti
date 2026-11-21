@@ -291,10 +291,10 @@ export function Header() {
                   href={cat.href}
                   aria-haspopup={cat.children ? "true" : undefined}
                   aria-expanded={cat.children ? isOpen : undefined}
-                  className={`flex items-center gap-2 px-[18px] h-12 font-sans text-[13px] font-medium text-ink no-underline transition-colors hover:text-blue ${isOpen ? "border-b-2 border-orange" : "border-b-2 border-transparent"}`}
+                  className={`flex items-center gap-1.5 xl:gap-2 px-2 lg:px-3.5 xl:px-[18px] h-12 whitespace-nowrap font-sans text-[12px] xl:text-[13px] font-medium text-ink no-underline transition-colors hover:text-blue ${isOpen ? "border-b-2 border-orange" : "border-b-2 border-transparent"}`}
                 >
-                  <CatIcon size={16} /> {tNav(cat.name)}
-                  {cat.children && <IconChevron size={12} className="opacity-50" />}
+                  <span className="hidden xl:inline-flex"><CatIcon size={16} /></span> {tNav(cat.name)}
+                  {cat.children && <span className="hidden xl:inline-flex"><IconChevron size={12} className="opacity-50" /></span>}
                 </Link>
                 {isOpen && cat.children && (
                   <div
