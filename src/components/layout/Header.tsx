@@ -215,7 +215,14 @@ export function Header() {
           ) : (
             <SawMeisterLogo preload />
           )}
-          <div className="font-mono text-[9px] md:text-[10px] tracking-[0.14em] text-ink-50 mt-1.5 uppercase whitespace-nowrap">
+          {/* The Bulgarian storefront carries the ТЕХНОЛЕС line, set in the same plain sans as the company site. */}
+          <div
+            className={
+              isBulgaria
+                ? "font-sans text-[11px] md:text-[13px] font-light tracking-[0.01em] text-ink-70 mt-1 whitespace-nowrap"
+                : "font-mono text-[9px] md:text-[10px] tracking-[0.14em] text-ink-50 mt-1.5 uppercase whitespace-nowrap"
+            }
+          >
             {tCommon("tagline")}
           </div>
         </Link>
