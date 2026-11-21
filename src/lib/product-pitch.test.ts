@@ -35,11 +35,11 @@ describe('pitchInfoFor', () => {
     expect(i.defaultPitch).toBe('8 TPI')
   })
   it('meat blades are priced by length × the profile, starting from the profile the product is quoted at', () => {
-    const i = pitchInfoFor(product({ categorySlugs: ['meso-i-riba', 'hrani'], series: 'finecut', width: 16, thickness: 0.5, length: 1760, price: 6.92 }))!
+    const i = pitchInfoFor(product({ categorySlugs: ['meso-i-riba', 'hrani'], series: 'finecut', width: 16, thickness: 0.5, length: 1760, price: 7.39 }))!
     const by = Object.fromEntries(i.options.map((o) => [o.pitch, o.unitPrice]))
-    expect(by['smooth-ground']).toBe(6.92) // 1.76 m × 3.93
-    expect(by['3 TPI']).toBe(7.44) // 1.76 m × 4.23
-    expect(by['convex-wave']).toBe(11.88) // 1.76 m × 6.75
+    expect(by['smooth-ground']).toBe(7.39) // 1.76 m × 4.20
+    expect(by['3 TPI']).toBe(7.92) // 1.76 m × 4.50
+    expect(by['convex-wave']).toBe(12.85) // 1.76 m × 7.30
     expect(i.defaultPitch).toBe('smooth-ground')
   })
   it('meat blades with no recorded length cannot be priced by profile, so no choice is offered', () => {
