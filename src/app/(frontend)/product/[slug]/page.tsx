@@ -72,7 +72,7 @@ export default async function ProductPage({ params }: PageProps) {
   const sets =
     product.series === "flexcut" && product.specs.length && !packFromSlug(product.slug)
       ? (await Promise.all(setKeys.map((k) => getProductBySlug(`flexcut-l${product.specs.length}-set-${k}`))))
-          .map((set, i) => (set ? { key: setKeys[i], slug: set.slug, name: set.name, price: set.price, contents: set.setContents } : null))
+          .map((set, i) => (set ? { key: setKeys[i], product: set } : null))
           .filter((x): x is NonNullable<typeof x> => x !== null)
       : [];
 

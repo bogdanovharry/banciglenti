@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { PitchPicker } from "./PitchPicker";
+import { ProductCard, type ProductCardData } from "@/components/product/ProductCard";
 import { PhotoDimensions } from "@/components/product/PhotoDimensions";
 import { PhotoBadge } from "@/components/product/PhotoBadge";
 import { LineBadge } from "@/components/product/LineBadge";
@@ -44,7 +45,7 @@ export type ProductView = {
   /** Uploaded photo, or the representative one — same as the product card. */
   image?: string | null;
   /** The sets (Start, Curves, Resaw) at this product's loop length, offered below the description. */
-  sets?: { length: number; items: { key: string; slug: string; name: string; price: number; contents: string[] }[] } | null;
+  sets?: { length: number; items: { key: string; product: ProductCardData }[] } | null;
   breadcrumb: { slug: string; name: string } | null;
   /** Every category the product is in, for choosing the configurator tab. */
   categorySlugs: string[];
@@ -460,24 +461,11 @@ export function ProductClient({ product }: { product: ProductView }) {
               {t("startSet.eyebrow", { length: product.sets.length })}
             </div>
             <p className="font-sans text-[14px] leading-relaxed text-ink-70 m-0 mb-5 max-w-[720px]">{t("startSet.text")}</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {product.sets.items.map((set) => (
-                <div key={set.slug} className="border border-ink-15 bg-paper p-5 flex flex-col">
-                  <div className="font-display text-lg font-bold text-ink tracking-tight">{set.name}</div>
-                  <p className="font-sans text-[13px] leading-relaxed text-ink-70 mt-1.5 mb-0">{t(`startSet.intent.${set.key}`)}</p>
-                  {set.contents.length > 0 && (
-                    <ul className="list-none m-0 mt-3 p-0 flex flex-col gap-1.5">
-                      {set.contents.map((c) => (
-                        <li key={c} className="font-mono text-[11px] text-ink-70 border-t border-ink-15 pt-1.5">{c}</li>
-                      ))}
-                    </ul>
-                  )}
-                  <div className="mt-auto pt-4 flex items-end justify-between gap-3">
-                    <DualPrice net={set.price} size="sm" />
-                    <Link href={localizeHref(`/product/${set.slug}`, locale)}>
-                      <Btn variant="primary" size="md" iconRight={<IconArrowRight size={14} />}>{t("startSet.cta")}</Btn>
-                    </Link>
-                  </div>
+                <div key={set.product.slug} className="flex flex-col gap-3">
+                  <ProductCard p={set.product} />
+                  <p className="font-sans text-[13px] leading-relaxed text-ink-70 m-0">{t(`startSet.intent.${set.key}`)}</p>
                 </div>
               ))}
             </div>
