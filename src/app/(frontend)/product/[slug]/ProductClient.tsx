@@ -240,6 +240,12 @@ export function ProductClient({ product }: { product: ProductView }) {
               {product.shortDescription}
             </p>
           )}
+          {(product.categorySlugs.includes("horizontalni-bantsizi") || product.categorySlugs.includes("vertikalni-bantsizi")) && (
+            <p className="font-sans text-[14px] leading-relaxed text-ink m-0 mb-8 border border-ink-15 bg-paper px-4 py-3">
+              <span aria-hidden className="text-ok mr-2">✓</span>
+              {t("product.woodDelivered")}
+            </p>
+          )}
 
           {/* What the series is for — the question behind "is this the right blade?" */}
           {series && (

@@ -83,9 +83,10 @@ export function parseCustomSpecs(value: unknown): CustomSpecs | null {
     thickness,
     pitch: s.pitch,
     brand: s.brand,
-    welding: s.welding === true,
-    setting: s.setting === true,
-    sharpening: s.sharpening === true,
+    // Welding, sharpening and setting are part of every blade and are in the price; only heat treatment is a choice.
+    welding: true,
+    setting: true,
+    sharpening: true,
     heatTreatment: s.heatTreatment === true,
   }
 }
@@ -127,10 +128,10 @@ export function priceCustomItem(specs: CustomSpecs): number | null {
   if (!blade) return null
 
   return calculateBladePrice(blade, specs.length, {
-    welding: specs.welding ?? false,
-    sharpening: specs.sharpening ?? false,
+    welding: true,
+    sharpening: true,
     heatTreatment: specs.heatTreatment ?? false,
-    setting: specs.setting ?? false,
+    setting: true,
   }).totalWithoutVat
 }
 

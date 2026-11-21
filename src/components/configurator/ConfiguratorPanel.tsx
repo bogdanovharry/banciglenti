@@ -452,8 +452,6 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   // The optional paid processes start unticked: a pre-ticked extra is a charge
   // the buyer never chose, which consumer law does not allow. Welding is not
   // one of them — see below.
-  const [settingOpt, setSetting] = useState(false);
-  const [sharpeningOpt, setSharpening] = useState(false);
   const [heatTreatOpt, setHeatTreat] = useState(false);
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
@@ -488,8 +486,8 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
   // it. It was an unticked box, which quoted an unwelded strip to anyone who did
   // not guess that — and every other tab already includes it the same way.
   const welding = avail.welding;
-  const setting = settingOpt && avail.setting;
-  const sharpening = sharpeningOpt && avail.sharpening;
+  const setting = avail.setting;
+  const sharpening = avail.sharpening;
   const heatTreat = heatTreatOpt && avail.heatTreatment;
 
   // Only quote a length the workshop will actually weld — a price against a
@@ -553,8 +551,11 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
               ✓ {tCat("configurator.weldingIncluded")}
             </p>
           )}
-          <Checkbox label={tCat("configurator.setting")} checked={settingOpt} onChange={setSetting} unavailable={!avail.setting} unavailableLabel={tCat("configurator.unavailable")} />
-          <Checkbox label={t("extras.sharpening")} checked={sharpeningOpt} onChange={setSharpening} unavailable={!avail.sharpening} unavailableLabel={tCat("configurator.unavailable")} />
+          {(avail.sharpening || avail.setting) && (
+            <p className="font-mono text-[11px] tracking-[0.05em] text-ink-70 m-0">
+              ✓ {tCat("configurator.sharpeningSettingIncluded")}
+            </p>
+          )}
           <Checkbox label={t("extras.heatTreatment")} checked={heatTreatOpt} onChange={setHeatTreat} unavailable={!avail.heatTreatment} unavailableLabel={tCat("configurator.unavailable")} />
         </div>
 
@@ -563,7 +564,7 @@ function WoodConfigurator({ type }: { type: "h" | "v" }) {
           // the end rather than after every figure.
           <div className="p-3 bg-paper font-mono text-[10px] text-ink-50 tracking-[0.05em]">
             {t("price.perMeter")}: {price(selectedBlade.pricePerMeter)}
-            {welding && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
+            {welding && selectedBlade.welding > 0 && <> · {t("extras.welding")}: {t("price.perPiece", { price: price(selectedBlade.welding) })}</>}
             {sharpening && selectedBlade.sharpening > 0 && <> · {t("extras.sharpening")}: {t("price.perMetreUnit", { price: price(selectedBlade.sharpening) })}</>}
             {heatTreat && selectedBlade.heatTreatment > 0 && <> · {t("extras.heatShort")}: {t("price.perMetreUnit", { price: price(selectedBlade.heatTreatment) })}</>}
             {setting && selectedBlade.setting > 0 && <> · {tCat("configurator.setting")}: {t("price.perMetreUnit", { price: price(selectedBlade.setting) })}</>}

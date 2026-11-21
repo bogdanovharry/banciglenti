@@ -32,6 +32,7 @@
       "differentBlades": "{qty} pânze diferite"
     },
     "product": {
+      "woodDelivered": "Pânzele pentru lemn se livrează sudate, ascuțite și cu ceaprăzuire.",
       "notFoundTitle": "Produsul nu a fost găsit",
       "piecesShort": "{count} buc",
       "widthDiameter": "Lățime / Ø",
@@ -91,6 +92,7 @@
       "description": "Alegeți tipul de pânză, stabiliți dimensiunile și aflați prețul pe loc — conform listei de prețuri actuale. Termenul de execuție se confirmă la procesarea comenzii.",
       "unavailable": "indisponibil",
       "setting": "Ceaprăzuire",
+      "sharpeningSettingIncluded": "Ascuțire și ceaprăzuire — incluse",
       "weldingIncluded": "Sudura — inclusă în preț"
     },
     "category": {
