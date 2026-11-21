@@ -92,3 +92,12 @@ describe('pitchInfoFor — bimetal steels', () => {
     expect(i.options.map((o) => o.pitch).sort()).toEqual(['1.4/2', '2/3', '3/4', '4/6'])
   })
 })
+
+describe('pitchInfoFor — bread blades', () => {
+  it('the two bread widths come in one profile each', () => {
+    const wave = pitchInfoFor(product({ categorySlugs: ['hlebni-izdeliya'], series: 'finecut', width: 10, thickness: 0.5, length: 3810, price: 16.12 }))!
+    expect(wave.options.map((o) => o.pitch)).toEqual(['wave'])
+    const concave = pitchInfoFor(product({ categorySlugs: ['hlebni-izdeliya'], series: 'finecut', width: 12, thickness: 0.45, length: 3810, price: 19.39 }))!
+    expect(concave.options.map((o) => o.pitch)).toEqual(['concave-wave'])
+  })
+})
