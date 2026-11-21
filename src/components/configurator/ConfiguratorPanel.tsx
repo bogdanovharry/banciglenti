@@ -329,7 +329,7 @@ function BladePreview({
   const kind = edgeKind(table, blade.pitch);
   // "3 TPI" is a tooth spacing; "Изпъкнала вълна" is a ground shape. Naming a
   // pitch a profile reads as a mistake to anyone who buys these.
-  const isProfile = kind === "straight" || kind === "wave" || kind === "scallop" || kind === "convex";
+  const isProfile = kind === "straight" || kind === "wave" || kind === "scallop" || kind === "convex" || blade.pitch === "v-tooth";
 
   return (
     <div className="sm:col-span-2 mt-2 border border-ink-15 bg-paper flex flex-col sm:flex-row">
