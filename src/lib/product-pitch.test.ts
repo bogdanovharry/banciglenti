@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nameWithPitch, pitchInfoFor, pitchText, type PitchProduct } from './product-pitch'
+import { nameWithPitch, pitchFromName, pitchInfoFor, pitchText, type PitchProduct } from './product-pitch'
 
 const product = (p: Partial<PitchProduct>): PitchProduct => ({
   categorySlugs: [], series: null, name: 'x', width: null, thickness: null, length: null, toothPitch: null, price: 10, ...p,
@@ -61,11 +61,13 @@ describe('pitchInfoFor', () => {
 describe('naming the choice', () => {
   it('writes a tooth pitch and a profile differently, in the catalogue language', () => {
     expect(nameWithPitch('Лента', '8 TPI')).toBe('Лента · стъпка 8 TPI')
-    expect(nameWithPitch('Лента', 'convex-wave')).toBe('Лента · профил Изпъкнала вълна')
+    expect(nameWithPitch('Лента', 'convex-wave')).toBe('Лента · профил Convex')
+    expect(pitchFromName('Лента · профил Изпъкнала вълна')).toBe('convex-wave')
+    expect(pitchFromName('Лента · профил Convex')).toBe('convex-wave')
   })
   it('shows a profile in the language asked for and a number as it is', () => {
-    expect(pitchText('convex-wave', 'ro')).toBe('Val convex')
-    expect(pitchText('convex-wave', 'bg')).toBe('Изпъкнала вълна')
+    expect(pitchText('convex-wave', 'ro')).toBe('Convex')
+    expect(pitchText('convex-wave', 'bg')).toBe('Convex')
     expect(pitchText('8 TPI', 'ro')).toBe('8 TPI')
   })
 })

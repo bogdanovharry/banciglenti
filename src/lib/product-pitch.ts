@@ -157,8 +157,8 @@ export function pitchInfoFor(p: PitchProduct): PitchInfo | null {
 /** What goes on the order line: the product's name with the choice appended, in the catalogue's own language (Bulgarian). */
 export const PITCH_NAME_BG: Record<string, string> = {
   'cleaner-tooth': 'Зъб чистач',
-  'concave-wave': 'Вдлъбната вълна',
-  'convex-wave': 'Изпъкнала вълна',
+  'concave-wave': 'Concave',
+  'convex-wave': 'Convex',
   'smooth-ground': 'Гладко заточен',
   wave: 'Вълна',
 }
@@ -171,8 +171,10 @@ export function nameWithPitch(name: string, pitch: string): string {
 export function pitchFromName(name: string): string | null {
   const profile = / · профил (.+)$/.exec(name)
   if (profile) {
+    // Orders taken before the profiles were renamed Concave / Convex carry the old Bulgarian names.
+    const LEGACY: Record<string, string> = { 'Вдлъбната вълна': 'concave-wave', 'Изпъкнала вълна': 'convex-wave' }
     const key = Object.keys(PITCH_NAME_BG).find((k) => PITCH_NAME_BG[k] === profile[1])
-    return key ?? null
+    return key ?? LEGACY[profile[1]] ?? null
   }
   const step = / · стъпка (.+)$/.exec(name)
   return step ? step[1] : null
@@ -180,8 +182,8 @@ export function pitchFromName(name: string): string | null {
 
 export const PITCH_NAME_RO: Record<string, string> = {
   'cleaner-tooth': 'Dinte cu curățitor',
-  'concave-wave': 'Val concav',
-  'convex-wave': 'Val convex',
+  'concave-wave': 'Concave',
+  'convex-wave': 'Convex',
   'smooth-ground': 'Ascuțit neted',
   wave: 'Val',
 }

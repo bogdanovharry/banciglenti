@@ -11,6 +11,8 @@ describe('the pitch a buyer chose, in the line name', () => {
     ['Зъб чистач', 'Dinte cu curățitor'],
     ['Вдлъбната вълна', 'Val concav'],
     ['Изпъкнала вълна', 'Val convex'],
+    ['Concave', 'Concave'],
+    ['Convex', 'Convex'],
     ['Гладко заточен', 'Ascuțit neted'],
     ['Вълна', 'Val'],
   ])('the profile "%s" reads "%s" in Romanian', (bg, ro) => {
