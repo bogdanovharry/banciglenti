@@ -64,14 +64,29 @@ const HORIZONTAL: SpecFacet[] = [
   },
 ]
 
-export const facetsFor = (categorySlug: string | null | undefined): SpecFacet[] =>
-  categorySlug === 'tsirkulyarni-trioni'
-    ? CIRCULAR
-    : categorySlug === 'nozhove-za-abriht'
-      ? KNIVES
-      : categorySlug === 'horizontalni-bantsizi'
-        ? HORIZONTAL
-        : []
+/** Width in millimetres — the first thing a buyer of a band blade knows about the machine's guides and the cut. */
+const WIDTH: SpecFacet = { id: 'width', title: 'width', read: (p) => num(p.specs?.width) }
+
+/** Every category of band blades offers the width filter. */
+const BAND_CATEGORIES = new Set([
+  'horizontalni-bantsizi',
+  'vertikalni-bantsizi',
+  'bimetalni-lenti',
+  'vyglerodna-lenti-cs',
+  'hobi-bantsig',
+  'meso-i-riba',
+  'hlebni-izdeliya',
+  'slicers',
+])
+
+export const facetsFor = (categorySlug: string | null | undefined): SpecFacet[] => {
+  if (categorySlug === 'tsirkulyarni-trioni') return CIRCULAR
+  if (categorySlug === 'nozhove-za-abriht') return KNIVES
+  if (categorySlug && BAND_CATEGORIES.has(categorySlug)) {
+    return categorySlug === 'horizontalni-bantsizi' ? [...HORIZONTAL, WIDTH] : [WIDTH]
+  }
+  return []
+}
 
 /**
  * What "length" means on this page. A band blade's is the length of its loop and
