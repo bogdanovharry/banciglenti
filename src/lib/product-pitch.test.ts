@@ -5,6 +5,22 @@ const product = (p: Partial<PitchProduct>): PitchProduct => ({
   categorySlugs: [], series: null, name: 'x', width: null, thickness: null, length: null, toothPitch: null, price: 10, ...p,
 })
 
+describe('pitchInfoFor — vertical bandsaws', () => {
+  it('a Vector band offers the pitches of its own steel, at one price', () => {
+    const i = pitchInfoFor(product({ categorySlugs: ['vertikalni-bantsizi'], series: 'vector', width: 30, thickness: 0.7, length: 3500, price: 11.06 }))!
+    expect(i.table).toBe('wood-v')
+    expect(i.options.map((o) => o.pitch)).toEqual(['10'])
+    expect(i.options.every((o) => o.unitPrice === 11.06)).toBe(true)
+    const wide = pitchInfoFor(product({ categorySlugs: ['vertikalni-bantsizi'], series: 'vector', width: 25, thickness: 0.6, length: 3500, price: 6.67 }))!
+    expect(wide.options.map((o) => o.pitch)).toEqual(['6', '8', '10'])
+    expect(wide.defaultPitch).toBeNull()
+  })
+  it('a FlexCut band on a vertical machine offers the flexback pitches', () => {
+    const i = pitchInfoFor(product({ categorySlugs: ['vertikalni-bantsizi'], series: 'flexcut', width: 13, thickness: 0.65, length: 3500, price: 12.94 }))!
+    expect(i.options.map((o) => o.pitch)).toEqual(['4 TPI', '8 TPI', '14 TPI'])
+  })
+})
+
 describe('pitchInfoFor', () => {
   it('a bimetal blade offers its pitches, none preselected, at the product price', () => {
     const i = pitchInfoFor(product({ categorySlugs: ['bimetalni-lenti', 'metal'], name: 'Биметална отрезна лента М42 13х0.65 L=1140mm', width: 13, thickness: 0.65, price: 12.5 }))!
