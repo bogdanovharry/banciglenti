@@ -83,7 +83,19 @@ function familyOf(p: PitchProduct): Family | null {
     const brand = p.series === 'procut' ? 'MasterGold' : p.series === 'softcut' ? 'Kodiak' : null
     return { table: 'wood-h', brandOk: (b) => (brand ? b === brand : true) }
   }
-  if (has('vertikalni-bantsizi')) return { table: 'wood-v', brandOk: (b) => b !== 'Flexback Carbon' }
+  if (has('vertikalni-bantsizi')) {
+    // FlexCut on a vertical machine: the carbon flexback rows.
+    if (p.series === 'flexcut') return { table: 'wood-v', brandOk: (b) => b === 'Flexback Carbon' }
+    // Vector is priced from the first steel the table lists for its size (Kodiak, then Böhler,
+    // then MasterGold); without this, a size sold in two steels would price its pitches apart.
+    if (p.series === 'vector') {
+      const steel = BLADE_TABLES['wood-v'].find(
+        (r) => r.brand !== 'Flexback Carbon' && r.width === p.width && r.thickness === p.thickness,
+      )?.brand
+      return { table: 'wood-v', brandOk: (b) => (steel ? b === steel : b !== 'Flexback Carbon') }
+    }
+    return { table: 'wood-v', brandOk: (b) => b !== 'Flexback Carbon' }
+  }
 
   return null
 }
