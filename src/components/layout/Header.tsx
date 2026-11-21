@@ -205,12 +205,12 @@ export function Header() {
         >
           {isBulgaria ? (
             <Image
-              src="/images/hero/tehnoles-logo.png"
+              src="/images/hero/tehnoles-logo-line.png"
               alt={tCommon("brand")}
-              width={1177}
-              height={210}
+              width={1745}
+              height={247}
               loading="eager"
-              className="h-8 w-auto md:h-9"
+              className="h-8 w-auto md:h-10"
             />
           ) : (
             <SawMeisterLogo preload />

@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
 async function organizationJsonLd(locale: string) {
   const company = companyFor(locale);
   const bulgarian = locale.startsWith("bg");
-  const logo = bulgarian ? "/images/hero/tehnoles-logo.png" : "/images/brands/saw-meister-brushed.png";
+  const logo = bulgarian ? "/images/hero/tehnoles-logo-line.png" : "/images/brands/saw-meister-brushed.png";
   const tc = await getTranslations("common");
   return {
     "@context": "https://schema.org",
