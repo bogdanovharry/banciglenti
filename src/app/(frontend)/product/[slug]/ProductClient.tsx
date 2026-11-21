@@ -43,6 +43,8 @@ export type ProductView = {
   machines?: string[];
   /** Uploaded photo, or the representative one — same as the product card. */
   image?: string | null;
+  /** The Start set at this product's loop length, offered below the description. */
+  startSet?: { slug: string; name: string; price: number; contents: string[]; length: number } | null;
   breadcrumb: { slug: string; name: string } | null;
   /** Every category the product is in, for choosing the configurator tab. */
   categorySlugs: string[];
@@ -451,6 +453,31 @@ export function ProductClient({ product }: { product: ProductView }) {
             </div>
           </div>
         </div>
+
+        {product.startSet && (
+          <aside className="mt-12 border border-ink-15 bg-paper p-5 md:p-7 flex flex-col md:flex-row md:items-center gap-5 md:gap-8" data-testid="start-set">
+            <div className="flex-1 min-w-0">
+              <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-orange mb-1.5">
+                {t("startSet.eyebrow", { length: product.startSet.length })}
+              </div>
+              <div className="font-display text-xl font-bold text-ink tracking-tight">{product.startSet.name}</div>
+              <p className="font-sans text-[13px] leading-relaxed text-ink-70 mt-1.5 mb-0">{t("startSet.text")}</p>
+              {product.startSet.contents.length > 0 && (
+                <ul className="list-none m-0 mt-3 p-0 flex flex-wrap gap-2">
+                  {product.startSet.contents.map((c) => (
+                    <li key={c} className="border border-ink-15 bg-white px-2.5 py-1 font-mono text-[11px] text-ink-70">{c}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="shrink-0 flex flex-col items-start md:items-end gap-3">
+              <DualPrice net={product.startSet.price} size="lg" />
+              <Link href={localizeHref(`/product/${product.startSet.slug}`, locale)}>
+                <Btn variant="primary" size="lg" iconRight={<IconArrowRight size={16} />}>{t("startSet.cta")}</Btn>
+              </Link>
+            </div>
+          </aside>
+        )}
 
         {/* Specification */}
         {(dimensionRows.length > 0 || materialRows.length > 0 || machines.length > 0) && (
