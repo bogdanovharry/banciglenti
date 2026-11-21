@@ -167,7 +167,7 @@ const CATEGORY_RO: Record<string, { name: string; description: string }> = {
   'vertikalni-bantsizi': { name: 'Fierăstraie panglică verticale', description: 'Pânze panglică pentru fierăstraie panglică verticale. Toate dimensiunile la comandă.' },
   'tsirkulyarni-trioni': { name: 'Pânze pentru fierăstrău circular', description: 'Obișnuite și cu plăcuțe din carbură înlocuibile. Diametre de la Ø100 la Ø600.' },
   'nozhove-za-abriht': { name: 'Cuțite de rindea', description: 'Cuțite HSS și 100Cr6 pentru mașini de rindeluit. Lungimi de la 260 la 810 mm.' },
-  'bimetalni-lenti': { name: 'Pânze bimetalice', description: 'Pânze bimetalice M42 pentru tăierea oțelului până la 68 HRC.' },
+  'bimetalni-lenti': { name: 'Pânze bimetalice', description: 'Pânze bimetalice M42 și M51 pentru tăierea oțelului până la 68 HRC.' },
   'vyglerodna-lenti-cs': { name: 'Oțel carbon CS', description: 'Pânze flexback din oțel carbon, pentru lemn, plastic și metale neferoase.' },
   'meso-i-riba': { name: 'Carne și pește', description: 'Cuțite-bandă pentru tăierea cărnii și a peștelui.' },
   'hlebni-izdeliya': { name: 'Produse de panificație', description: 'Cuțite-bandă pentru mașini de tăiat pâine.' },

@@ -5,7 +5,7 @@ import { useLocale } from "next-intl";
 import { bimetalGrade } from "@/lib/product-images";
 
 /**
- * The steel of a bimetal band (M42) in the brand orange, with its width underneath,
+ * The steel of a bimetal band (M42 or M51) in the brand orange, with its width underneath,
  * in the top-left corner of the photograph. Drawn like PhotoBadge, in container units on the
  * square the photo occupies. Decorative for assistive technology: the name carries both.
  */
