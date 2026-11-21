@@ -102,7 +102,7 @@ export type BladeSet = {
  * narrow and fine to follow a curve, wide and coarse to rip. Selling only
  * singles makes them discover that one disappointing cut at a time.
  *
- * Named "Старт" and "Завои" rather than "6+10+13 mm 14/8/4 TPI" because the
+ * Named "Старт" and "Извивки" rather than "6+10+13 mm 14/8/4 TPI" because the
  * buyer knows what they want to cut, not which pitch does it — which is the
  * same reason the range itself is organised by application.
  *
@@ -127,7 +127,7 @@ export const BLADE_SETS: BladeSet[] = [
   },
   {
     key: 'curves',
-    name: 'Завои',
+    name: 'Извивки',
     intent: 'За фигурален рез и шаблони, където радиусът е малък.',
     discount: 0,
     members: [

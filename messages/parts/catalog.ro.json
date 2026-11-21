@@ -13,9 +13,10 @@
       "add": "Adaugă"
     },
     "startSet": {
-      "eyebrow": "Ofertă · buclă {length} mm",
-      "text": "Trei pânze pentru fierăstrău panglică hobby, pe aceeași buclă — curbe, universală și tăiere longitudinală. Mai avantajos decât să le cauți pe rând.",
-      "cta": "Vezi setul"
+      "eyebrow": "Seturi pentru bucla de {length} mm",
+      "text": "Trei pânze pentru fierăstrău panglică hobby, pe aceeași buclă, adunate într-un set pentru un anumit fel de lucru. Alegeți-l pe cel de care aveți nevoie.",
+      "cta": "Vezi setul",
+      "intent": {"start": "Cele trei pânze cu care acoperiți aproape orice la un fierăstrău panglică hobby.", "curves": "Pentru tăiere figurată și șabloane, unde raza este mică.", "resaw": "Pentru tăierea longitudinală a materialului gros. Cere o mașină care primește 20 mm."}
     },
     "volume": {
       "title": "Reducere la cantitate",
