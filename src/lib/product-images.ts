@@ -28,6 +28,25 @@ export const SOFTCUT_PHOTO = '/images/products/band-softcut.webp'
 export const BIMETAL_PHOTO = '/images/products/band-bimetal.webp'
 export const CIRCULAR_OZ_PHOTO = '/images/products/circular-oz.webp'
 export const CIRCULAR_VZ_PHOTO = '/images/products/circular-vz.webp'
+export const CIRCULAR_HM_PHOTO = '/images/products/circular-hm.webp'
+export const ABRASIVE_DISC_PHOTO = '/images/products/abrasive-disc.webp'
+export const ABRASIVE_DIAMOND_PHOTO = '/images/products/abrasive-diamond.webp'
+export const ABRASIVE_CBN_PHOTO = '/images/products/abrasive-cbn.webp'
+export const COOLANT_PHOTO = '/images/products/coolant.webp'
+
+/** The photograph of an abrasives-shelf product, read from its name (they are told apart by what they are). */
+export const abrasivePhotoFromName = (name: string): string | undefined =>
+  /^Охлаждаща течност.*CBN/i.test(name)
+    ? ABRASIVE_CBN_PHOTO
+    : /^Охлаждаща течност/i.test(name)
+      ? COOLANT_PHOTO
+      : /^Диамантен/i.test(name)
+        ? ABRASIVE_DIAMOND_PHOTO
+        : /^CBN|Боразон/i.test(name)
+          ? ABRASIVE_CBN_PHOTO
+          : /^Абразивен/i.test(name)
+            ? ABRASIVE_DISC_PHOTO
+            : undefined
 
 /** What a planer knife is made of decides what it is for: HSS for hard wood, 100Cr6 for soft. */
 export type KnifeKind = { steel: 'HSS' | '100Cr6'; wood: 'hard' | 'soft' }
@@ -43,6 +62,11 @@ export const hasWhiteFrame = (image: string | null | undefined): boolean =>
   image === BIMETAL_PHOTO ||
   image === CIRCULAR_OZ_PHOTO ||
   image === CIRCULAR_VZ_PHOTO ||
+  image === CIRCULAR_HM_PHOTO ||
+  image === ABRASIVE_DISC_PHOTO ||
+  image === ABRASIVE_DIAMOND_PHOTO ||
+  image === ABRASIVE_CBN_PHOTO ||
+  image === COOLANT_PHOTO ||
   isProfilePhoto(image)
 
 /** A plain circular saw is a product of its own per tooth type: …-oz (sharp tooth) or …-vz (wolf tooth). */

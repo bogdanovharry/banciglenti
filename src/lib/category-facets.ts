@@ -15,6 +15,7 @@ import { bladeLineOf } from './product-images'
 
 export type FacetProduct = {
   name?: string
+  slug?: string
   series?: string | null
   specs?: { width?: number; thickness?: number; length?: number; material?: string }
 }
@@ -51,6 +52,40 @@ const KNIVES: SpecFacet[] = [
   { id: 'width', title: 'width', read: (p) => num(p.specs?.width) },
 ]
 
+/**
+ * The abrasives shelf: told apart by what the product is and by the wheel's diameter.
+ * Read from the slug (abraziv-150-10-3, diamond-125-12a2, cbn-borazon-disk, coolant-acp-2e), which is the same in every
+ * language, not from the name, which is translated.
+ */
+const ABRASIVES: SpecFacet[] = [
+  {
+    id: 'type',
+    title: 'type',
+    messageValues: true,
+    read: (p) => {
+      const slug = p.slug ?? ''
+      return slug.startsWith('coolant')
+        ? 'typeCoolant'
+        : slug.startsWith('diamond')
+          ? 'typeDiamond'
+          : slug.startsWith('cbn')
+            ? 'typeCbn'
+            : slug.startsWith('abraziv')
+              ? 'typeAbrasive'
+              : null
+    },
+  },
+  {
+    id: 'diameter',
+    title: 'diameter',
+    prefix: 'Ø',
+    read: (p) => {
+      const m = /^(?:abraziv|diamond)-(\d+)/.exec(p.slug ?? '')
+      return m ? Number(m[1]) : num(p.specs?.width)
+    },
+  },
+]
+
 /** The two Saw-Meister horizontal lines: told apart by the tooth (10/30° universal, 14° for soft wood). */
 const HORIZONTAL: SpecFacet[] = [
   {
@@ -82,6 +117,7 @@ const BAND_CATEGORIES = new Set([
 export const facetsFor = (categorySlug: string | null | undefined): SpecFacet[] => {
   if (categorySlug === 'tsirkulyarni-trioni') return CIRCULAR
   if (categorySlug === 'nozhove-za-abriht') return KNIVES
+  if (categorySlug === 'abrazivi') return ABRASIVES
   if (categorySlug && BAND_CATEGORIES.has(categorySlug)) {
     return categorySlug === 'horizontalni-bantsizi' ? [...HORIZONTAL, WIDTH] : [WIDTH]
   }
