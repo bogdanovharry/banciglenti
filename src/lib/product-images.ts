@@ -67,7 +67,7 @@ export const bladeLineOf = (p: { name?: string; series?: string | null }): Blade
         ? 'softcut'
         : null
 
-/** The steel of a bimetal band, read from its name: "M42" or "M51" (a Cyrillic М is read as the Latin one). */
+/** The steel of a bimetal band, read from its name: "M42" (a Cyrillic М is read as the Latin one). */
 export const bimetalGrade = (name: string): string | null => {
   const m = /[MМ]\s?(42|51|90)\b/.exec(name)
   return m ? `M${m[1]}` : null

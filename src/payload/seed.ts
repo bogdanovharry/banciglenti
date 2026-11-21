@@ -31,7 +31,7 @@ const CATEGORIES: {
   { name: 'Циркулярни триони', slug: 'tsirkulyarni-trioni', parent: 'dyrvo', sortOrder: 12, description: 'Обикновени и със сменяеми твърдосплавни пластини. Диаметри от Ø100 до Ø600.' },
   { name: 'Ножове за абрихт', slug: 'nozhove-za-abriht', parent: 'dyrvo', sortOrder: 13, description: 'HSS и 100Cr6 ножове за абрихт машини. Дължини от 260 до 810 мм.' },
 
-  { name: 'Биметални ленти', slug: 'bimetalni-lenti', parent: 'metal', sortOrder: 20, description: 'M42 и M51 биметални ленти за рязане на стомана до 68 HRC.' },
+  { name: 'Биметални ленти', slug: 'bimetalni-lenti', parent: 'metal', sortOrder: 20, description: 'M42 биметални ленти за рязане на стомана до 68 HRC.' },
   { name: 'Въглеродна стомана CS', slug: 'vyglerodna-lenti-cs', parent: 'metal', sortOrder: 21, description: 'Flexback ленти от въглеродна стомана — за дърво, пластмаса и цветни метали.' },
 
   { name: 'Месо и риба', slug: 'meso-i-riba', parent: 'hrani', sortOrder: 30, description: 'Лентови ножове за рязане на месо и риба.' },
@@ -64,7 +64,6 @@ const DEFAULT_BRAND = 'Tehnoles'
 const MATERIAL_PATTERNS: { material: string; test: RegExp }[] = [
   { material: '100Cr6', test: /100\s?cr\s?6/i },
   { material: 'M42 HSS', test: /[MМ]\s?42/ },
-  { material: 'M51 Cobalt', test: /[MМ]\s?51/ },
   { material: 'HSS', test: /\bhss\b/i },
   { material: 'CBN', test: /cbn|боразон/i },
   { material: 'Диамант', test: /диамант/i },
