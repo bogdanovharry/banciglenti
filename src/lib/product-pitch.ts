@@ -65,7 +65,7 @@ function familyOf(p: PitchProduct): Family | null {
   if (has('hlebni-izdeliya')) return { table: 'bread', brandOk: any }
 
   if (has('bimetalni-lenti')) {
-    const grade = /M90/i.test(latinM(p.name)) ? 'M90' : 'M42'
+    const grade = /M90|M51/i.test(latinM(p.name)) ? 'M51' : 'M42'
     return { table: 'metal-bi', brandOk: (b) => b.includes(grade) }
   }
   // Hobby first: FlexCut bands are listed under carbon steel as well, but their prices are the hobby ones.
