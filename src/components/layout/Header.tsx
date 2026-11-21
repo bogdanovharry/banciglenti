@@ -50,7 +50,6 @@ const NAV_CATS: NavCat[] = [
     children: [
       { group: "bimetal", items: [
         { label: "!M42 HSS", href: "/category/bimetalni-lenti" },
-        { label: "!M51", href: "/category/bimetalni-lenti" },
         { label: "custom", href: "/configurator?type=metal-bi" },
       ]},
       { group: "carbonSteel", items: [
