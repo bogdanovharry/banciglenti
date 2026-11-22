@@ -115,6 +115,43 @@ type Edit = {
   price: string | null
 }
 
+/**
+ * One history row per figure that changed. Best effort: the save has already
+ * happened, so a failure here (the table not created yet, a hiccup) must never
+ * turn a successful stock-take into an error.
+ */
+async function recordChanges(
+  payload: Awaited<ReturnType<typeof getClient>>,
+  userId: number,
+  write: { id: number; data: Record<string, unknown>; before: StoredProduct },
+): Promise<void> {
+  const was: Record<string, unknown> = {
+    stock: write.before.stock,
+    status: write.before.status,
+    basePrice: write.before.basePrice,
+  }
+  const label: Record<string, string> = { stock: 'Наличност', status: 'Статус', basePrice: 'Цена (EUR)' }
+  for (const [field, value] of Object.entries(write.data)) {
+    try {
+      await payload.create({
+        collection: 'product-changes',
+        data: {
+          product: write.id,
+          field: label[field] ?? field,
+          oldValue: was[field] == null ? null : String(was[field]),
+          newValue: String(value),
+          actor: userId,
+          at: new Date().toISOString(),
+        },
+        depth: 0,
+      })
+    } catch (error) {
+      console.error('[manage] product change not recorded:', error)
+      return
+    }
+  }
+}
+
 export async function saveProducts(
   _prev: ActionResult | null,
   form: FormData,
@@ -174,7 +211,7 @@ export async function saveProducts(
     problems.set(message, [...(problems.get(message) ?? []), name])
 
   const conflicts: string[] = []
-  const writes: { id: number; name: string; data: Record<string, unknown> }[] = []
+  const writes: { id: number; name: string; data: Record<string, unknown>; before: StoredProduct }[] = []
 
   for (const edit of edits) {
     const current = stored.get(edit.id)
@@ -223,7 +260,7 @@ export async function saveProducts(
       }
     }
 
-    if (Object.keys(data).length > 0) writes.push({ id: edit.id, name, data })
+    if (Object.keys(data).length > 0) writes.push({ id: edit.id, name, data, before: current })
   }
 
   if (conflicts.length > 0) {
@@ -260,6 +297,7 @@ export async function saveProducts(
         user,
       })
       saved.push(write.name)
+      await recordChanges(payload, user.id, write)
     } catch {
       failed.push(write.name)
     }
