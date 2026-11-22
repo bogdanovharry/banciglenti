@@ -198,7 +198,7 @@ export function Header() {
     <header
       ref={headerRef}
       className="fixed inset-x-0 top-0 md:sticky md:inset-x-auto z-50 bg-white transition-[border-color] duration-200"
-      style={{ borderBottom: `1px solid ${scrolled ? "#D9D9D9" : "transparent"}` }}
+      style={{ borderBottom: `1px solid ${scrolled ? "#D9D9D9" : "transparent"}`, paddingTop: "env(safe-area-inset-top)" }}
     >
 
       {/* Main brand row.
