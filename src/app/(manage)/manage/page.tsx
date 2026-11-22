@@ -183,8 +183,8 @@ export default async function DashboardPage() {
         <StatCard
           label="Нови запитвания"
           value={String(stats.newEnquiries)}
-          note={stats.newEnquiries ? 'със статус „Ново“ · в Payload' : 'няма със статус „Ново“'}
-          href="/admin/collections/enquiries?where[status][equals]=new"
+          note={stats.newEnquiries ? 'със статус „Ново“' : 'няма със статус „Ново“'}
+          href="/manage/enquiries?status=new"
           attention={stats.newEnquiries > 0}
         />
         <StatCard
