@@ -705,6 +705,29 @@ export async function createOrder(_prev: ActionResult | null, form: FormData): P
   const address = str(form, 'address')
   if (shippingMethod === 'courier' && !address) return { ok: false, error: 'Въведете адрес за доставка.' }
 
+  // A company invoice: what an invoice needs about the buyer, the same set the
+  // checkout asks for. Kept on the order, not on the customer — a company may
+  // order for another.
+  let billing: { invoice: true; company: string; taxId: string; vatNumber: string | null; address: string; mol: string | null } | null = null
+  if (form.get('invoice') !== null) {
+    const company = str(form, 'billingCompany').slice(0, 160)
+    const taxId = str(form, 'billingTaxId').slice(0, 40)
+    const address = str(form, 'billingAddress').slice(0, 300)
+    const mol = market.invoiceRepresentative ? str(form, 'billingMol').slice(0, 120) : ''
+    if (!company) return { ok: false, error: 'Въведете фирмата за фактурата.' }
+    if (!taxId) return { ok: false, error: 'Въведете ЕИК / CUI на фирмата.' }
+    if (!address) return { ok: false, error: 'Въведете седалището на фирмата.' }
+    if (market.invoiceRepresentative && !mol) return { ok: false, error: 'Въведете МОЛ на фирмата.' }
+    billing = {
+      invoice: true,
+      company,
+      taxId,
+      vatNumber: str(form, 'billingVatNumber').slice(0, 40) || null,
+      address,
+      mol: mol || null,
+    }
+  }
+
   const payload = await getClient()
   try {
     await payload.findByID({ collection: 'customers', id: customerId, depth: 0 })
@@ -721,7 +744,7 @@ export async function createOrder(_prev: ActionResult | null, form: FormData): P
   })
 
   const internalNote = str(form, 'note')
-  const firstEntry = [`Създадена ръчно · ${market.country}`, internalNote].filter(Boolean).join('. ')
+  const firstEntry = [`Създадена ръчно · ${market.country}`, billing ? `Фактура на ${billing.company}` : '', internalNote].filter(Boolean).join('. ')
 
   let createdId: number
   try {
@@ -743,6 +766,7 @@ export async function createOrder(_prev: ActionResult | null, form: FormData): P
           subtotal: totals.subtotal,
           tax: totals.tax,
           total: totals.total,
+          ...(billing ? { billing } : {}),
           vatRate,
           currency: market.displayCurrency,
           exchangeRate: market.exchangeRate,

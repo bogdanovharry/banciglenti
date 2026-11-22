@@ -20,7 +20,11 @@ export type OfferedMarket = {
   pickup: boolean
   paymentMethods: string[]
   couriers: string[]
+  /** Bulgarian buyers give the company's МОЛ on an invoice request; Romanian ones do not. */
+  invoiceRepresentative: boolean
 }
+
+export type BillingDefaults = { company: string; taxId: string; vatNumber: string }
 
 /**
  * The order shell: which market it is sold in, how it travels, how it is paid.
@@ -37,6 +41,7 @@ export function NewOrderForm({
   defaultMarket,
   defaultAddress,
   defaultOffice,
+  billingDefaults,
   prefill,
 }: {
   customerId: number
@@ -44,11 +49,13 @@ export function NewOrderForm({
   defaultMarket: string
   defaultAddress: string
   defaultOffice: string
+  billingDefaults: BillingDefaults
   prefill: { length?: number; width?: number; thickness?: number } | null
 }) {
   const { state, onSubmit, pending } = useActionForm(createOrder)
   const [marketCode, setMarketCode] = useState(defaultMarket)
   const [shipping, setShipping] = useState<'courier' | 'pickup'>('courier')
+  const [invoice, setInvoice] = useState(false)
 
   const market = markets.find((m) => m.code === marketCode) ?? markets[0]
   const shippingMethod = shipping === 'pickup' && !market.pickup ? 'courier' : shipping
@@ -144,6 +151,45 @@ export function NewOrderForm({
           )}
         </div>
       )}
+
+      <div className="mt-3 border border-ink-15 p-3">
+        <label className="flex items-center gap-2 text-[13px] font-semibold cursor-pointer">
+          <input type="checkbox" name="invoice" checked={invoice} onChange={(e) => setInvoice(e.target.checked)} />
+          Фактура на фирма
+        </label>
+        {invoice && (
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="sm:col-span-2">
+              <FieldLabel htmlFor="billingCompany">Фирма</FieldLabel>
+              <input id="billingCompany" name="billingCompany" required defaultValue={billingDefaults.company} autoComplete="off" className={inputClass} />
+            </div>
+            <div>
+              <FieldLabel htmlFor="billingTaxId">ЕИК / CUI</FieldLabel>
+              <input id="billingTaxId" name="billingTaxId" required defaultValue={billingDefaults.taxId} autoComplete="off" className={inputClass} />
+            </div>
+            <div>
+              <FieldLabel htmlFor="billingVatNumber">ДДС номер (ако има)</FieldLabel>
+              <input id="billingVatNumber" name="billingVatNumber" defaultValue={billingDefaults.vatNumber} autoComplete="off" className={inputClass} />
+            </div>
+            <div className="sm:col-span-2">
+              <FieldLabel htmlFor="billingAddress">Седалище</FieldLabel>
+              <textarea
+                id="billingAddress"
+                name="billingAddress"
+                rows={2}
+                required
+                className="w-full border border-ink-15 px-2.5 py-2 text-[13px] bg-white focus:border-blue focus:outline-none resize-y"
+              />
+            </div>
+            {market.invoiceRepresentative && (
+              <div className="sm:col-span-2">
+                <FieldLabel htmlFor="billingMol">МОЛ (представляващ)</FieldLabel>
+                <input id="billingMol" name="billingMol" required autoComplete="off" className={inputClass} />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="mt-2">
         <FieldLabel htmlFor="note">Бележка в историята</FieldLabel>
