@@ -157,8 +157,10 @@ async function loadOrder(id: number): Promise<StoredOrder | null> {
 
 /** The screen was drawn from an older copy of this order than the one stored. */
 function isStale(form: FormData, order: { updatedAt?: string | null }): boolean {
+  // Every form posts the version it was drawn from; a post without one is not
+  // from these screens, and is refused rather than waved through.
   const version = str(form, 'version')
-  return Boolean(version && order.updatedAt && version !== order.updatedAt)
+  return !version || Boolean(order.updatedAt && version !== order.updatedAt)
 }
 
 const STALE: ActionResult = {
