@@ -140,8 +140,10 @@ export function ProductCard({ p, compact }: { p: ProductCardData; compact?: bool
               <Placeholder
                 tone="paper"
                 ratio="4/3"
-                // A shorter picture on a phone, so a card is not most of a screen tall.
-                className="max-sm:!aspect-[2/1]"
+                // On a phone the picture is 3:2 — a little shorter than the 4:3 above, so a card is not
+                // most of a screen tall, but tall enough that a square photo is not shrunk to a small
+                // island with wide white sides (it was 2:1).
+                className="max-sm:!aspect-[3/2]"
                 src={p.image}
                 alt={p.name}
                 fit="contain"
