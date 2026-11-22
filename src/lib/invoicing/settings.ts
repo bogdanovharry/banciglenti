@@ -58,6 +58,13 @@ export const INVOICE_SETTINGS = {
    * whatever range those are in. Changing `code` starts a new series.
    */
   series: { code: 'RO', firstNumber: 9_000_000_001 },
+  /**
+   * Credit notes — PROVISIONAL, like the series above. They are numbered from the
+   * same counter as the invoices (one unbroken run of ten-digit numbers), which is
+   * the simplest reading; whether they should have a series of their own is for the
+   * accountant to say. Changing `code` starts a separate run.
+   */
+  creditNoteSeries: { code: 'RO', firstNumber: 9_000_000_001 },
   currencies: { primary: 'RON', alsoShow: 'EUR' } as InvoiceCurrencies,
   /**
    * How the euro equivalent is worked out. PROVISIONAL.

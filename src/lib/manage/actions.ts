@@ -274,6 +274,20 @@ export async function setStatus(_prev: ActionResult | null, form: FormData): Pro
   }
 
   const payload = await getClient()
+  // An issued invoice is not undone by cancelling the order: it has to be reversed.
+  if (next === 'cancelled') {
+    const invoiced = await payload.count({
+      collection: 'invoices',
+      where: { and: [{ order: { equals: id } }, { docType: { equals: 'invoice' } }] },
+    })
+    const credited = await payload.count({
+      collection: 'invoices',
+      where: { and: [{ order: { equals: id } }, { docType: { equals: 'credit_note' } }] },
+    })
+    if (invoiced.totalDocs > 0 && credited.totalDocs === 0) {
+      parts.push('Има издадена фактура — издайте кредитно известие от екрана на фактурата.')
+    }
+  }
   const failed = await write(() =>
     payload.update({
       collection: 'orders',

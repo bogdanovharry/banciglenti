@@ -45,6 +45,7 @@ export function InvoiceDocument({ s }: { s: InvoiceSnapshot }) {
   const vat = s.vatRateBp / 100
   const sup = s.supplier
   const buy = s.buyer
+  const title = s.docType === 'credit_note' ? LABELS.creditNote : LABELS.invoice
 
   return (
     <article className="tl-invoice relative bg-white border border-ink-15 p-6 sm:p-10 max-w-[820px] mx-auto text-ink">
@@ -62,7 +63,7 @@ export function InvoiceDocument({ s }: { s: InvoiceSnapshot }) {
       <header className="flex flex-wrap items-start justify-between gap-4 border-b border-ink pb-4">
         <div>
           <h2 className="text-[26px] font-semibold tracking-tight leading-none">
-            {LABELS.invoice.ro} <span className="text-ink-50 font-normal">/ {LABELS.invoice.bg}</span>
+            {title.ro} <span className="text-ink-50 font-normal">/ {title.bg}</span>
           </h2>
           <div className="mt-2 font-mono text-[15px] tl-figures">
             {LABELS.number.ro} {s.number ?? '— (se atribuie la emitere / се присвоява при издаване)'}
@@ -75,6 +76,17 @@ export function InvoiceDocument({ s }: { s: InvoiceSnapshot }) {
           <div className="tl-figures">{day(s.issueDate)}</div>
         </div>
       </header>
+
+      {s.credit && (
+        <div className="py-3 border-b border-ink-15 text-[13px]">
+          <div>
+            {LABELS.creditOf.ro} / {LABELS.creditOf.bg}: <strong>{s.credit.ofNumber}</strong> · {day(s.credit.ofDate)}
+          </div>
+          <div>
+            {LABELS.creditReason.ro} / {LABELS.creditReason.bg}: {s.credit.reason}
+          </div>
+        </div>
+      )}
 
       <section className="grid sm:grid-cols-2 gap-x-10 gap-y-6 py-5 border-b border-ink-15">
         <Party

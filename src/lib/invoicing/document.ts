@@ -53,7 +53,7 @@ export type SnapshotLine = {
 
 export type InvoiceSnapshot = {
   version: 1
-  docType: 'invoice'
+  docType: 'invoice' | 'credit_note'
   series: string
   /** Ten digits; null in a preview, which has no number yet. */
   number: string | null
@@ -80,6 +80,8 @@ export type InvoiceSnapshot = {
    * setting is off.
    */
   euro: null | { source: 'ECB' | 'BNR' | 'SHOP'; rate: number; netCents: number; vatCents: number; totalCents: number }
+  /** Only on a credit note: the invoice it reverses, and why. */
+  credit?: { ofNumber: string; ofSeries: string; ofDate: string; reason: string }
 }
 
 export type OrderForInvoice = {
@@ -165,6 +167,51 @@ export function buildSnapshot({ order, supplier, series, number, issueDate, toRo
   }
 }
 
+/**
+ * The credit note that reverses an issued invoice in full: the same lines,
+ * quantities and rates with every amount negated, pointing at the invoice it
+ * corrects. Built from the stored snapshot only, so it can never disagree with
+ * the invoice it cancels, whatever has changed since. Pure, like buildSnapshot.
+ */
+export function buildCreditNote(
+  original: InvoiceSnapshot,
+  p: { series: string; number: string | null; issueDate: string; reason: string },
+): InvoiceSnapshot {
+  const neg = (n: number) => (n === 0 ? 0 : -n)
+  return {
+    ...original,
+    docType: 'credit_note',
+    series: p.series,
+    number: p.number,
+    issueDate: p.issueDate,
+    lines: original.lines.map((l) => ({
+      ...l,
+      netBani: neg(l.netBani),
+      vatBani: neg(l.vatBani),
+      grossBani: neg(l.grossBani),
+    })),
+    totals: {
+      netBani: neg(original.totals.netBani),
+      vatBani: neg(original.totals.vatBani),
+      totalBani: neg(original.totals.totalBani),
+    },
+    euro: original.euro
+      ? {
+          ...original.euro,
+          netCents: neg(original.euro.netCents),
+          vatCents: neg(original.euro.vatCents),
+          totalCents: neg(original.euro.totalCents),
+        }
+      : null,
+    credit: {
+      ofNumber: original.number ?? '',
+      ofSeries: original.series,
+      ofDate: original.issueDate,
+      reason: p.reason,
+    },
+  }
+}
+
 /** Things the owner should look at before pressing "issue". Plain words, in Bulgarian. */
 export function previewWarnings(s: InvoiceSnapshot, orderStatus: string | null): string[] {
   const w: string[] = []
@@ -183,6 +230,9 @@ export function previewWarnings(s: InvoiceSnapshot, orderStatus: string | null):
 /** Fixed wording, one entry per label: Romanian first, Bulgarian beneath. */
 export const LABELS = {
   invoice: { ro: 'Factură', bg: 'Фактура' },
+  creditNote: { ro: 'Notă de credit (stornare)', bg: 'Кредитно известие' },
+  creditOf: { ro: 'Stornează factura', bg: 'Към фактура' },
+  creditReason: { ro: 'Motiv', bg: 'Основание' },
   number: { ro: 'Nr.', bg: '№' },
   date: { ro: 'Data emiterii', bg: 'Дата на издаване' },
   supplier: { ro: 'Furnizor', bg: 'Доставчик' },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildSnapshot, previewWarnings, type InvoiceSupplier, type OrderForInvoice } from './document'
+import { buildCreditNote, buildSnapshot, previewWarnings, type InvoiceSupplier, type OrderForInvoice } from './document'
 
 const supplier: InvoiceSupplier = {
   nameBg: 'ТЕХНОЛЕС ООД', nameLatin: 'TEHNOLES Ltd.', vatNumber: 'BG000000000', registrationNumber: '000000000',
@@ -76,5 +76,37 @@ describe('previewWarnings', () => {
   })
   it('no "not shipped" warning once it has shipped', () => {
     expect(previewWarnings(build(), 'shipped').join(' ')).not.toContain('не е изпратена')
+  })
+})
+
+describe('buildCreditNote', () => {
+  const invoice = buildSnapshot({
+    order: {
+      orderNumber: 'X1', subtotalEur: 100, taxEur: 21, totalEur: 121, vatRate: 0.21, exchangeRate: 5, paymentMethod: 'cod', waybill: 'W1',
+      lines: [{ name: 'a', quantity: 2, priceEur: 50 }],
+      buyer: { name: 'b', isCompany: false, taxId: null, vatNumber: null, address: 'a' },
+    },
+    supplier: {
+      nameBg: 'Т', nameLatin: 'T', vatNumber: 'BG0', registrationNumber: '0', registrationNumberConfirmed: false,
+      addressBg: '-', addressLatin: '-', representative: null, bankName: null, iban: null, bic: null,
+    },
+    series: 'RO', number: '9000000001', issueDate: '2026-11-10', toRomanian: (n) => n,
+  })
+
+  it('reverses every amount and nothing else', () => {
+    const note = buildCreditNote(invoice, { series: 'RO', number: '9000000002', issueDate: '2026-11-20', reason: 'retur' })
+    expect(note.docType).toBe('credit_note')
+    expect(note.totals.totalBani).toBe(-invoice.totals.totalBani)
+    expect(note.totals.netBani + note.totals.vatBani).toBe(note.totals.totalBani)
+    expect(note.lines[0].grossBani).toBe(-invoice.lines[0].grossBani)
+    expect(note.lines[0].quantity).toBe(invoice.lines[0].quantity)
+    expect(note.euro?.totalCents).toBe(-(invoice.euro?.totalCents ?? 0))
+    expect(note.credit).toEqual({ ofNumber: '9000000001', ofSeries: 'RO', ofDate: '2026-11-10', reason: 'retur' })
+  })
+
+  it('leaves the invoice it was built from untouched', () => {
+    const before = JSON.stringify(invoice)
+    buildCreditNote(invoice, { series: 'RO', number: null, issueDate: '2026-11-20', reason: 'x' })
+    expect(JSON.stringify(invoice)).toBe(before)
   })
 })

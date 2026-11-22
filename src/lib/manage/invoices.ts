@@ -3,13 +3,14 @@ import type { Pool } from 'pg'
 import { COMPANY, COMPANY_LATIN, addressLine, formattedAddress } from '@/lib/company'
 import { INVOICE_SETTINGS } from '@/lib/invoicing/settings'
 import {
+  buildCreditNote,
   buildSnapshot,
   previewWarnings,
   type InvoiceBuyer,
   type InvoiceSnapshot,
   type InvoiceSupplier,
 } from '@/lib/invoicing/document'
-import { InvoiceError, storeInvoice } from '@/lib/invoicing/store'
+import { InvoiceError, storeCreditNote, storeInvoice } from '@/lib/invoicing/store'
 import { marketForOrder } from '@/lib/market'
 import { localizeName } from '@/lib/product-text'
 import { getOrder, type OrderDetail } from '@/lib/manage/order'
@@ -153,6 +154,64 @@ export async function issueInvoiceFor(orderId: number): Promise<{ number: string
       build: (number) => previewSnapshot(order, number, issuedAt),
       // Proof of transport, kept beside the invoice. Only the waybill is known to the system so far.
       shippingProof: { waybill: order.shipping.trackingNumber, orderStatus: order.status },
+    })
+    return { number: stored.number }
+  } finally {
+    client.release()
+  }
+}
+
+/** The credit note that reverses an order's invoice, if one was issued. */
+export async function getCreditNote(orderId: number): Promise<IssuedInvoice | null> {
+  await requireUser(`/manage/orders/${orderId}`)
+  const payload = await getClient()
+  const found = await payload.find({
+    collection: 'invoices',
+    where: { and: [{ order: { equals: orderId } }, { docType: { equals: 'credit_note' } }] },
+    limit: 1,
+    depth: 0,
+  })
+  const doc = found.docs[0] as unknown as
+    | { id: number; number: string; series: string; issuedAt: string; snapshot: InvoiceSnapshot }
+    | undefined
+  return doc ? { id: doc.id, number: doc.number, series: doc.series, issuedAt: doc.issuedAt, snapshot: doc.snapshot } : null
+}
+
+/** Why a credit note cannot be issued now, or null. Only an administrator, only for an issued invoice. */
+export function whyNoCreditNote(user: ManageUser | null, hasInvoice: boolean, hasCreditNote: boolean): string | null {
+  if (!hasInvoice) return 'Първо трябва да има издадена фактура.'
+  if (hasCreditNote) return 'Фактурата вече е сторнирана.'
+  if (!isAdmin(user)) return 'Кредитно известие издава само администратор.'
+  return null
+}
+
+/** Issue the credit note reversing the order's invoice in full. Throws InvoiceError with a sentence for the screen. */
+export async function issueCreditNoteFor(orderId: number, reason: string): Promise<{ number: string }> {
+  const user = await requireUser(`/manage/orders/${orderId}/invoice`)
+  if (!isAdmin(user)) throw new InvoiceError('Кредитно известие издава само администратор.')
+  const why = reason.trim()
+  if (why.length < 3) throw new InvoiceError('Напишете основание за сторнирането.')
+  if (why.length > 300) throw new InvoiceError('Основанието е твърде дълго.')
+
+  const issuedAt = new Date()
+  const payload = await getClient()
+  const pool = (payload.db as unknown as { pool: Pool }).pool
+  const client = await pool.connect()
+  try {
+    const stored = await storeCreditNote(client, {
+      orderId,
+      series: INVOICE_SETTINGS.creditNoteSeries.code,
+      firstNumber: INVOICE_SETTINGS.creditNoteSeries.firstNumber,
+      issuedAt,
+      issuedBy: user.id,
+      reason: why,
+      build: (number, original) =>
+        buildCreditNote(original, {
+          series: INVOICE_SETTINGS.creditNoteSeries.code,
+          number,
+          issueDate: SOFIA_DAY.format(issuedAt),
+          reason: why,
+        }),
     })
     return { number: stored.number }
   } finally {
