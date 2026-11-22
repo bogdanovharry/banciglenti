@@ -150,15 +150,15 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
           </Link>
           {sort !== DEFAULT_SORT && <input type="hidden" name="sort" value={sort} />}
           <label htmlFor="q" className="sr-only">
-            Търсене по номер на поръчка
+            Търсене по номер, клиент, телефон, имейл или товарителница
           </label>
           <input
             id="q"
             name="q"
             defaultValue={q}
-            placeholder="Номер на поръчка"
+            placeholder="Номер, клиент, телефон…"
             autoComplete="off"
-            className="h-9 w-full sm:w-[210px] border border-ink-15 px-3 text-[13px] placeholder:text-ink-30 focus:border-blue focus:outline-none"
+            className="h-9 w-full sm:w-[260px] border border-ink-15 px-3 text-[13px] placeholder:text-ink-30 focus:border-blue focus:outline-none"
           />
           <button
             type="submit"
