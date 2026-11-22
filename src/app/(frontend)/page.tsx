@@ -75,9 +75,18 @@ export default async function HomePage() {
   // not an impulse buy from a homepage row, and having no width or thickness it
   // renders an empty spec tile beside blades that have both. It still appears
   // under its own category, where a buyer is actually shopping for one.
-  const bestsellers: ProductCardData[] = products
-    .filter((p) => p.badge === "TOP" && !p.categorySlugs.includes("mashini"))
-    .slice(0, 6)
+  // Two rows of three: first the products flagged TOP by hand, then the boxes of ten for the most
+  // popular Wood-Mizer (the 4010 mm blade of LT10 / LT15 / LT20 / LT40), so a yard sees its own blade.
+  const SECOND_ROW = [
+    "saw-meister-procut-32x1-1-l4010-x10",
+    "saw-meister-procut-35x1-1-l4010-x10",
+    "saw-meister-softcut-35x0-9-l4010-x10",
+  ];
+  const pickedFirst = products
+    .filter((p) => p.badge === "TOP" && !p.categorySlugs.includes("mashini") && !SECOND_ROW.includes(p.slug))
+    .slice(0, 3);
+  const pickedSecond = SECOND_ROW.flatMap((slug) => products.find((p) => p.slug === slug) ?? []);
+  const bestsellers: ProductCardData[] = [...pickedFirst, ...pickedSecond]
     .map((p) => ({
       sku: p.sku,
       slug: p.slug,
