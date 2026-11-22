@@ -59,6 +59,7 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Pro
       pickup: m.pickup,
       paymentMethods: m.paymentMethods,
       couriers: m.couriers,
+      invoiceRepresentative: m.invoiceRepresentative,
     }
   })
   // The market their last order was sold in, which is where they most likely are.
@@ -97,6 +98,7 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Pro
           defaultMarket={defaultMarket}
           defaultAddress={delivery.address ?? ''}
           defaultOffice={delivery.office ?? ''}
+          billingDefaults={{ company: customer.company ?? '', taxId: customer.taxId ?? '', vatNumber: customer.vatNumber ?? '' }}
           prefill={prefill}
         />
       </div>
