@@ -190,6 +190,10 @@ export function Header() {
       className="fixed inset-x-0 top-0 md:sticky md:inset-x-auto z-50 bg-white transition-[border-color] duration-200"
       style={{ borderBottom: `1px solid ${scrolled ? "#D9D9D9" : "transparent"}`, paddingTop: "env(safe-area-inset-top)" }}
     >
+      {/* Phone: iOS Safari draws a fixed bar a little below the top of the screen (under its own address
+          bar), and the page showed through that strip. This white block continues the header upward,
+          behind the address bar, so there is no strip whatever the offset is. */}
+      <div aria-hidden className="md:hidden absolute inset-x-0 bottom-full h-48 bg-white pointer-events-none" />
 
       {/* Main brand row.
           The search is the centre of gravity rather than a slot beside the
