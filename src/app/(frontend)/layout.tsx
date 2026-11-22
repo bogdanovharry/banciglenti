@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "../globals.css";
 import { Header } from "@/components/layout/Header";
@@ -9,6 +9,13 @@ import { getMarket } from "@/i18n/locale";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { siteOrigin } from "@/lib/site-url";
+
+/**
+ * The page runs under the browser's own bars (iOS Safari 26 lets content extend beneath them): the header pads
+ * itself by the top inset, and a sticky/fixed bar then sits flush at the top of what is visible instead of
+ * where the bar used to be before it collapsed.
+ */
+export const viewport: Viewport = { viewportFit: "cover" };
 
 const inter = localFont({
   src: [{ path: "../../fonts/inter-latin-cyrillic.woff2", weight: "300 800" }],
