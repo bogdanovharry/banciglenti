@@ -110,13 +110,23 @@ function toRow(doc: RawOrder): OrderRow {
 }
 
 /**
- * The search box matches the order number.
- *
- * `contains` rather than `equals` because the number is typed off a printed
- * work order or read back over the phone, and people give the last four digits.
+ * The search box matches what someone has in front of them: the order number
+ * (people give the last four digits), the customer's name, company, phone or
+ * e-mail, or the waybill. Phone numbers are also tried without spaces, dashes
+ * and brackets, since the same number is stored and typed in different ways.
  */
 function searchWhere(q: string): Where {
-  return { orderNumber: { contains: q } }
+  const digits = q.replace(/[\s().-]/g, '')
+  const any: Where[] = [
+    { orderNumber: { contains: q } },
+    { 'customer.name': { contains: q } },
+    { 'customer.company': { contains: q } },
+    { 'customer.email': { contains: q } },
+    { 'customer.phone': { contains: q } },
+    { 'shipping.trackingNumber': { contains: q } },
+  ]
+  if (digits.length >= 4 && digits !== q) any.push({ 'customer.phone': { contains: digits } })
+  return { or: any }
 }
 
 /** The two filters combine with AND; either may be absent. */

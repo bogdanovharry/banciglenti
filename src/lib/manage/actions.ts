@@ -8,12 +8,12 @@ import {
   customSku,
   parseCustomSpecs,
   priceCustomItem,
-  round2,
   type CustomSpecs,
 } from '@/lib/order-pricing'
 import { MARKETS, carriageTerms, marketForOrder, vatRateFor, type MarketCode } from '@/lib/market'
 import { withOrderNumber } from '@/lib/order-number'
 import { money } from '@/lib/manage/format'
+import { adjustStock, stockOf } from '@/lib/manage/stock'
 import { getClient, isAdmin, requireUser, type ManageUser } from '@/lib/manage/session'
 import {
   PAYMENT_LABEL,
@@ -451,6 +451,8 @@ async function commitLines(
   lines: StoredLine[],
   note: string,
   user: ManageUser,
+  /** Runs once the order is saved, before the redirect — for stock, which must follow only a write that happened. */
+  afterSave?: () => Promise<unknown>,
 ): Promise<ActionResult> {
   const totals = totalsFor(order, lines)
   const payload = await getClient()
@@ -472,6 +474,7 @@ async function commitLines(
   )
   if (failed) return failed
 
+  if (afterSave) await afterSave()
   done(order.id, 'Поръчката е преизчислена.')
 }
 
@@ -523,12 +526,28 @@ export async function addCatalogueLine(
     price: volumeUnitPrice(product.basePrice ?? 0, quantity, sku),
   }
 
-  return commitLines(
+  // The checkout takes the goods off the shelf, so does a line added by hand —
+  // otherwise cancelling the order would return pieces that never left.
+  const onShelf = await stockOf(product.id)
+  if (onShelf !== null && onShelf < quantity) {
+    return {
+      ok: false,
+      error: onShelf <= 0 ? `„${product.name}“ е изчерпан.` : `От „${product.name}“ има само ${onShelf} бр.`,
+    }
+  }
+  if (!(await adjustStock(product.id, -quantity))) {
+    return { ok: false, error: `„${product.name}“ не достига — наличността току-що се промени.` }
+  }
+
+  const result = await commitLines(
     order,
     [...(order.items ?? []), line],
     `Добавен ред: ${product.name} × ${quantity}`,
     user,
   )
+  // commitLines ends in a redirect on success; reaching here means the write failed.
+  await adjustStock(product.id, quantity)
+  return result
 }
 
 /**
@@ -621,11 +640,16 @@ export async function removeLine(_prev: ActionResult | null, form: FormData): Pr
 
   const remaining = lines.filter((_, i) => i !== index)
 
+  // A catalogue line gives its pieces back to the shelf (made-to-order and custom lines have none).
+  const productId = typeof target.product === 'number' ? target.product : null
+  const pieces = target.quantity ?? 0
+
   return commitLines(
     order,
     remaining,
     `Премахнат ред: ${target.name ?? target.sku ?? '—'} × ${target.quantity ?? 0}`,
     user,
+    productId && pieces > 0 ? () => adjustStock(productId, pieces) : undefined,
   )
 }
 
