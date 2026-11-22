@@ -18,6 +18,7 @@ import { Articles } from './payload/collections/Articles'
 import { Pages } from './payload/collections/Pages'
 import { Media } from './payload/collections/Media'
 import { Users } from './payload/collections/Users'
+import { ProductChanges } from './payload/collections/ProductChanges'
 import { emailConfigured, sendEmail } from './lib/email'
 import { PRODUCTION_ORIGINS } from './lib/domains'
 
@@ -172,6 +173,7 @@ export default buildConfig({
     Pages,
     Media,
     Users,
+    ProductChanges,
   ],
   editor: lexicalEditor(),
   db: postgresAdapter({

@@ -194,6 +194,9 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
               : `${list.total} ${list.total === 1 ? 'продукт' : 'продукта'}`}
             {q && <span className="text-ink-50 font-normal"> за „{q}“</span>}
           </h1>
+          <Link href="/manage/products/history" className="mt-1 inline-block text-[12.5px] text-blue hover:underline">
+            История на промените →
+          </Link>
           {/* The one misreading this screen invites: that a blade made to
               measure costs what its catalogue row says. It does not. */}
           <p className="mt-1 text-[12.5px] text-ink-50 max-w-[620px]">
