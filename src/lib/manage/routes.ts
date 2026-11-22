@@ -33,4 +33,5 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/manage/orders', label: 'Поръчки', n: '01' },
   { href: '/manage/customers', label: 'Клиенти', n: '02' },
   { href: '/manage/products', label: 'Продукти', n: '03' },
+  { href: '/manage/enquiries', label: 'Запитвания', n: '04' },
 ]
