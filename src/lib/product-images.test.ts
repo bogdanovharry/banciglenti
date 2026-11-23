@@ -72,3 +72,10 @@ describe('profile photos', () => {
     expect(hasWhiteFrame(profilePhoto('wave'))).toBe(true)
   })
 })
+
+describe('bread set photo', () => {
+  it('is a white-framed studio shot like the profile photos', async () => {
+    const { BREAD_SET_PHOTO, hasWhiteFrame } = await import('./product-images')
+    expect(hasWhiteFrame(BREAD_SET_PHOTO)).toBe(true)
+  })
+})

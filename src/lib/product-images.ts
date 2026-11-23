@@ -101,6 +101,8 @@ export const bimetalGrade = (name: string): string | null => {
  * Studio shots of the edge profiles of food blades. Chosen profile → its photograph, replacing the
  * product's own photo on the product page (they are shot on white, with the tooth enlarged).
  */
+/** A stack of food bands beside a single one — the sets of eight for bread slicers. Shot on white. */
+export const BREAD_SET_PHOTO = '/images/products/bread-set.webp'
 export const PROFILE_WAVE_PHOTO = '/images/products/profile-wave.webp'
 export const PROFILE_SLICER_PHOTO = '/images/products/profile-slicer-teeth.webp'
 export const PROFILE_SMOOTH_PHOTO = '/images/products/profile-smooth.webp'
@@ -128,6 +130,7 @@ function isProfilePhoto(image: string | null | undefined): boolean {
     image === PROFILE_SMOOTH_PHOTO ||
     image === PROFILE_CONVEX_PHOTO ||
     image === PROFILE_CLEANER_PHOTO ||
-    image === PROFILE_3TPI_PHOTO
+    image === PROFILE_3TPI_PHOTO ||
+    image === BREAD_SET_PHOTO
   )
 }
