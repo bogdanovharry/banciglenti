@@ -16,7 +16,11 @@
       "eyebrow": "Seturi pentru bucla de {length} mm",
       "text": "Trei pânze pentru fierăstrău panglică hobby, pe aceeași buclă, adunate într-un set pentru un anumit fel de lucru. Alegeți-l pe cel de care aveți nevoie.",
       "cta": "Vezi setul",
-      "intent": {"start": "Cele trei pânze cu care acoperiți aproape orice la un fierăstrău panglică hobby.", "curves": "Pentru tăiere figurată și șabloane, unde raza este mică.", "resaw": "Pentru tăierea longitudinală a materialului gros. Cere o mașină care primește 20 mm."}
+      "intent": {
+        "start": "Cele trei pânze cu care acoperiți aproape orice la un fierăstrău panglică hobby.",
+        "curves": "Pentru tăiere figurată și șabloane, unde raza este mică.",
+        "resaw": "Pentru tăierea longitudinală a materialului gros. Cere o mașină care primește 20 mm."
+      }
     },
     "volume": {
       "title": "Reducere la cantitate",
@@ -329,6 +333,19 @@
       "softwood": "lemn moale",
       "universal": "universală",
       "softLine": "pentru lemn moale"
+    },
+    "recommended": {
+      "eyebrow": "Recomandate împreună cu acest produs",
+      "text": "Ce se cumpără de obicei împreună cu el — ales după utilizare.",
+      "reason": {
+        "box": "Mai multe bucăți odată — cutie sau set din aceeași bandă.",
+        "single": "Aceeași bandă la bucată.",
+        "sharpen": "Pentru ascuțirea benzilor — le păstrează tăioase mai mult timp.",
+        "coolant": "Lichidul cu care se lucrează la ascuțire.",
+        "sameLength": "Pentru aceeași mașină, într-o dimensiune apropiată.",
+        "sameWidth": "Aceeași lățime, altă lungime.",
+        "popular": "Ales des din aceeași categorie."
+      }
     }
   }
 }
