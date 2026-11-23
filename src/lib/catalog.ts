@@ -7,7 +7,7 @@ import type { ProductCardData } from '@/components/product/ProductCard'
 import { isSeriesKey, type SeriesKey } from '@/lib/series'
 import { stockStateFor } from '@/lib/catalog-ui'
 import { getMarket } from '@/i18n/locale'
-import { CIRCULAR_HM_PHOTO, abrasivePhotoFromName, PROFILE_SLICER_PHOTO, FLEXBACK_PHOTO, MEAT_PHOTO, BIMETAL_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, horizontalPhotoFromName, sawPhotoFor } from './product-images'
+import { BREAD_SET_PHOTO, PROFILE_WAVE_PHOTO, CIRCULAR_HM_PHOTO, abrasivePhotoFromName, PROFILE_SLICER_PHOTO, FLEXBACK_PHOTO, MEAT_PHOTO, BIMETAL_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, horizontalPhotoFromName, sawPhotoFor } from './product-images'
 import {
   localizeCategory,
   localizeDescription,
@@ -145,6 +145,10 @@ function fallbackImage(
 
   // Meat blades have a photograph of their own; the rest of the food blades keep the series photo.
   if (categorySlugs.includes('meso-i-riba')) return MEAT_PHOTO
+
+  // Bread bands: a set of eight shows the stack beside one band; a single band shows its edge profile (the
+  // Concave shot — the 10 mm wave and the 12 mm concave share it).
+  if (categorySlugs.includes('hlebni-izdeliya')) return slug && /komplekt/.test(slug) ? BREAD_SET_PHOTO : PROFILE_WAVE_PHOTO
 
   // A toothed slicer knife ("Назъбен слайсър") has a photograph of its own.
   if (categorySlugs.includes('slicers') && name && /назъб|dantat/i.test(name)) return PROFILE_SLICER_PHOTO
