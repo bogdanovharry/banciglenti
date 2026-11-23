@@ -46,6 +46,8 @@ export type ProductView = {
   image?: string | null;
   /** The sets (Start, Curves, Resaw) at this product's loop length, offered below the description. */
   sets?: { length: number; items: { key: string; product: ProductCardData }[] } | null;
+  /** What is usually bought with this product, each with the reason it is suggested. */
+  recommended?: { product: ProductCardData; reason: string }[];
   breadcrumb: { slug: string; name: string } | null;
   /** Every category the product is in, for choosing the configurator tab. */
   categorySlugs: string[];
@@ -505,6 +507,21 @@ export function ProductClient({ product }: { product: ProductView }) {
               </div>
             )}
           </div>
+        )}
+
+        {product.recommended && product.recommended.length > 0 && (
+          <section className="mt-12 md:mt-20" data-testid="recommended">
+            <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-orange mb-2">{t("recommended.eyebrow")}</div>
+            <p className="font-sans text-[14px] leading-relaxed text-ink-70 m-0 mb-5 max-w-[720px]">{t("recommended.text")}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+              {product.recommended.map((r) => (
+                <div key={r.product.slug} className="flex flex-col gap-3">
+                  <ProductCard p={r.product} />
+                  <p className="font-sans text-[13px] leading-relaxed text-ink-70 m-0">{t(`recommended.reason.${r.reason}`)}</p>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
       </div>
     </div>

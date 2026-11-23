@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 
 import { getTranslations } from "next-intl/server";
 
-import { getCategories, getProductBySlug } from "@/lib/catalog";
+import { getCategories, getProductBySlug, getProducts } from "@/lib/catalog";
+import { recommend } from "@/lib/recommendations";
 import { formatPrice, vatRateFor, withVat } from "@/lib/market";
 import { getMarket } from "@/i18n/locale";
 import { localizeHref } from "@/lib/slugs";
@@ -76,6 +77,15 @@ export default async function ProductPage({ params }: PageProps) {
           .filter((x): x is NonNullable<typeof x> => x !== null)
       : [];
 
+  // What is usually bought with this: boxes, the sharpening kit, the neighbouring size (see recommendations.ts).
+  const catalogue = await getProducts();
+  const recommended = recommend(product, catalogue)
+    .map((r) => {
+      const found = catalogue.find((c) => c.slug === r.slug);
+      return found ? { product: found, reason: r.reason } : null;
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+
   const view: ProductView = {
     slug: product.slug,
     name: product.name,
@@ -92,6 +102,7 @@ export default async function ProductPage({ params }: PageProps) {
     machines: product.machines,
     image: product.image ?? null,
     sets: sets.length ? { length: product.specs.length ?? 0, items: sets } : null,
+    recommended,
     breadcrumb: leaf ? { slug: leaf.slug, name: leaf.name } : null,
     categorySlugs: product.categorySlugs,
     // The pitches this size is made in, from the same price tables the configurator reads.
