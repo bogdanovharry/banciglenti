@@ -91,7 +91,7 @@ export function PitchPicker({
 
       {!single && (
         <details className="mt-3 group">
-          <summary className="cursor-pointer font-sans text-[13px] text-blue select-none">{t("product.pitchCompare")}</summary>
+          <summary className="cursor-pointer py-2 font-sans text-[13px] text-blue select-none">{t("product.pitchCompare")}</summary>
           <ul className="list-none m-0 mt-3 p-0 flex flex-col gap-3">
             {info.options.map((o) => (
               <li key={o.pitch} className="font-sans text-[13px] leading-relaxed text-ink-70">
