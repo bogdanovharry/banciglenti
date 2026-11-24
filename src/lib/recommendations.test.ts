@@ -15,6 +15,13 @@ const catalogue: RecProduct[] = [
   p('hm-300-72', ['tsirkulyarni-trioni']),
   p('diamond-150-12a2', ['abrazivi']),
   p('diamond-125-12a2', ['abrazivi']),
+  p('saw-meister-procut-32x1-1-l4010-x5', ['dyrvo', 'horizontalni-bantsizi'], { series: 'procut', specs: { width: 32, length: 4010 } }),
+  p('asm-60', ['mashini']),
+  p('zm101', ['mashini']),
+  p('fbm10', ['mashini']),
+  p('abriht-hss-810x30', ['dyrvo', 'nozhove-za-abriht']),
+  p('abriht-hss-640x30', ['dyrvo', 'nozhove-za-abriht']),
+  p('carbon-13x065-l1638', ['dyrvo', 'vyglerodna-lenti-cs'], { specs: { width: 13, length: 1638 } }),
   p('bi-27x0-9-l2480', ['metal', 'bimetalni-lenti'], { specs: { width: 27, thickness: 0.9, length: 2480 } }),
 ]
 
@@ -48,6 +55,20 @@ describe('recommend', () => {
   })
 
   it('does not give wood sharpening kit to a metal band', () => {
-    expect(recommend(catalogue[8], catalogue).map((x) => x.slug)).not.toContain('cbn-borazon-disk')
+    expect(recommend(catalogue.find((x) => x.slug === 'bi-27x0-9-l2480')!, catalogue).map((x) => x.slug)).not.toContain('cbn-borazon-disk')
+  })
+
+  it('does not recommend the five-pack, which saves nothing', () => {
+    expect(recommend(catalogue[0], catalogue).map((x) => x.slug)).not.toContain('saw-meister-procut-32x1-1-l4010-x5')
+  })
+
+  it('shows the other machines of the workshop for a machine', () => {
+    const asm = catalogue.find((x) => x.slug === 'asm-60')!
+    expect(recommend(asm, catalogue).map((x) => x.slug)).toEqual(['zm101', 'fbm10'])
+  })
+
+  it('gives a planer knife its neighbouring size, never a wood band', () => {
+    const knife = catalogue.find((x) => x.slug === 'abriht-hss-810x30')!
+    expect(recommend(knife, catalogue).map((x) => x.slug)).toEqual(['abriht-hss-640x30'])
   })
 })

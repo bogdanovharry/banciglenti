@@ -344,7 +344,9 @@
         "coolant": "Lichidul cu care se lucrează la ascuțire.",
         "sameLength": "Pentru aceeași mașină, într-o dimensiune apropiată.",
         "sameWidth": "Aceeași lățime, altă lungime.",
-        "popular": "Ales des din aceeași categorie."
+        "popular": "Ales des din aceeași categorie.",
+        "machine": "Lucrează cu aceeași bandă — pentru ceaprăz, ascuțire sau sudură.",
+        "sameKind": "Același tip, în altă dimensiune."
       }
     }
   }
