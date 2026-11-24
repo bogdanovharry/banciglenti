@@ -162,7 +162,7 @@ export const CATALOGUE_PRODUCTS: ProductData[] = [
   { name: "Заточна машина за банцигови ленти със CBN | ZM150", slug: "zm150", category: "mashini", price: 5742.00, stock: 20, featured: true, topProduct: true },
   { name: "Точиларка за ленти / Заточна машина ZM101", slug: "zm101", category: "mashini", price: 2474.00, stock: 20, featured: true, topProduct: true },
   { name: "Устройство за чапраз СА130", slug: "ca130", category: "mashini", price: 993.00, stock: 20, featured: true, topProduct: true },
-  { name: "Автоматична машина за чапраз ASM-60", slug: "asm-60", category: "mashini", price: 5742.00, stock: 20, featured: true, topProduct: true },
+  { name: "Автоматична машина за чапраз ASM 6-30", slug: "asm-60", category: "mashini", price: 5742.00, stock: 20, featured: true, topProduct: true },
 
   // === КОНСУМАТИВИ ===
   { name: "Комплект гърбици профил N стъпка 10mm 12,5mm", slug: "garbici-n-10-125", category: "konsumativi", price: 26.08, stock: 20, featured: false, topProduct: false },
