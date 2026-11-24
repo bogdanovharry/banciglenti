@@ -7,7 +7,7 @@ import type { ProductCardData } from '@/components/product/ProductCard'
 import { isSeriesKey, type SeriesKey } from '@/lib/series'
 import { stockStateFor } from '@/lib/catalog-ui'
 import { getMarket } from '@/i18n/locale'
-import { BREAD_SET_PHOTO, PROFILE_WAVE_PHOTO, CIRCULAR_HM_PHOTO, abrasivePhotoFromName, PROFILE_SLICER_PHOTO, FLEXBACK_PHOTO, MEAT_PHOTO, BIMETAL_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, horizontalPhotoFromName, sawPhotoFor } from './product-images'
+import { machinePhotoFor, BREAD_SET_PHOTO, PROFILE_WAVE_PHOTO, CIRCULAR_HM_PHOTO, abrasivePhotoFromName, PROFILE_SLICER_PHOTO, FLEXBACK_PHOTO, MEAT_PHOTO, BIMETAL_PHOTO, PLANER_PHOTO, PROCUT_PHOTO, SOFTCUT_PHOTO, horizontalPhotoFromName, sawPhotoFor } from './product-images'
 import {
   localizeCategory,
   localizeDescription,
@@ -137,6 +137,9 @@ function fallbackImage(
     const photo = abrasivePhotoFromName(name)
     if (photo) return photo
   }
+
+  // Workshop machines: a studio photograph of each.
+  if (categorySlugs.includes('mashini')) return machinePhotoFor(slug)
 
   // Planer knives have one photograph; the steel is written on it in orange (see PhotoBadge).
   if (categorySlugs.includes('nozhove-za-abriht')) return PLANER_PHOTO

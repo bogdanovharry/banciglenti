@@ -53,6 +53,20 @@ export type KnifeKind = { steel: 'HSS' | '100Cr6'; wood: 'hard' | 'soft' }
 export const knifeKind = (name: string): KnifeKind =>
   /HSS/i.test(name) ? { steel: 'HSS', wood: 'hard' } : { steel: '100Cr6', wood: 'soft' }
 
+/**
+ * Studio shots of the workshop machines, by product slug. Each is a white-background photograph of the machine
+ * itself, so it is shown whole. A machine without an entry keeps the spec tile.
+ */
+const MACHINE_PHOTOS: Record<string, string> = {
+  'asm-60': '/images/products/machine-asm.webp',
+  ca130: '/images/products/machine-ca130.webp',
+  zm101: '/images/products/machine-zm101.webp',
+  fbm10: '/images/products/machine-fbm10.webp',
+  zm150: '/images/products/machine-zm150.webp',
+}
+export const machinePhotoFor = (slug: string | undefined): string | undefined => (slug ? MACHINE_PHOTOS[slug] : undefined)
+const isMachinePhoto = (image: string | null | undefined): boolean => Object.values(MACHINE_PHOTOS).includes(image ?? '')
+
 /** The photos that sit on a white frame (they are shot on white). */
 export const hasWhiteFrame = (image: string | null | undefined): boolean =>
   hasDimensionLabel(image) ||
@@ -67,6 +81,7 @@ export const hasWhiteFrame = (image: string | null | undefined): boolean =>
   image === ABRASIVE_DIAMOND_PHOTO ||
   image === ABRASIVE_CBN_PHOTO ||
   image === COOLANT_PHOTO ||
+  isMachinePhoto(image) ||
   isProfilePhoto(image)
 
 /** A plain circular saw is a product of its own per tooth type: …-oz (sharp tooth) or …-vz (wolf tooth). */

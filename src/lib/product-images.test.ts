@@ -79,3 +79,15 @@ describe('bread set photo', () => {
     expect(hasWhiteFrame(BREAD_SET_PHOTO)).toBe(true)
   })
 })
+
+describe('machine photos', () => {
+  it('has one for each machine in the catalogue, on a white frame', async () => {
+    const { machinePhotoFor, hasWhiteFrame } = await import('./product-images')
+    for (const slug of ['asm-60', 'ca130', 'zm101', 'zm150', 'fbm10']) {
+      const photo = machinePhotoFor(slug)
+      expect(photo).toBeTruthy()
+      expect(hasWhiteFrame(photo)).toBe(true)
+    }
+    expect(machinePhotoFor('something-else')).toBeUndefined()
+  })
+})
