@@ -66,9 +66,7 @@
   --color-ink-05: #F5F5F5;
 
   /* Secondary accent */
-  /* Darkened from #D97706 (3.2:1 on white) so orange text and white-on-orange buttons reach 4.5:1.
-     On dark sections the bright value is restored for text below, where it is the one that reads. */
-  --color-orange: #B45309;
+  --color-orange: #D97706;
   --color-orange-light: #F59E0B;
 
   /* Aliases */
@@ -369,11 +367,6 @@ html[lang="bg"] .lede {
 /* With the page running under the browser's bars, the footer keeps its content clear of the bottom one. */
 footer {
   padding-bottom: env(safe-area-inset-bottom);
-}
-
-/* Orange text sits on dark sections in its original, brighter value; the darker token is for light backgrounds. */
-:is(.bg-ink, .bg-blue, .bg-blue-deep, .bg-navy) .text-orange {
-  color: #F59E0B;
 }
 
 /* A link inside running text is told apart by more than colour. */
