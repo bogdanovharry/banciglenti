@@ -18,7 +18,7 @@ databases, and screenshots of every category. "New style" = studio photograph on
 | **Old crop (hardback_fixed)** | **1 bread blade** | **Needs the bread-blade photo** |
 | **Grey spec tile (no photo)** | **7 carbide-tipped circular saws (HM, WZ)** | **Photo with plates + mark (HM, Z)** |
 | **Grey spec tile** | **15 abrasives** (CBN discs, abrasive discs 10/3, 13/3, 8/3, diamond) | **One photo per kind (about 4)** |
-| **Grey spec tile** | **4 machines** (ASM-60, ZM150, ZM101, CA130) | **A photo of each** |
+| **Grey spec tile** | **4 machines** (ASM 6-30, ZM150, ZM101, CA130) | **A photo of each** |
 | **Grey spec tile** | **4 consumables** (cam sets N and NU, measuring device) | **A photo of each (about 3)** |
 
 So 57 products have no photo in the new style: 20 + 10 + 1 + 7 + 15 + 4 + 4 (and the photo count to shoot is about 20).
