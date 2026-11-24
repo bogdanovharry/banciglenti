@@ -161,7 +161,7 @@ function TickerStrip() {
       >
         {[...items, ...items, ...items].map((text, i) => (
           // Only the first run is read out; the repeats exist for the loop.
-          <span key={i} aria-hidden={i >= items.length || undefined} className={i % 7 === 0 ? "opacity-100" : "opacity-70"}>{text}</span>
+          <span key={i} aria-hidden={i >= items.length || undefined} className={i % 7 === 0 ? "opacity-100" : "opacity-80"}>{text}</span>
         ))}
       </div>
     </div>

@@ -182,13 +182,13 @@ export function ProductClient({ product }: { product: ProductView }) {
       <div className="max-w-[1440px] mx-auto px-4 md:px-10 pt-8 pb-20">
         {/* Breadcrumbs */}
         <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-ink-50 flex gap-2 mb-4 md:mb-10 flex-wrap">
-          <Link href="/" className="cursor-pointer no-underline text-ink-50 hover:text-ink">{tc("home")}</Link>
+          <Link href="/" className="inline-block py-2 -my-2 cursor-pointer no-underline text-ink-50 hover:text-ink">{tc("home")}</Link>
           <span>/</span>
           {product.breadcrumb ? (
             <>
               <Link
                 href={localizeHref(`/category/${product.breadcrumb.slug}`, locale)}
-                className="cursor-pointer no-underline text-ink-50 hover:text-ink"
+                className="inline-block py-2 -my-2 cursor-pointer no-underline text-ink-50 hover:text-ink"
               >
                 {product.breadcrumb.name}
               </Link>

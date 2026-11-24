@@ -59,14 +59,16 @@
   --color-ink: #111111;
   --color-ink-80: #333333;
   --color-ink-70: #4D4D4D;
-  --color-ink-50: #808080;
+  --color-ink-50: #6B6B6B;
   --color-ink-30: #B3B3B3;
   --color-ink-15: #D9D9D9;
   --color-ink-08: #EDEDED;
   --color-ink-05: #F5F5F5;
 
   /* Secondary accent */
-  --color-orange: #D97706;
+  /* Darkened from #D97706 (3.2:1 on white) so orange text and white-on-orange buttons reach 4.5:1.
+     On dark sections the bright value is restored for text below, where it is the one that reads. */
+  --color-orange: #B45309;
   --color-orange-light: #F59E0B;
 
   /* Aliases */
@@ -78,7 +80,7 @@
   --color-navy-ink: #111111;
 
   /* Semantic */
-  --color-ok: #16A34A;
+  --color-ok: #15803D;
   --color-danger: #DC2626;
 
   /* Fonts */
@@ -361,4 +363,16 @@ input[type="range"]::-webkit-slider-thumb {
 /* With the page running under the browser's bars, the footer keeps its content clear of the bottom one. */
 footer {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Orange text sits on dark sections in its original, brighter value; the darker token is for light backgrounds. */
+:is(.bg-ink, .bg-blue, .bg-blue-deep, .bg-navy) .text-orange {
+  color: #F59E0B;
+}
+
+/* A link inside running text is told apart by more than colour. */
+main p a:not(.no-underline),
+main li a:not(.no-underline):not([class*="block"]):not([class*="flex"]) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }

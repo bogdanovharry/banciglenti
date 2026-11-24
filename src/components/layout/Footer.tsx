@@ -131,10 +131,10 @@ export async function Footer() {
           })).map((col) => (
             <div key={col.title}>
               <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-4">{t(col.title)}</div>
-              <ul className="list-none m-0 p-0 flex flex-col gap-2.5">
+              <ul className="list-none m-0 p-0 flex flex-col gap-0.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <Link href={localizeHref(l.href, locale)} className="font-sans text-sm text-white/75 no-underline hover:text-white transition-colors">
+                    <Link href={localizeHref(l.href, locale)} className="inline-block py-2 font-sans text-sm text-white/75 no-underline hover:text-white transition-colors">
                       {t(l.label)}
                     </Link>
                   </li>
@@ -148,8 +148,8 @@ export async function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t border-white/10 font-mono text-[11px] text-white/50 tracking-[0.04em]">
           <div>© {company.foundedYear}–{new Date().getFullYear()} {company.legalName}{site ? ` · ${site}` : ""} · {t("vatNo", { number: company.vatNumber })}</div>
           <div className="flex gap-5">
-            <a href="https://www.facebook.com/tehnoles" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white no-underline transition-colors">Facebook</a>
-            <a href="https://www.youtube.com/@Tehnolesltd" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white no-underline transition-colors">YouTube</a>
+            <a href="https://www.facebook.com/tehnoles" target="_blank" rel="noopener noreferrer" className="inline-block py-2 text-white/50 hover:text-white no-underline transition-colors">Facebook</a>
+            <a href="https://www.youtube.com/@Tehnolesltd" target="_blank" rel="noopener noreferrer" className="inline-block py-2 text-white/50 hover:text-white no-underline transition-colors">YouTube</a>
           </div>
         </div>
       </div>
