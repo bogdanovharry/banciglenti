@@ -24,7 +24,7 @@ export type RecProduct = {
   stock?: string
 }
 
-export type RecReason = 'box' | 'single' | 'sharpen' | 'coolant' | 'sameLength' | 'sameWidth' | 'popular'
+export type RecReason = 'box' | 'single' | 'sharpen' | 'coolant' | 'sameLength' | 'sameWidth' | 'popular' | 'machine' | 'sameKind'
 export type Recommendation = { slug: string; reason: RecReason }
 
 const has = (p: RecProduct, slug: string) => p.categorySlugs.includes(slug)
@@ -68,8 +68,10 @@ export function recommend(product: RecProduct, all: RecProduct[], limit = 4): Re
     const single = product.slug.replace(/-x\d+$/, '').replace(/-komplekt-\d+$/, '')
     if (single !== product.slug) add(single, 'single')
   } else {
+    // The boxes that carry a discount (10 and 20), not the five-pack, which saves nothing.
     for (const p of all) {
-      if (p.slug.startsWith(`${product.slug}-x`) && packFromSlug(p.slug)?.kind === 'box') add(p.slug, 'box')
+      const pk = packFromSlug(p.slug)
+      if (p.slug.startsWith(`${product.slug}-x`) && pk?.kind === 'box' && pk.percent > 0) add(p.slug, 'box')
     }
     // A bread-band set is "…-komplekt-8", which packFromSlug does not read.
     for (const p of all) if (p.slug.startsWith(`${product.slug}-komplekt`)) add(p.slug, 'box')
@@ -99,12 +101,30 @@ export function recommend(product: RecProduct, all: RecProduct[], limit = 4): Re
     for (const p of sameLength.slice(0, 2)) add(p.slug, 'sameLength')
   }
 
-  // 4. Fall back to the shop's own top picks in the same section, so no page ends empty.
-  if (out.length < 3) {
-    const section = product.categorySlugs.find((c) => ['dyrvo', 'metal', 'hrani', 'tsirkulyarni-trioni', 'abrazivi'].includes(c))
+  // 4. The workshop's machines go together: setting, sharpening and welding the same band.
+  if (has(product, 'mashini')) {
+    for (const p of all) if (has(p, 'mashini')) add(p.slug, 'machine')
+  }
+
+  // 5. Parts that come in sizes of one family (circular saws of a tooth type, knives of a steel, consumables):
+  //    the neighbours of the same kind.
+  if (['tsirkulyarni-trioni', 'nozhove-za-abriht', 'konsumativi'].some((c) => has(product, c))) {
+    const family = (slug: string) => slug.replace(/\d+([x.-]\d+)*/g, '#')
+    const kind = family(product.slug)
     for (const p of all) {
       if (out.length >= limit) break
-      if (p.badge === 'TOP' && section && p.categorySlugs.includes(section) && !packFromSlug(p.slug)) add(p.slug, 'popular')
+      if (!packFromSlug(p.slug) && p.categorySlugs.some((c) => product.categorySlugs.includes(c) && c !== 'dyrvo' && c !== 'metal') && family(p.slug) === kind) {
+        add(p.slug, 'sameKind')
+      }
+    }
+  }
+
+  // 6. Few ideas so far: the shop's own top picks from the same narrow category — never from a different kind of product.
+  if (out.length < 2) {
+    const narrow = product.categorySlugs.filter((c) => !['dyrvo', 'metal', 'hrani'].includes(c))
+    for (const p of all) {
+      if (out.length >= limit) break
+      if (p.badge === 'TOP' && p.categorySlugs.some((c) => narrow.includes(c)) && !packFromSlug(p.slug)) add(p.slug, 'popular')
     }
   }
 
